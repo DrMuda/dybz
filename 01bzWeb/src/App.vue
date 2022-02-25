@@ -1,16 +1,17 @@
 <template>
-  <Home msg="Welcome to Your Vue.js App"/>
+    <Home />
 </template>
 
-<script>
-import Home from './components/Home.vue'
+<script lang="ts">
+import { Options, Vue } from "vue-class-component";
+import Home from "./components/Home.vue";
 
-export default {
-  name: 'App',
-  components: {
-    Home
-  }
-}
+@Options({
+    components: {
+        Home,
+    },
+})
+export default class App extends Vue {}
 </script>
 
 <style>
