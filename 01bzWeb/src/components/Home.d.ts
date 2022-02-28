@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-02-25 14:55:28
- * @LastEditTime: 2022-02-25 16:56:18
+ * @LastEditTime: 2022-02-28 16:13:33
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\components\Home.d.ts
@@ -17,4 +17,10 @@ export interface Novel {
 }
 export interface ImgMap {
     [key: string]: string | null;
+}
+
+export interface InitRes {
+    novel: Novel;
+    imgCache: ImgMap;
+    imgMapCache: ImgMap;
 }

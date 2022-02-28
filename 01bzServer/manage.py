@@ -3,8 +3,6 @@
 import os
 import sys
 
-#python manage.py runserver 0.0.0.0:8010
-
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'HelloWorld.settings')
