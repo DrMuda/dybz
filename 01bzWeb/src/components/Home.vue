@@ -1,5 +1,13 @@
 <template>
     <div id="main">
+        <div class="nav">
+            <el-button class="nav-btn" @click="this.load">刷新</el-button>
+            <el-button class="nav-btn" @click="this.toPrev">上一章</el-button>
+            <el-button class="nav-btn" @click="this.toNext">下一章</el-button>
+            <el-button class="nav-btn" v-for="(item, index) in this.novel.pages" :key="item" @click="this.toPages(index)" :type="this.setPageBtnType(item)"
+                >[{{ index + 1 }}]
+            </el-button>
+        </div>
         <div id="main-context">loading...</div>
     </div>
 </template>
@@ -8,7 +16,7 @@
 import axios from "axios";
 import strToDom from "../utils/strToDom";
 // import EditableImg from "./EditableImg.vue";
-// eslint-disable-next-line
+import { ElButton } from "element-plus";
 
 export default {
     name: "Home",
@@ -17,7 +25,8 @@ export default {
     },
     data() {
         return {
-            reloadBtnIsShow: false,
+            novel: {},
+            novelId: "/10/10967/211316",
         };
     },
     props: {
@@ -27,15 +36,56 @@ export default {
         this.load();
     },
     methods: {
-        load: async function () {
+        load: async function (e) {
+            console.log("加载中...");
             const webData = await this.getWebData();
             const initRes = this.initContent(webData) || {};
+            this.novel = initRes.novel;
+            console.log(initRes);
+            await this.cacheImg();
             this.transToWeb(initRes);
+            this.toTop();
+            console.log("加载完成");
         },
+
+        toPrev: function () {
+            this.novelId = this.novel.prev.replace(".html", "");
+            this.load();
+        },
+
+        toNext: function () {
+            this.novelId = this.novel.next.replace(".html", "");
+            this.load();
+        },
+
+        toPages: function (pageNumber) {
+            if (this.novel.currPage !== this.novel.pages[pageNumber]) {
+                const novelIdSplit = this.novelId.split("/");
+                this.novelId = `/${novelIdSplit[1]}/${novelIdSplit[2]}/${this.novel.pages[pageNumber].replace(".html", "")}`;
+                this.load();
+            }
+        },
+
+        toOther: function () {
+            console.log("toOther");
+        },
+
+        toTop() {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        },
+
+        setPageBtnType: function (page) {
+            if (page === this.novel.currPage) {
+                return "primary";
+            }
+            return undefined;
+        },
+
         getWebData: function () {
             return new Promise((resolve, reject) => {
+                console.log(this.novelId);
                 axios
-                    .get("/getHtml/10/10967/211316", {
+                    .get(`/getHtml${this.novelId}`, {
                         responseType: "blob",
                         transformResponse: [
                             async function (data) {
@@ -62,17 +112,17 @@ export default {
                     });
             });
         },
+
         initContent: (content) => {
             const novel = {};
             let imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
             let imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
-            // 获取网页数据
-            const tempEle = document.createElement("div");
-            // tempEle.setAttribute("style","visibility:hidden;")
-            // document.getElementById("main-context").appendChild(tempEle)
+            // 清除空格，防止扰乱正则匹配
             content = content.replace(/\r\n/g, "");
             content = content.replace(/\n/g, "");
 
+            // 转成dom元素，方便分析
+            const tempEle = document.createElement("div");
             let bodyStr = new RegExp('<body class="chapter".*</body>').exec(content)?.[0];
             bodyStr = bodyStr?.replace("body", "div");
             const body = strToDom(bodyStr)[0];
@@ -105,7 +155,7 @@ export default {
             novel.next = nextLink.getAttribute("href");
 
             console.log("提取正文");
-            // 提取正文
+            // 提取正文，正文是由文本、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
             const mainContextEleList = tempEle.getElementsByClassName("neirong")[0].childNodes;
             for (let i = 0; i < mainContextEleList.length; i += 1) {
                 novel.mainContext || (novel.mainContext = []);
@@ -131,19 +181,21 @@ export default {
             }
 
             localStorage.setItem("imgMap", JSON.stringify(imgMapCache));
-
-            console.log(novel);
+            localStorage.setItem("img", JSON.stringify(imgCache));
             return { novel, imgMapCache, imgCache };
         },
+
         cacheImg: () => {
             return new Promise((resolve, reject) => {
+                console.log("缓存图片");
                 let imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
                 let imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
                 const pList = [];
                 Object.keys(imgCache).forEach((key) => {
-                    if (imgCache[key] === null) {
+                    if (!imgCache[key]) {
                         pList.push(
                             new Promise((resolve, reject) => {
+                                console.log(key);
                                 axios
                                     .get(`/getImg${key}`, {
                                         responseType: "blob",
@@ -182,15 +234,18 @@ export default {
                 Promise.allSettled(pList).then(
                     (res) => {
                         localStorage.setItem("img", JSON.stringify(imgCache));
+                        console.log("缓存完成");
                         resolve();
                     },
                     (res) => {
-                        reject();
                         console.log(res);
+                        console.log("缓存完成");
+                        reject();
                     }
                 );
             });
         },
+
         transToWeb: ({ novel }) => {
             const contextEle = document.getElementById("main-context");
             const imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
@@ -209,7 +264,8 @@ export default {
                                 child = document.createTextNode(imgMapCache?.[imgId] || "");
                             } else {
                                 child = document.createElement("img");
-                                child.setAttribute("src", imgCache?.[imgId] || "");
+                                child.setAttribute("src", imgCache?.[imgId] || "#");
+                                // child.setAttribute("alt", imgCache?.[imgId] || "#");
                                 child.setAttribute("id", imgId || "");
                             }
                         } else if (brReg.test(data)) {
@@ -226,4 +282,25 @@ export default {
 };
 </script>
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped></style>
+<style scoped>
+.nav {
+    display: flex;
+    position: fixed;
+    width: 80px;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    border-right: 1px black solid;
+}
+#main-context {
+    padding: 0 20px 0 90px;
+}
+.nav-btn {
+    margin: 0 !important;
+}
+.curr {
+    border-color: aqua;
+    color: aqua;
+}
+</style>
