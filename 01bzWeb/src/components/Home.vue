@@ -8,24 +8,43 @@
                 >[{{ index + 1 }}]
             </el-button>
         </div>
-        <div id="main-context">loading...</div>
+        <div id="main-context">
+            <template v-for="(item, index) in this.novel.mainContext">
+                <br v-if="new RegExp(/^<br \/>/).test(item) === true" :key="item + index" />
+                <editable-img
+                    v-else-if="new RegExp(/^img:/).test(item) === true && !this.imgMapCache[item.replace('img:', '')]"
+                    :key="item + index"
+                    :imgSrc="this.imgCache[item.replace('img:', '')]"
+                    :id="item.replace('img:', '')"
+                    :updateCache="this.updateCache"
+                />
+                <span v-else-if="new RegExp(/^img:/).test(item) === true && this.imgMapCache[item.replace('img:', '')]" :key="item + index">{{
+                    this.imgMapCache[item.replace("img:", "")]
+                }}</span>
+                <span v-else :key="item + index">{{ item }}</span>
+            </template>
+        </div>
     </div>
 </template>
 
 <script>
 import axios from "axios";
 import strToDom from "../utils/strToDom";
-// import EditableImg from "./EditableImg.vue";
+import EditableImg from "./EditableImg.vue";
 import { ElButton } from "element-plus";
+import { createApp } from "vue";
+import { Vue } from "vue-class-component";
 
 export default {
     name: "Home",
     components: {
-        // EditableImg,
+        EditableImg,
     },
     data() {
         return {
-            novel: {},
+            novel: { title: "", pages: [], currPage: "", prev: "", next: "", mainContext: [] },
+            imgMapCache: JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}, // 图片与文字的映射
+            imgCache: JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}, // 图片与base64的映射
             novelId: "/10/10967/211316",
         };
     },
@@ -36,6 +55,9 @@ export default {
         this.load();
     },
     methods: {
+        consoleLog(message) {
+            console.log(message);
+        },
         load: async function (e) {
             console.log("加载中...");
             const webData = await this.getWebData();
@@ -43,7 +65,8 @@ export default {
             this.novel = initRes.novel;
             console.log(initRes);
             await this.cacheImg();
-            this.transToWeb(initRes);
+            this.imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
+            this.imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
             this.toTop();
             console.log("加载完成");
         },
@@ -79,6 +102,11 @@ export default {
                 return "primary";
             }
             return undefined;
+        },
+
+        updateCache(id, input) {
+            this.imgMapCache[id] = input;
+            localStorage.setItem("imgMap", JSON.stringify(this.imgMapCache));
         },
 
         getWebData: function () {
@@ -265,7 +293,6 @@ export default {
                             } else {
                                 child = document.createElement("img");
                                 child.setAttribute("src", imgCache?.[imgId] || "#");
-                                // child.setAttribute("alt", imgCache?.[imgId] || "#");
                                 child.setAttribute("id", imgId || "");
                             }
                         } else if (brReg.test(data)) {
@@ -298,6 +325,7 @@ export default {
 }
 .nav-btn {
     margin: 0 !important;
+    width: 60px;
 }
 .curr {
     border-color: aqua;
