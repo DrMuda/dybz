@@ -144,11 +144,13 @@ export default {
                             resolve(content);
                         }.bind(this)
                     )
-                    .catch(function (err) {
-                        ElMessage.error("加载失败");
-                        this.loading = false;
-                        console.error("failed", err);
-                    });
+                    .catch(
+                        function (err) {
+                            ElMessage.error("加载失败");
+                            this.loading = false;
+                            console.error("failed", err);
+                        }.bind(this)
+                    );
             });
         },
 

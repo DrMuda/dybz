@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-02 14:58:01
+ * @LastEditTime: 2022-03-02 15:29:15
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
@@ -29,7 +29,21 @@ export default {
     },
     data() {
         return {
-            novelList,
+            novelList: [
+                ...novelList,
+                {
+                    id: "/10/10967",
+                    name: "测试书籍",
+                    firstChapter: {
+                        title: "第八章",
+                        id: "/10/10967/209416",
+                    },
+                    history: {
+                        title: "第八章",
+                        id: "/10/10967/209416",
+                    },
+                },
+            ],
         };
     },
     methods: {
