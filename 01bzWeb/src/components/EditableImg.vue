@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-02-28 11:28:14
- * @LastEditTime: 2022-03-01 15:39:48
+ * @LastEditTime: 2022-03-02 14:57:45
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\EditableImg.vue
@@ -37,7 +37,6 @@ export default {
         handleClose: function () {
             this.dialogIsShow = false;
             this.updateCache(this.id.replace("img:", ""), this.input);
-            console.log("colse:", this.id.replace("img:", ""), this.input);
         },
     },
 };

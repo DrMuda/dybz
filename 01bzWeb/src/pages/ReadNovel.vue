@@ -8,7 +8,7 @@
                 >[{{ index + 1 }}]
             </el-button>
         </div>
-        <div id="main-context">
+        <div id="main-context" v-loading="loading">
             <template v-for="(item, index) in this.novel.mainContext">
                 <br v-if="new RegExp(/^<br \/>/).test(item) === true" :key="item + index" />
                 <editable-img
@@ -29,14 +29,13 @@
 
 <script>
 import axios from "axios";
-import strToDom from "../utils/strToDom";
-import EditableImg from "./EditableImg.vue";
-import { ElButton } from "element-plus";
+import strToDom from "@/utils/strToDom";
+import EditableImg from "@/components/EditableImg.vue";
+import { ElButton, ElMessage } from "element-plus";
 import { createApp } from "vue";
 import { Vue } from "vue-class-component";
 
 export default {
-    name: "Home",
     components: {
         EditableImg,
     },
@@ -45,7 +44,8 @@ export default {
             novel: { title: "", pages: [], currPage: "", prev: "", next: "", mainContext: [] },
             imgMapCache: JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}, // 图片与文字的映射
             imgCache: JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}, // 图片与base64的映射
-            novelId: "/10/10967/211316",
+            novelId: this.$route.query.id,
+            loading: "false",
         };
     },
     props: {
@@ -54,21 +54,37 @@ export default {
     mounted: async function () {
         this.load();
     },
+    beforeUnmount() {
+        const idList = this.novelId.split("/");
+        const currPage = this.novel.currPage.replace(".html", "");
+        const nextNovelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
+        const index = nextNovelList.findIndex((item) => {
+            return item.id === `/${idList[1]}/${idList[2]}`;
+        });
+        if (index > -1) {
+            nextNovelList[index] = {
+                ...nextNovelList[index],
+                history: {
+                    title: this.novel.title,
+                    id: `/${idList[1]}/${idList[2]}/${currPage}`,
+                },
+            };
+        }
+        localStorage.setItem("novelList", JSON.stringify(nextNovelList));
+    },
     methods: {
-        consoleLog(message) {
-            console.log(message);
-        },
         load: async function (e) {
             console.log("加载中...");
+            this.loading = true;
             const webData = await this.getWebData();
             const initRes = this.initContent(webData) || {};
             this.novel = initRes.novel;
-            console.log(initRes);
             await this.cacheImg();
             this.imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
             this.imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
             this.toTop();
             console.log("加载完成");
+            this.loading = false;
         },
 
         toPrev: function () {
@@ -89,10 +105,6 @@ export default {
             }
         },
 
-        toOther: function () {
-            console.log("toOther");
-        },
-
         toTop() {
             window.scrollTo({ top: 0, behavior: "smooth" });
         },
@@ -111,7 +123,6 @@ export default {
 
         getWebData: function () {
             return new Promise((resolve, reject) => {
-                console.log(this.novelId);
                 axios
                     .get(`/getHtml${this.novelId}`, {
                         responseType: "blob",
@@ -134,8 +145,8 @@ export default {
                         }.bind(this)
                     )
                     .catch(function (err) {
-                        const contextEle = document.getElementById("main-context");
-                        contextEle || (contextEle.innerText = "加载失败，请重试");
+                        ElMessage.error("加载失败");
+                        this.loading = false;
                         console.error("failed", err);
                     });
             });
@@ -223,7 +234,6 @@ export default {
                     if (!imgCache[key]) {
                         pList.push(
                             new Promise((resolve, reject) => {
-                                console.log(key);
                                 axios
                                     .get(`/getImg${key}`, {
                                         responseType: "blob",
@@ -266,44 +276,11 @@ export default {
                         resolve();
                     },
                     (res) => {
-                        console.log(res);
                         console.log("缓存完成");
                         reject();
                     }
                 );
             });
-        },
-
-        transToWeb: ({ novel }) => {
-            const contextEle = document.getElementById("main-context");
-            const imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
-            const imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
-
-            if (contextEle) {
-                contextEle.innerHTML = "";
-                novel?.mainContext?.forEach?.((data) => {
-                    if (data) {
-                        let child = null;
-                        const imgReg = new RegExp(/^img:/);
-                        const brReg = new RegExp(/^<br \/>$/);
-                        if (imgReg.test(data)) {
-                            const imgId = data.split("img:")[1];
-                            if (imgMapCache?.[imgId]) {
-                                child = document.createTextNode(imgMapCache?.[imgId] || "");
-                            } else {
-                                child = document.createElement("img");
-                                child.setAttribute("src", imgCache?.[imgId] || "#");
-                                child.setAttribute("id", imgId || "");
-                            }
-                        } else if (brReg.test(data)) {
-                            child = document.createElement("br");
-                        } else {
-                            child = document.createTextNode(data || "");
-                        }
-                        contextEle?.appendChild(child);
-                    }
-                });
-            }
         },
     },
 };
@@ -319,9 +296,14 @@ export default {
     justify-content: space-around;
     align-items: center;
     border-right: 1px black solid;
+    z-index: 100;
+}
+#main {
+    height: 100%;
 }
 #main-context {
     padding: 0 20px 0 90px;
+    height: 100%;
 }
 .nav-btn {
     margin: 0 !important;

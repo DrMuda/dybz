@@ -1,18 +1,15 @@
 <template>
-    <Home />
+    <!-- <Home /> -->
+    <router-view></router-view>
 </template>
 
 <script lang="ts">
 import { Options, Vue } from "vue-class-component";
-import Home from "./components/Home.vue";
 
 @Options({
-    components: {
-        Home,
-    },
+    components: {},
 })
 export default class App extends Vue {}
 </script>
 
-<style>
-</style>
+<style></style>
