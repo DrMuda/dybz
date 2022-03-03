@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 09:44:33
- * @LastEditTime: 2022-03-02 14:52:35
+ * @LastEditTime: 2022-03-03 11:18:36
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\NovelListItem.vue
@@ -15,7 +15,7 @@
             </div>
             <div class="operation">
                 <a class="link" @click="onDelBtnClick" style="color: red">删除书籍</a>
-                <router-link :to="'/SelectChapter?id=' + id" class="link">选择章节</router-link>
+                <router-link :to="`/SelectChapter?id=${id}&name=${name}`" class="link">选择章节</router-link>
             </div>
         </div>
         <div class="link-list">

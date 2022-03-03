@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-02-28 11:28:14
- * @LastEditTime: 2022-03-02 15:25:05
+ * @LastEditTime: 2022-03-03 10:10:41
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\EditableImg.vue
@@ -48,6 +48,4 @@ export default {
 </script>
 
 <style scoped>
-input {
-}
 </style>

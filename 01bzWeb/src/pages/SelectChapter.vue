@@ -1,21 +1,192 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 14:02:18
- * @LastEditTime: 2022-03-02 14:03:53
+ * @LastEditTime: 2022-03-03 15:08:58
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SelectChapter.vue
 -->
 <template>
-  <div>选择章节</div>
+    <div class="select-chapter">
+        <div v-loading="loading" class="list">
+            <el-table :data="chapterList" style="width: 100%" @row-click="toReadNovel">
+                <el-table-column prop="title" :label="novelName" />
+            </el-table>
+        </div>
+        <div class="page-nav-contain">
+            <div class="page-nav">
+                <el-button @click="toPrev" class="page-btn">上一页</el-button>
+                <el-button @click="toNext" class="page-btn">下一页</el-button>
+            </div>
+            <div class="page-nav">
+                <el-input-number v-model="inputPage" class="page-input" :min="1" />
+                <el-button @click="toPage" class="page-btn">跳转</el-button>
+            </div>
+            <div style="text-align:center;width:100%;">共{{ amountPage }}页</div>
+        </div>
+    </div>
 </template>
 
 <script>
+import { ElButton, ElInputNumber, ElMessage, ElTable } from "element-plus";
+import strToDom from "@/utils/strToDom";
+import axios from "axios";
 export default {
+    components: {
+        ElTable,
+        ElButton,
+        ElInputNumber,
+    },
+    data() {
+        return {
+            novelName: this.$route.query.name,
+            novelId: this.$route.query.id,
+            chapterList: [],
+            currPage: 0,
+            inputPage: 1,
+            loading: false,
+            amountPage: 0,
+        };
+    },
+    mounted() {
+        this.load();
+    },
+    methods: {
+        async load() {
+            this.loading = true;
+            try {
+                this.initContent(await this.getWebData());
+            } catch (error) {
+                console.error(error);
+                ElMessage({
+                    showClose: true,
+                    message: "出错了",
+                    type: "error",
+                });
+            }
+            this.loading = false;
+        },
+        toPrev() {
+            this.currPage > 0 || (this.currPage -= 1);
+            this.inputPage = this.currPage;
+            this.load();
+        },
+        toNext() {
+            this.currPage += 1;
+            this.inputPage = this.currPage;
+            this.load();
+        },
+        toPage() {
+            this.currPage = this.inputPage;
+            this.load();
+        },
+        toReadNovel(row) {
+            this.$router.push("/ReadNovel?id=" + row.id.replace(".html", ""));
+        },
+        getWebData() {
+            return new Promise((resolve, reject) => {
+                axios
+                    .get(`/getChapter${this.novelId}${this.currPage > 0 ? `_${this.currPage + 1}` : ""}`, {
+                        responseType: "blob",
+                        transformResponse: [
+                            async function (data) {
+                                return new Promise((resolve) => {
+                                    let reader = new FileReader();
+                                    reader.readAsText(data, "GBK");
+                                    reader.onload = function () {
+                                        resolve(reader.result);
+                                    };
+                                });
+                            },
+                        ],
+                    })
+                    .then(
+                        async function (res) {
+                            const content = await res.data;
+                            resolve(content);
+                        }.bind(this)
+                    )
+                    .catch(
+                        function (err) {
+                            ElMessage.error("加载失败");
+                            this.loading = false;
+                            console.error("failed", err);
+                        }.bind(this)
+                    );
+            });
+        },
+        initContent(content) {
+            // 清除空格，防止扰乱正则匹配
+            content = content.replace(/\r\n/g, "");
+            content = content.replace(/\n/g, "");
+            content = content.replace(/\/images\/jipin-default.jpg/g, "");
 
-}
+            this.amountPage = new RegExp(/(第[0-9]+\/[0-9]+页)/, "g").exec(content)?.[0];
+            this.amountPage = this.amountPage.split("/")[1];
+            this.amountPage = this.amountPage.replace("页", "");
+            this.amountPage = parseInt(this.amountPage);
+
+            // 转成dom元素，方便分析
+            const tempEle = document.createElement("div");
+            let bodyStr = new RegExp('<body class="cover".*</body>').exec(content)?.[0];
+            bodyStr = bodyStr?.replace("body", "div");
+            const body = strToDom(bodyStr)[0];
+            if (body) {
+                tempEle?.appendChild(body);
+            }
+
+            // 提取章节列表
+            this.chapterList = [];
+            const linkListEle = tempEle.getElementsByClassName("mod block update chapter-list")[1].getElementsByTagName("a");
+            for (let i = 0; i < linkListEle.length; i += 1) {
+                this.chapterList.push({
+                    id: linkListEle[i].getAttribute("href"),
+                    title: linkListEle[i].innerText,
+                });
+            }
+            tempEle.remove();
+        },
+    },
+};
 </script>
 
 <style>
-
+.select-chapter {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    max-height: 100%;
+    box-sizing: border-box;
+}
+.list {
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: auto;
+    padding: 16px;
+    margin-top: 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.page-nav-contain {
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+.page-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 8px;
+}
+.page-btn {
+    width: 100px;
+    margin: 0 !important;
+}
+.page-input {
+    width: 100px;
+}
 </style>

@@ -76,13 +76,22 @@ export default {
         load: async function (e) {
             console.log("加载中...");
             this.loading = true;
-            const webData = await this.getWebData();
-            const initRes = this.initContent(webData) || {};
-            this.novel = initRes.novel;
-            await this.cacheImg();
-            this.imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
-            this.imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
-            this.toTop();
+            try {
+                const webData = await this.getWebData();
+                const initRes = this.initContent(webData) || {};
+                this.novel = initRes.novel;
+                await this.cacheImg();
+                this.imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
+                this.imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
+                this.toTop();
+            } catch (error) {
+                console.error(error);
+                ElMessage({
+                    showClose: true,
+                    message: "出错了",
+                    type: "error",
+                });
+            }
             console.log("加载完成");
             this.loading = false;
         },
@@ -124,7 +133,7 @@ export default {
         getWebData: function () {
             return new Promise((resolve, reject) => {
                 axios
-                    .get(`/getHtml${this.novelId}`, {
+                    .get(`/getNovelHtml${this.novelId}`, {
                         responseType: "blob",
                         transformResponse: [
                             async function (data) {
@@ -289,23 +298,35 @@ export default {
 </script>
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.nav {
+#main {
     display: flex;
-    position: fixed;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    height: 100%;
+    max-height: 100%;
+}
+.nav {
+    flex-shrink: 0;
+    flex-grow: 0;
+    display: flex;
     width: 80px;
     height: 100%;
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    border-right: 1px black solid;
-    z-index: 100;
+    box-shadow: 1px 0px 5px #666666;
 }
 #main {
     height: 100%;
 }
 #main-context {
-    padding: 0 20px 0 90px;
+    flex-shrink: 1;
+    flex-grow: 1;
     height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    padding: 0 8px;
 }
 .nav-btn {
     margin: 0 !important;
