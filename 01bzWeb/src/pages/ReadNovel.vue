@@ -86,6 +86,7 @@ export default {
                 this.toTop();
             } catch (error) {
                 console.error(error);
+                console.log(this.novel);
                 ElMessage({
                     showClose: true,
                     message: "出错了",
@@ -168,12 +169,12 @@ export default {
             let imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
             let imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
             // 清除空格，防止扰乱正则匹配
-            content = content.replace(/\r\n/g, "");
             content = content.replace(/\n/g, "");
+            content = content.replace(/\r/g, "");
 
             // 转成dom元素，方便分析
             const tempEle = document.createElement("div");
-            let bodyStr = new RegExp('<body class="chapter".*</body>').exec(content)?.[0];
+            let bodyStr = new RegExp("<body.*/body>").exec(content)?.[0];
             bodyStr = bodyStr?.replace("body", "div");
             const body = strToDom(bodyStr)[0];
             if (body) {
@@ -186,48 +187,56 @@ export default {
 
             console.log("提取章小节");
             // 提取章小节
-            const aList = tempEle.getElementsByClassName("chapterPages")[0].childNodes;
-            for (let i = 0; i < aList.length; i += 1) {
-                const link = aList[i];
-                const href = link.getAttribute("href");
-                novel.pages || (novel.pages = []);
-                novel.pages = [...novel.pages, href];
-                if (link.getAttribute("class") === "curr") {
-                    novel.currPage = href;
+            const aList = tempEle.getElementsByClassName("chapterPages")?.[0]?.childNodes;
+            if (aList?.length > 0) {
+                for (let i = 0; i < aList.length; i += 1) {
+                    const link = aList[i];
+                    const href = link.getAttribute("href");
+                    novel.pages || (novel.pages = []);
+                    novel.pages = [...novel.pages, href];
+                    if (link.getAttribute("class") === "curr") {
+                        novel.currPage = href;
+                    }
                 }
+            } else {
+                novel.pages = [];
             }
 
             console.log("提取上一章、下一章");
             // 提取上一章、下一章
-            const prevLink = tempEle.getElementsByClassName("mod page-control")[1].getElementsByClassName("prev")[0];
-            const nextLink = tempEle.getElementsByClassName("mod page-control")[1].getElementsByClassName("next")[0];
-            novel.prev = prevLink.getAttribute("href");
-            novel.next = nextLink.getAttribute("href");
+            const prevLink = tempEle.getElementsByClassName("mod page-control")?.[1]?.getElementsByClassName("prev")?.[0];
+            const nextLink = tempEle.getElementsByClassName("mod page-control")?.[1]?.getElementsByClassName("next")?.[0];
+            novel.prev = prevLink?.getAttribute("href");
+            novel.next = nextLink?.getAttribute("href");
 
             console.log("提取正文");
             // 提取正文，正文是由文本、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
-            const mainContextEleList = tempEle.getElementsByClassName("neirong")[0].childNodes;
-            for (let i = 0; i < mainContextEleList.length; i += 1) {
-                novel.mainContext || (novel.mainContext = []);
-                const itemEle = mainContextEleList[i];
-                if (itemEle instanceof Text) {
-                    let text = itemEle.textContent;
-                    text = text?.replace(/&nbsp;/g, "") || null;
-                    if (text) {
-                        novel.mainContext.push(text);
+            const mainContextEleList = tempEle.getElementsByClassName("neirong")[0]?.childNodes;
+            if (mainContextEleList?.length > 0) {
+                for (let i = 0; i < mainContextEleList.length; i += 1) {
+                    novel.mainContext || (novel.mainContext = []);
+                    const itemEle = mainContextEleList[i];
+                    if (itemEle instanceof Text) {
+                        let text = itemEle.textContent;
+                        text = text?.replace(/&nbsp;/g, "") || null;
+                        if (text) {
+                            novel.mainContext.push(text);
+                        }
+                    }
+                    if (itemEle instanceof HTMLImageElement) {
+                        let imgId = itemEle.getAttribute("src");
+                        if (imgId) {
+                            novel.mainContext.push(`img:${imgId}`);
+                            imgMapCache[imgId] || (imgMapCache[imgId] = null);
+                            imgCache[imgId] || (imgCache[imgId] = null);
+                        }
+                    }
+                    if (itemEle instanceof HTMLBRElement) {
+                        novel.mainContext.push("<br />");
                     }
                 }
-                if (itemEle instanceof HTMLImageElement) {
-                    let imgId = itemEle.getAttribute("src");
-                    if (imgId) {
-                        novel.mainContext.push(`img:${imgId}`);
-                        imgMapCache[imgId] || (imgMapCache[imgId] = null);
-                        imgCache[imgId] || (imgCache[imgId] = null);
-                    }
-                }
-                if (itemEle instanceof HTMLBRElement) {
-                    novel.mainContext.push("<br />");
-                }
+            } else {
+                novel.mainContext = [];
             }
 
             localStorage.setItem("imgMap", JSON.stringify(imgMapCache));
