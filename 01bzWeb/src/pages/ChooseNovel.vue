@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-03 16:15:09
+ * @LastEditTime: 2022-03-03 17:55:07
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
@@ -113,6 +113,6 @@ export default {
 }
 .set-char-btn {
     position: fixed;
-    margin: -100px 0 0 20px;
+    margin: -200px 0 0 20px;
 }
 </style>
