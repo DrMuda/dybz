@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 14:02:18
- * @LastEditTime: 2022-03-03 15:08:58
+ * @LastEditTime: 2022-03-03 17:40:36
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SelectChapter.vue
@@ -22,7 +22,7 @@
                 <el-input-number v-model="inputPage" class="page-input" :min="1" />
                 <el-button @click="toPage" class="page-btn">跳转</el-button>
             </div>
-            <div style="text-align:center;width:100%;">共{{ amountPage }}页</div>
+            <div style="text-align: center; width: 100%">共{{ amountPage }}页</div>
         </div>
     </div>
 </template>
@@ -46,6 +46,7 @@ export default {
             inputPage: 1,
             loading: false,
             amountPage: 0,
+            isFirt: false,
         };
     },
     mounted() {
@@ -143,6 +144,27 @@ export default {
                     id: linkListEle[i].getAttribute("href"),
                     title: linkListEle[i].innerText,
                 });
+            }
+
+            if (!this.isFirt) {
+                this.isFirt = true;
+                let novelList = [];
+                try {
+                    novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
+                } catch (error) {
+                    novelList = [];
+                }
+                console.log(novelList);
+                novelList = novelList.map((item) => {
+                    if (item.id === this.novelId) {
+                        return {
+                            ...item,
+                            firstChapter: { title: this.chapterList[0].title, id: this.chapterList[0].id.replace(".html", "") },
+                        };
+                    }
+                    return item;
+                });
+                localStorage.setItem("novelList", JSON.stringify(novelList));
             }
             tempEle.remove();
         },

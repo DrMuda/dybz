@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 09:44:33
- * @LastEditTime: 2022-03-03 11:18:36
+ * @LastEditTime: 2022-03-03 17:46:25
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\NovelListItem.vue
@@ -80,7 +80,10 @@ export default {
     color: #409eff;
     text-decoration: none;
     margin-top: 8px;
-    word-wrap: break-word;
+    display: inline-block;
+    overflow: hidden;
+    width: 100%;
+    white-space: nowrap;
 }
 .position-head {
     display: flex;
