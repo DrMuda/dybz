@@ -1,20 +1,24 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-03 15:12:01
+ * @LastEditTime: 2022-03-03 16:15:09
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
 -->
 <template>
-    <div class="novel-list">
-        <novel-list-item v-for="(item, index) in novelList" :key="item.id + index" :item="item" :onChange="onChange" :onDel="onDel" />
-        <div class="add-btn" @click="onAdd">添加</div>
+    <div style="height: 100%; max-height: 100%">
+        <div class="novel-list">
+            <novel-list-item v-for="(item, index) in novelList" :key="item.id + index" :item="item" :onChange="onChange" :onDel="onDel" />
+            <div class="add-btn" @click="onAdd">添加</div>
+        </div>
+        <el-button type="primary" class="set-char-btn" @click="toSetChar">管理字符</el-button>
     </div>
 </template>
 
 <script>
 import NovelListItem from "@/components/NovelListItem.vue";
+import { ElButton } from "element-plus";
 
 let novelList = [];
 try {
@@ -26,6 +30,7 @@ try {
 export default {
     components: {
         NovelListItem,
+        ElButton,
     },
     data() {
         return {
@@ -80,10 +85,20 @@ export default {
             }
             localStorage.setItem("novelList", JSON.stringify(this.novelList));
         },
+        toSetChar() {
+            this.$router.push("SetChar");
+        },
     },
 };
 </script>
 <style scoped>
+.novel-list {
+    min-height: 99%;
+    max-height: 99%;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow: auto;
+}
 .add-btn {
     width: 100%;
     height: 50px;
@@ -96,9 +111,8 @@ export default {
     text-align: center;
     line-height: 50px;
 }
-.novel-list {
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
+.set-char-btn {
+    position: fixed;
+    margin: -100px 0 0 20px;
 }
 </style>
