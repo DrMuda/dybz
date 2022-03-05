@@ -21,7 +21,7 @@
                 >路线{{ index + 1 }}</el-button
             >
             <el-input
-                class="btn"
+                class="btn input-chanel"
                 v-model="currChanel"
                 @change="onInputChange"
             />
@@ -166,11 +166,15 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    align-items: center;
+    padding: 10px;
     box-shadow: 0 1px 5px#666666;
 }
 .btn {
     margin: 0 !important;
     width: 60px;
+    transition: 0.1s;
+}
+.input-chanel:focus-within {
+    width: 200px !important;
 }
 </style>

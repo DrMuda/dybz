@@ -124,7 +124,11 @@ export default {
                     )
                     .catch(
                         function (err) {
-                            ElMessage.error("加载失败");
+                            ElMessage({
+                                showClose: true,
+                                message: "加载失败",
+                                type: "error",
+                            });
                             this.loading = false;
                             console.error("failed", err);
                         }.bind(this)
