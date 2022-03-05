@@ -18,7 +18,7 @@ from django.urls import path
 from . import api
 
 urlpatterns = [
-    path('getNovelHtml/<str:id1>/<str:id2>/<str:id3>', api.getNovelHtml),
-    path('getImg/<str:id1>/<str:id2>/<str:id3>', api.getImg),
-    path("getChapter/<str:id1>/<str:id2>/", api.getChapter)
+    path('getNovelHtml/<str:chanel>/<str:id1>/<str:id2>/<str:id3>', api.getNovelHtml),
+    path('getImg/<str:chanel>/<str:id1>/<str:id2>/<str:id3>', api.getImg),
+    path("getChapter/<str:chanel>/<str:id1>/<str:id2>/", api.getChapter)
 ]

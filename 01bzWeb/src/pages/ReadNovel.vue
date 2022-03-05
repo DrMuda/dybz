@@ -134,7 +134,7 @@ export default {
         getWebData: function () {
             return new Promise((resolve, reject) => {
                 axios
-                    .get(`/getNovelHtml${this.novelId}`, {
+                    .get(`/getNovelHtml/${localStorage.getItem("chanel")}${this.novelId}`, {
                         responseType: "blob",
                         transformResponse: [
                             async function (data) {
@@ -255,7 +255,7 @@ export default {
                         pList.push(
                             new Promise((resolve, reject) => {
                                 axios
-                                    .get(`/getImg${key}`, {
+                                    .get(`/getImg/${localStorage.getItem("chanel")}${key}`, {
                                         responseType: "blob",
                                         transformResponse: [
                                             async function (data) {

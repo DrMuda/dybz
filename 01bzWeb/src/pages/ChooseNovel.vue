@@ -7,22 +7,46 @@
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
 -->
 <template>
-    <div style="height: 100%; max-height: 100%">
+    <div class="choose-novel">
+        <div class="btn-contain">
+            <el-button type="primary" class="btn" @click="toSetChar"
+                >管理字符</el-button
+            >
+            <el-button
+                class="btn"
+                v-for="(chancel, index) in chanelList"
+                :type="currChanel === chancel ? 'primary' : ''"
+                :key="chancel + '_' + index"
+                @click="onChanelChange(chancel)"
+                >路线{{ index + 1 }}</el-button
+            >
+            <el-input
+                class="btn"
+                v-model="currChanel"
+                @change="onInputChange"
+            />
+        </div>
         <div class="novel-list">
-            <novel-list-item v-for="(item, index) in novelList" :key="item.id + index" :item="item" :onChange="onChange" :onDel="onDel" />
+            <novel-list-item
+                v-for="(item, index) in novelList"
+                :key="item.id + index"
+                :item="item"
+                :onChange="onChange"
+                :onDel="onDel"
+            />
             <div class="add-btn" @click="onAdd">添加</div>
         </div>
-        <el-button type="primary" class="set-char-btn" @click="toSetChar">管理字符</el-button>
     </div>
 </template>
 
 <script>
 import NovelListItem from "@/components/NovelListItem.vue";
-import { ElButton } from "element-plus";
+import { ElButton, ElInput } from "element-plus";
 
 let novelList = [];
 try {
-    novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
+    novelList =
+        JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
 } catch (error) {
     novelList = [];
 }
@@ -31,10 +55,20 @@ export default {
     components: {
         NovelListItem,
         ElButton,
+        ElInput,
     },
     data() {
         return {
             novelList,
+            chanelList: [
+                "www.banzhu222.xyz",
+                "www.5diyibanzhu.xyz",
+                "www.diyibanzhuvip6.xyz",
+                "www.diyibanzhu111.xyz",
+                "www.56bd.org",
+                "www.kanhshu.com",
+            ],
+            currChanel: localStorage.getItem("chanel") || "www.banzhu222.xyz",
         };
     },
     methods: {
@@ -88,16 +122,30 @@ export default {
         toSetChar() {
             this.$router.push("SetChar");
         },
+        onChanelChange(chancel) {
+            this.currChanel = chancel;
+            localStorage.setItem("chanel", chancel);
+        },
+        onInputChange() {
+            console.log(this.currChanel);
+            localStorage.setItem("chanel", this.currChanel);
+        },
     },
 };
 </script>
 <style scoped>
+.choose-novel {
+    height: 100%;
+    max-height: 100%;
+    display: flex;
+}
 .novel-list {
     min-height: 99%;
     max-height: 99%;
     padding: 10px;
     box-sizing: border-box;
     overflow: auto;
+    flex: 1 1 auto;
 }
 .add-btn {
     width: 100%;
@@ -111,8 +159,18 @@ export default {
     text-align: center;
     line-height: 50px;
 }
-.set-char-btn {
-    position: fixed;
-    margin: -200px 0 0 20px;
+.btn-contain {
+    flex: 0 0 auto;
+    height: 100%;
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 1px 5px#666666;
+}
+.btn {
+    margin: 0 !important;
+    width: 60px;
 }
 </style>
