@@ -4,39 +4,23 @@
             <el-button class="nav-btn" @click="this.load">刷新</el-button>
             <el-button class="nav-btn" @click="this.toPrev">上一章</el-button>
             <el-button class="nav-btn" @click="this.toNext">下一章</el-button>
-            <el-button
-                class="nav-btn"
-                v-for="(item, index) in this.novel.pages"
-                :key="item"
-                @click="this.toPages(index)"
-                :type="this.setPageBtnType(item)"
+            <el-button class="nav-btn" v-for="(item, index) in this.novel.pages" :key="item" @click="this.toPages(index)" :type="this.setPageBtnType(item)"
                 >[{{ index + 1 }}]
             </el-button>
         </div>
         <div id="main-context" v-loading="loading">
             <template v-for="(item, index) in this.novel.mainContext">
-                <br
-                    v-if="new RegExp(/^<br \/>/).test(item) === true"
-                    :key="item + index"
-                />
+                <br v-if="new RegExp(/^<br \/>/).test(item) === true" :key="item + index" />
                 <editable-img
-                    v-else-if="
-                        new RegExp(/^img:/).test(item) === true &&
-                        !this.imgMapCache[item.replace('img:', '')]
-                    "
+                    v-else-if="new RegExp(/^img:/).test(item) === true && !this.imgMapCache[item.replace('img:', '')]"
                     :key="item + index"
                     :imgSrc="this.imgCache[item.replace('img:', '')]"
                     :id="item.replace('img:', '')"
                     :updateCache="this.updateCache"
                 />
-                <span
-                    v-else-if="
-                        new RegExp(/^img:/).test(item) === true &&
-                        this.imgMapCache[item.replace('img:', '')]
-                    "
-                    :key="item + index"
-                    >{{ this.imgMapCache[item.replace("img:", "")] }}</span
-                >
+                <span v-else-if="new RegExp(/^img:/).test(item) === true && this.imgMapCache[item.replace('img:', '')]" :key="item + index">{{
+                    this.imgMapCache[item.replace("img:", "")]
+                }}</span>
                 <span v-else :key="item + index">{{ item }}</span>
             </template>
         </div>
@@ -65,12 +49,8 @@ export default {
                 next: "",
                 mainContext: [],
             },
-            imgMapCache:
-                JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data ||
-                {}, // 图片与文字的映射
-            imgCache:
-                JSON.parse(`{"data":${localStorage.getItem("img")}}`).data ||
-                {}, // 图片与base64的映射
+            imgMapCache: JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}, // 图片与文字的映射
+            imgCache: JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}, // 图片与base64的映射
             novelId: this.$route.query.id,
             loading: "false",
         };
@@ -84,9 +64,7 @@ export default {
     beforeUnmount() {
         const idList = this.novelId.split("/");
         const currPage = this.novel.currPage.replace(".html", "");
-        const nextNovelList =
-            JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data ||
-            [];
+        const nextNovelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
         const index = nextNovelList.findIndex((item) => {
             return item.id === `/${idList[1]}/${idList[2]}`;
         });
@@ -110,12 +88,8 @@ export default {
                 const initRes = this.initContent(webData) || {};
                 this.novel = initRes.novel;
                 await this.cacheImg();
-                this.imgMapCache =
-                    JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`)
-                        .data || {}; // 图片与文字的映射
-                this.imgCache =
-                    JSON.parse(`{"data":${localStorage.getItem("img")}}`)
-                        .data || {}; // 图片与base64的映射
+                this.imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
+                this.imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
                 this.toTop();
             } catch (error) {
                 console.error(error);
@@ -143,15 +117,13 @@ export default {
         toPages: function (pageNumber) {
             if (this.novel.currPage !== this.novel.pages[pageNumber]) {
                 const novelIdSplit = this.novelId.split("/");
-                this.novelId = `/${novelIdSplit[1]}/${
-                    novelIdSplit[2]
-                }/${this.novel.pages[pageNumber].replace(".html", "")}`;
+                this.novelId = `/${novelIdSplit[1]}/${novelIdSplit[2]}/${this.novel.pages[pageNumber].replace(".html", "")}`;
                 this.load();
             }
         },
 
         toTop() {
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            document.getElementById("main-context").scrollTo({ top: 0, behavior: "smooth" });
         },
 
         setPageBtnType: function (page) {
@@ -169,25 +141,20 @@ export default {
         getWebData: function () {
             return new Promise((resolve, reject) => {
                 axios
-                    .get(
-                        `/getNovelHtml/${localStorage.getItem("chanel")}${
-                            this.novelId
-                        }`,
-                        {
-                            responseType: "blob",
-                            transformResponse: [
-                                async function (data) {
-                                    return new Promise((resolve) => {
-                                        let reader = new FileReader();
-                                        reader.readAsText(data, "GBK");
-                                        reader.onload = function () {
-                                            resolve(reader.result);
-                                        };
-                                    });
-                                },
-                            ],
-                        }
-                    )
+                    .get(`/getNovelHtml/${localStorage.getItem("chanel")}${this.novelId}`, {
+                        responseType: "blob",
+                        transformResponse: [
+                            async function (data) {
+                                return new Promise((resolve) => {
+                                    let reader = new FileReader();
+                                    reader.readAsText(data, "GBK");
+                                    reader.onload = function () {
+                                        resolve(reader.result);
+                                    };
+                                });
+                            },
+                        ],
+                    })
                     .then(
                         async function (res) {
                             const content = await res.data;
@@ -210,12 +177,8 @@ export default {
 
         initContent: (content) => {
             const novel = {};
-            let imgMapCache =
-                JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data ||
-                {}; // 图片与文字的映射
-            let imgCache =
-                JSON.parse(`{"data":${localStorage.getItem("img")}}`).data ||
-                {}; // 图片与base64的映射
+            let imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
+            let imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
             // 清除空格，防止扰乱正则匹配
             content = content.replace(/\n/g, "");
             content = content.replace(/\r/g, "");
@@ -231,13 +194,11 @@ export default {
 
             console.log("提取title");
             // 提取title
-            novel.title =
-                tempEle.getElementsByClassName("page-title")?.[0]?.innerHTML;
+            novel.title = tempEle.getElementsByClassName("page-title")?.[0]?.innerHTML;
 
             console.log("提取章小节");
             // 提取章小节
-            const aList =
-                tempEle.getElementsByClassName("chapterPages")?.[0]?.childNodes;
+            const aList = tempEle.getElementsByClassName("chapterPages")?.[0]?.childNodes;
             if (aList?.length > 0) {
                 for (let i = 0; i < aList.length; i += 1) {
                     const link = aList[i];
@@ -254,19 +215,14 @@ export default {
 
             console.log("提取上一章、下一章");
             // 提取上一章、下一章
-            const prevLink = tempEle
-                .getElementsByClassName("mod page-control")?.[1]
-                ?.getElementsByClassName("prev")?.[0];
-            const nextLink = tempEle
-                .getElementsByClassName("mod page-control")?.[1]
-                ?.getElementsByClassName("next")?.[0];
+            const prevLink = tempEle.getElementsByClassName("mod page-control")?.[1]?.getElementsByClassName("prev")?.[0];
+            const nextLink = tempEle.getElementsByClassName("mod page-control")?.[1]?.getElementsByClassName("next")?.[0];
             novel.prev = prevLink?.getAttribute("href");
             novel.next = nextLink?.getAttribute("href");
 
             console.log("提取正文");
             // 提取正文，正文是由文本、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
-            const mainContextEleList =
-                tempEle.getElementsByClassName("neirong")[0]?.childNodes;
+            const mainContextEleList = tempEle.getElementsByClassName("neirong")[0]?.childNodes;
             if (mainContextEleList?.length > 0) {
                 for (let i = 0; i < mainContextEleList.length; i += 1) {
                     novel.mainContext || (novel.mainContext = []);
@@ -302,56 +258,32 @@ export default {
         cacheImg: () => {
             return new Promise((resolve, reject) => {
                 console.log("缓存图片");
-                let imgMapCache =
-                    JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`)
-                        .data || {}; // 图片与文字的映射
-                let imgCache =
-                    JSON.parse(`{"data":${localStorage.getItem("img")}}`)
-                        .data || {}; // 图片与base64的映射
+                let imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
+                let imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
                 const pList = [];
                 Object.keys(imgCache).forEach((key) => {
                     if (!imgCache[key]) {
                         pList.push(
                             new Promise((resolve, reject) => {
                                 axios
-                                    .get(
-                                        `/getImg/${localStorage.getItem(
-                                            "chanel"
-                                        )}${key}`,
-                                        {
-                                            responseType: "blob",
-                                            transformResponse: [
-                                                async function (data) {
-                                                    return new Promise(
-                                                        (resolve2, reject2) => {
-                                                            const fileReader =
-                                                                new FileReader();
-                                                            fileReader.onload =
-                                                                (e) => {
-                                                                    resolve2(
-                                                                        e
-                                                                            ?.target
-                                                                            ?.result
-                                                                    );
-                                                                };
-                                                            // readAsDataURL
-                                                            fileReader.readAsDataURL(
-                                                                data
-                                                            );
-                                                            fileReader.onerror =
-                                                                () => {
-                                                                    reject2(
-                                                                        new Error(
-                                                                            "blobToBase64 error"
-                                                                        )
-                                                                    );
-                                                                };
-                                                        }
-                                                    );
-                                                },
-                                            ],
-                                        }
-                                    )
+                                    .get(`/getImg/${localStorage.getItem("chanel")}${key}`, {
+                                        responseType: "blob",
+                                        transformResponse: [
+                                            async function (data) {
+                                                return new Promise((resolve2, reject2) => {
+                                                    const fileReader = new FileReader();
+                                                    fileReader.onload = (e) => {
+                                                        resolve2(e?.target?.result);
+                                                    };
+                                                    // readAsDataURL
+                                                    fileReader.readAsDataURL(data);
+                                                    fileReader.onerror = () => {
+                                                        reject2(new Error("blobToBase64 error"));
+                                                    };
+                                                });
+                                            },
+                                        ],
+                                    })
                                     .then(
                                         async (res) => {
                                             const imgBase64 = await res.data;
