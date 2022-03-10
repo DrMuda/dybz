@@ -28,6 +28,13 @@ module.exports = {
                 pathRewrite: {},
                 logLevel: "debug",
             },
+            "/baiduocr/general_basic": {
+                target: "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic",
+                changeOrigin: true,
+                pathRewrite: {
+                    "/baiduocr/general_basic": "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic",
+                },
+            },
         },
     },
 };

@@ -65,8 +65,6 @@ export default {
                 "www.5diyibanzhu.xyz",
                 "www.diyibanzhuvip6.xyz",
                 "www.diyibanzhu111.xyz",
-                "www.56bd.org",
-                "www.kanhshu.com",
             ],
             currChanel: localStorage.getItem("chanel") || "www.banzhu222.xyz",
         };

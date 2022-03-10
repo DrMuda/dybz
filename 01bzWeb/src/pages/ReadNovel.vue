@@ -31,10 +31,9 @@
 <script>
 import axios from "axios";
 import strToDom from "@/utils/strToDom";
+// import baiduOcr from "@/utils/baiduOcr";
 import EditableImg from "@/components/EditableImg.vue";
-import { ElButton, ElMessage } from "element-plus";
-import { createApp } from "vue";
-import { Vue } from "vue-class-component";
+import { ElMessage } from "element-plus";
 
 export default {
     components: {
@@ -290,6 +289,7 @@ export default {
                                             const imgBase64 = await res.data;
                                             if (typeof imgBase64 === "string") {
                                                 imgCache[key] = imgBase64;
+                                                // imgMapCache[key] = (await baiduOcr(imgBase64)).words_result[0].words;
                                             }
                                             resolve(`success:${key}`);
                                         },
