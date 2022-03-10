@@ -8,7 +8,7 @@
                 >[{{ index + 1 }}]
             </el-button>
         </div>
-        <div id="main-context" v-loading="loading">
+        <div id="main-context">
             <template v-for="(item, index) in this.novel.mainContext">
                 <br v-if="new RegExp(/^<br \/>/).test(item) === true" :key="item + index" />
                 <editable-img
@@ -24,6 +24,7 @@
                 <span v-else :key="item + index">{{ item }}</span>
             </template>
         </div>
+        <div id="loading" v-loading="loading" v-show="loading"></div>
     </div>
 </template>
 
@@ -326,6 +327,21 @@ export default {
     height: 100%;
     max-height: 100%;
 }
+#main-context {
+    flex-shrink: 1;
+    flex-grow: 1;
+    height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    padding: 0 8px;
+}
+#loading {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
 .nav {
     flex-shrink: 0;
     flex-grow: 0;
@@ -336,17 +352,7 @@ export default {
     justify-content: space-around;
     align-items: center;
     box-shadow: 1px 0px 5px #666666;
-}
-#main {
-    height: 100%;
-}
-#main-context {
-    flex-shrink: 1;
-    flex-grow: 1;
-    height: 100%;
-    max-height: 100%;
-    overflow-y: auto;
-    padding: 0 8px;
+    z-index: 2;
 }
 .nav-btn {
     margin: 0 !important;

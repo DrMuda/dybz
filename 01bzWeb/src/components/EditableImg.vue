@@ -1,24 +1,26 @@
 <!--
  * @Author: LXX
  * @Date: 2022-02-28 11:28:14
- * @LastEditTime: 2022-03-03 10:10:41
+ * @LastEditTime: 2022-03-10 17:15:03
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\EditableImg.vue
 -->
 <template>
     <span>
-        <img :src="this.imgSrc || '#'" @click="this.onImgClick" />
+        <img :src="imgSrc || '#'" @click="onImgClick" />
         <el-dialog v-if="dialogIsShow" v-model="dialogIsShow" title="输入字符" width="90%" :before-close="handleClose">
-            <img :src="this.imgSrc || '#'" @click="this.onImgClick" />
-            <el-input v-model="input" id="input" />
+            <img :src="imgSrc || '#'" @click="onImgClick" />
+            <el-input
+                v-model="input"
+                id="input"
+            />
         </el-dialog>
     </span>
 </template>
 
 <script>
 import { onMounted, ref } from "vue";
-// eslint-disable-next-line
 export default {
     name: "EditableImg",
     data() {
@@ -47,5 +49,4 @@ export default {
 };
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
