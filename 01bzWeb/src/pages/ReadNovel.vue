@@ -278,6 +278,7 @@ export default {
                                                     };
                                                     // readAsDataURL
                                                     fileReader.readAsDataURL(data);
+                                                    // fileReader.readAsArrayBuffer(data);
                                                     fileReader.onerror = () => {
                                                         reject2(new Error("blobToBase64 error"));
                                                     };
@@ -289,7 +290,18 @@ export default {
                                         async (res) => {
                                             const imgBase64 = await res.data;
                                             if (typeof imgBase64 === "string") {
-                                                imgCache[key] = imgBase64;
+                                                const canvas = document.createElement("canvas");
+                                                canvas.setAttribute("height", "30px");
+                                                canvas.setAttribute("width", "30px");
+                                                const ctx = canvas.getContext("2d");
+                                                ctx.fillStyle = "#fff";
+                                                ctx.fillRect(0, 0, 30, 30);
+                                                const img = new Image();
+                                                img.src = imgBase64;
+                                                ctx.drawImage(img, 0, 0, img.width, img.height);
+                                                document.getElementById("main").appendChild(canvas);
+                                                // imgCache[key] = canvas.toDataURL("image/jpg");
+                                                // canvas.remove();
                                             }
                                             resolve(`success:${key}`);
                                         },
