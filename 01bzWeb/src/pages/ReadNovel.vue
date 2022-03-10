@@ -277,6 +277,7 @@ export default {
                                                     };
                                                     // readAsDataURL
                                                     fileReader.readAsDataURL(data);
+                                                    // fileReader.readAsArrayBuffer(data);
                                                     fileReader.onerror = () => {
                                                         reject2(new Error("blobToBase64 error"));
                                                     };
