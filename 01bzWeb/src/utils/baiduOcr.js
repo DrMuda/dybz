@@ -1,72 +1,63 @@
 import axios from "axios";
+import ImgBase64 from "./ImgBase64";
+import ImgMapChar from "./ImgMapChar";
 
-class ocr{
-    imageList = []
-    request(imgBase64){
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.setAttribute("height", 25);
-        canvas.setAttribute("width", 25);
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, 25, 25);
-        const img = new Image();
-        img.src = imgBase64.replace("data:text/html", "data:image/png");
-        img.onload = () => {
-            ctx.drawImage(img, 0, 0);
-            this.imageList.push(canvas.toDataURL())
-        }
+const QPS = 10;
+const url = ["general_basic", "general", "accurate_basic", "accurate"];
+const access_token = "24.f77cd5678a5e79ab2f385628cc8a9d8d.2592000.1649558689.282335-25293048";
 
-    }
-    push(imgBase64){
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.setAttribute("height", 25);
-        canvas.setAttribute("width", 25);
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, 25, 25);
-        const img = new Image();
-        img.src = imgBase64.replace("data:text/html", "data:image/png");
-        img.onload = () => {
-            ctx.drawImage(img, 0, 0);
-            this.imageList.push(canvas.toDataURL())
-            if(this.imageList.length>1){
-                startRequest()
-            }
+export default async () => {
+    const imgBase64 = ImgBase64.get();
+    const imgMapChar = ImgMapChar.get();
+    const newImgMapChar = {};
+    const keys = Object.keys(imgBase64);
+    for (let i = 0; i < keys.length; i += 1) {
+        const key = keys[i];
+        if (!imgMapChar[key] && imgBase64[key] && imgMapChar[key] !== undefined) {
+            await new Promise((resolve, reject) => {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                canvas.setAttribute("height", 25);
+                canvas.setAttribute("width", 25);
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(0, 0, 25, 25);
+                const img = new Image();
+                img.src = imgBase64[key].replace("data:text/html", "data:image/png");
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0);
+                    axios({
+                        url: "/baiduocr/" + url[0],
+                        method: "post",
+                        params: {
+                            access_token,
+                            image: canvas.toDataURL(),
+                        },
+                    })
+                        .then(
+                            (res) => {
+                                newImgMapChar[key] = res.data.words_result?.[0]?.words;
+                                resolve();
+                            },
+                            () => {
+                                reject();
+                                console.error("error");
+                            }
+                        )
+                        .catch((e) => {
+                            reject();
+                            console.error(e);
+                        });
+                };
+            });
         }
     }
-}
-export default (imgBase64) => {
-    return new Promise((resolve, reject) => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.setAttribute("height", 25);
-        canvas.setAttribute("width", 25);
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, 25, 25);
-        const img = new Image();
-        img.src = imgBase64.replace("data:text/html", "data:image/png");
-        img.onload = () => {
-            ctx.drawImage(img, 0, 0);
-            axios({
-                url: "/baiduocr/general_basic",
-                method: "post",
-                params: {
-                    access_token: "24.f1f83f60260139a836e1b08f05e04459.2592000.1649507826.282335-25293048",
-                    image: canvas.toDataURL(),
-                },
-            })
-                .then(
-                    (res) => {
-                        resolve(res.data);
-                        console.log(res.data)
-                    },
-                    () => {
-                        reject("error");
-                    }
-                )
-                .catch(() => {
-                    reject("error");
-                });
-        };
+    ImgMapChar.set({
+        ...imgMapChar,
+        ...newImgMapChar,
+    });
+    await new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, 1000 / QPS);
     });
 };

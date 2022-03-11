@@ -47,10 +47,23 @@
             "ecmaVersion": 2020
         },
         "rules": {
+            "import/newline-after-import": "off",
+            "no-param-reassign": "off",
+            "space-before-function-paren": "off",
+            "object-curly-spacing": "off",
+            "block-spacing": "off",
+            "dot-notation": "off",
+            "arrow-parens": "off",
+            "space-before-blocks": "off",
+            "no-confusing-arrow": "off",
+            "arrow-body-style": "off",
+            "em": "off",
+            "prettier/prettier": "off",
             "linebreak-style": [
                 0,
                 "windows"
-            ]
+            ],
+            "no-irregular-whitespace": "off"
         }
     },
     "browserslist": [

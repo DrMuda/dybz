@@ -31,7 +31,9 @@
 <script>
 import axios from "axios";
 import strToDom from "@/utils/strToDom";
-// import baiduOcr from "@/utils/baiduOcr";
+import ImgBase64 from "@/utils/ImgBase64";
+import ImgMapChar from "@/utils/ImgMapChar";
+import baiduOcr from "@/utils/baiduOcr";
 import EditableImg from "@/components/EditableImg.vue";
 import { ElMessage } from "element-plus";
 
@@ -49,8 +51,8 @@ export default {
                 next: "",
                 mainContext: [],
             },
-            imgMapCache: JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}, // 图片与文字的映射
-            imgCache: JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}, // 图片与base64的映射
+            imgMapCache: ImgMapChar.get(), // 图片与文字的映射
+            imgCache: ImgBase64.get(), // 图片与base64的映射
             novelId: this.$route.query.id,
             loading: "false",
         };
@@ -88,8 +90,8 @@ export default {
                 const initRes = this.initContent(webData) || {};
                 this.novel = initRes.novel;
                 await this.cacheImg();
-                this.imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
-                this.imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
+                this.imgMapCache = ImgMapChar.get(); // 图片与文字的映射
+                this.imgCache = ImgBase64.get(); // 图片与base64的映射
                 this.toTop();
             } catch (error) {
                 console.error(error);
@@ -135,7 +137,7 @@ export default {
 
         updateCache(id, input) {
             this.imgMapCache[id] = input;
-            localStorage.setItem("imgMap", JSON.stringify(this.imgMapCache));
+            ImgMapChar.set(this.imgMapCache);
         },
 
         getWebData: function () {
@@ -177,8 +179,8 @@ export default {
 
         initContent: (content) => {
             const novel = {};
-            let imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
-            let imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
+            let imgMapCache = ImgMapChar.get(); // 图片与文字的映射
+            let imgCache = ImgBase64.get(); // 图片与base64的映射
             // 清除空格，防止扰乱正则匹配
             content = content.replace(/\n/g, "");
             content = content.replace(/\r/g, "");
@@ -250,19 +252,19 @@ export default {
                 novel.mainContext = [];
             }
 
-            localStorage.setItem("imgMap", JSON.stringify(imgMapCache));
-            localStorage.setItem("img", JSON.stringify(imgCache));
+            ImgBase64.set(imgCache);
+            ImgMapChar.set(imgMapCache);
             return { novel, imgMapCache, imgCache };
         },
 
         cacheImg: () => {
             return new Promise((resolve, reject) => {
                 console.log("缓存图片");
-                let imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
-                let imgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
+                let imgCache = ImgBase64.get(); // 图片与文字的映射
+                let imgMapCache = ImgMapChar.get(); // 图片与base64的映射
                 const pList = [];
                 Object.keys(imgCache).forEach((key) => {
-                    if (!imgCache[key]) {
+                    if (!imgCache[key] && !imgMapCache[key]) {
                         pList.push(
                             new Promise((resolve, reject) => {
                                 axios
@@ -289,7 +291,7 @@ export default {
                                         async (res) => {
                                             const imgBase64 = await res.data;
                                             if (typeof imgBase64 === "string") {
-                                                imgCache[key] = imgBase64;
+                                                imgCache[key] = imgBase64.replace("data:text/html", "data:image/png");
                                                 // imgMapCache[key] = (await baiduOcr(imgBase64)).words_result[0].words;
                                             }
                                             resolve(`success:${key}`);
@@ -304,7 +306,8 @@ export default {
                 });
                 Promise.allSettled(pList).then(
                     (res) => {
-                        localStorage.setItem("img", JSON.stringify(imgCache));
+                        ImgBase64.set(imgCache);
+                        baiduOcr();
                         console.log("缓存完成");
                         resolve();
                     },

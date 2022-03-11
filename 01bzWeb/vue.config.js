@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-02-24 14:37:21
- * @LastEditTime: 2022-03-03 10:40:04
+ * @LastEditTime: 2022-03-11 10:44:06
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\vue.config.js
@@ -28,11 +28,11 @@ module.exports = {
                 pathRewrite: {},
                 logLevel: "debug",
             },
-            "/baiduocr/general_basic": {
-                target: "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic",
+            "/baiduocr": {
+                target: "https://aip.baidubce.com/",
                 changeOrigin: true,
                 pathRewrite: {
-                    "/baiduocr/general_basic": "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic",
+                    "/baiduocr": "/rest/2.0/ocr/v1",
                 },
             },
         },

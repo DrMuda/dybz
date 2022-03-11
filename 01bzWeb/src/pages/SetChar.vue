@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-03 16:04:20
- * @LastEditTime: 2022-03-03 17:05:14
+ * @LastEditTime: 2022-03-11 10:33:34
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SetChar.vue
@@ -25,9 +25,11 @@
 
 <script>
 import { ElInput, ElButton } from "element-plus";
+import ImgBase64 from "@/utils/ImgBase64";
+import ImgMapChar from "@/utils/ImgMapChar";
 
-const imgMapCache = JSON.parse(`{"data":${localStorage.getItem("imgMap")}}`).data || {}; // 图片与文字的映射
-const originImgCache = JSON.parse(`{"data":${localStorage.getItem("img")}}`).data || {}; // 图片与base64的映射
+const imgMapCache = ImgMapChar.get(); // 图片与文字的映射
+const originImgCache = ImgBase64.get(); // 图片与base64的映射
 export default {
     components: {
         ElInput,
@@ -42,7 +44,7 @@ export default {
     },
     methods: {
         onChange() {
-            localStorage.setItem("imgMap", JSON.stringify(this.imgMapCache));
+            ImgMapChar.set(this.imgMapCache)
         },
         onFilterInputChange() {
             if (this.filterInput) {
