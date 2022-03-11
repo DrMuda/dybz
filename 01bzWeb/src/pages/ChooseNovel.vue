@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-11 18:07:19
+ * @LastEditTime: 2022-03-11 18:21:34
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
@@ -91,11 +91,12 @@ export default {
         },
         pushCache() {
             axios({
-                url: "pushCache",
-                data: JSON.stringify({
+                url: "/pushCache",
+                method: "post",
+                data: {
                     ocrToken: localStorage.getItem("ocrToken"),
                     imgMapChar: ImgMapChar.get(),
-                }),
+                },
             });
         },
     },

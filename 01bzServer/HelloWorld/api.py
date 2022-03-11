@@ -1,7 +1,7 @@
 '''
 Author: LXX
 Date: 2022-02-24 16:24:48
-LastEditTime: 2022-03-11 18:02:22
+LastEditTime: 2022-03-11 18:20:46
 LastEditors: LXX
 Description: 
 FilePath: \dybz\01bzServer\HelloWorld\api.py
@@ -33,8 +33,10 @@ def getChapter(request, chanel, id1, id2):
     return HttpResponse(content)
 
 def pushCache(request):
-    data = json.loads(request.body).data
-    os.mknod("../data/01bzCache.txt")
-    fp = open("../data/01bzCache.txt",w)
+    jsonstr = request.body
+    data = jsonstr.decode()
+    fp = open("01bzCache.txt","w")
     fp.write(data)
+    fp.close()
+    return HttpResponse("success")
     
