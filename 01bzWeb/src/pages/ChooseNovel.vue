@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-11 16:14:17
+ * @LastEditTime: 2022-03-11 18:07:19
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
@@ -13,6 +13,7 @@
             <novel-list-item v-for="(item, index) in novelList" :key="item.id + index" :item="item" :onChange="onChange" :onDel="onDel" />
             <div class="add-btn" @click="onAdd">添加</div>
         </div>
+        <el-button @click="pushCache">上传数据</el-button>
     </div>
 </template>
 
@@ -20,6 +21,8 @@
 import NovelListItem from "@/components/NovelListItem.vue";
 import { ElButton, ElInput } from "element-plus";
 import ConfigSet from "@/components/ConfigSet.vue";
+import ImgMapChar from "@/utils/ImgMapChar";
+import axios from "axios";
 
 let novelList = [];
 try {
@@ -85,6 +88,15 @@ export default {
                 this.novelList.splice(index, 1);
             }
             localStorage.setItem("novelList", JSON.stringify(this.novelList));
+        },
+        pushCache() {
+            axios({
+                url: "pushCache",
+                data: JSON.stringify({
+                    ocrToken: localStorage.getItem("ocrToken"),
+                    imgMapChar: ImgMapChar.get(),
+                }),
+            });
         },
     },
 };
