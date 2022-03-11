@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-11 15:10:27
- * @LastEditTime: 2022-03-11 17:01:51
+ * @LastEditTime: 2022-03-11 17:29:52
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\ConfigSet.vue
@@ -114,9 +114,9 @@ export default {
 #setting-contain {
     height: 100%;
     width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
     position: fixed;
-    top: 0;
-    left: 0;
     pointer-events: none;
     z-index: 10;
 }
