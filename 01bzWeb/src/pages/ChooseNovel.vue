@@ -1,39 +1,16 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-03 17:55:07
+ * @LastEditTime: 2022-03-11 16:14:17
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
 -->
 <template>
     <div class="choose-novel">
-        <div class="btn-contain">
-            <el-button type="primary" class="btn" @click="toSetChar"
-                >管理字符</el-button
-            >
-            <el-button
-                class="btn"
-                v-for="(chancel, index) in chanelList"
-                :type="currChanel === chancel ? 'primary' : ''"
-                :key="chancel + '_' + index"
-                @click="onChanelChange(chancel)"
-                >路线{{ index + 1 }}</el-button
-            >
-            <el-input
-                class="btn input-chanel"
-                v-model="currChanel"
-                @change="onInputChange"
-            />
-        </div>
+        <config-set />
         <div class="novel-list">
-            <novel-list-item
-                v-for="(item, index) in novelList"
-                :key="item.id + index"
-                :item="item"
-                :onChange="onChange"
-                :onDel="onDel"
-            />
+            <novel-list-item v-for="(item, index) in novelList" :key="item.id + index" :item="item" :onChange="onChange" :onDel="onDel" />
             <div class="add-btn" @click="onAdd">添加</div>
         </div>
     </div>
@@ -42,11 +19,11 @@
 <script>
 import NovelListItem from "@/components/NovelListItem.vue";
 import { ElButton, ElInput } from "element-plus";
+import ConfigSet from "@/components/ConfigSet.vue";
 
 let novelList = [];
 try {
-    novelList =
-        JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
+    novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
 } catch (error) {
     novelList = [];
 }
@@ -54,19 +31,11 @@ try {
 export default {
     components: {
         NovelListItem,
-        ElButton,
-        ElInput,
+        ConfigSet,
     },
     data() {
         return {
             novelList,
-            chanelList: [
-                "www.banzhu222.xyz",
-                "www.5diyibanzhu.xyz",
-                "www.diyibanzhuvip6.xyz",
-                "www.diyibanzhu111.xyz",
-            ],
-            currChanel: localStorage.getItem("chanel") || "www.banzhu222.xyz",
         };
     },
     methods: {
@@ -117,17 +86,6 @@ export default {
             }
             localStorage.setItem("novelList", JSON.stringify(this.novelList));
         },
-        toSetChar() {
-            this.$router.push("SetChar");
-        },
-        onChanelChange(chancel) {
-            this.currChanel = chancel;
-            localStorage.setItem("chanel", chancel);
-        },
-        onInputChange() {
-            console.log(this.currChanel);
-            localStorage.setItem("chanel", this.currChanel);
-        },
     },
 };
 </script>
@@ -166,13 +124,5 @@ export default {
     justify-content: space-around;
     padding: 10px;
     box-shadow: 0 1px 5px#666666;
-}
-.btn {
-    margin: 0 !important;
-    width: 60px;
-    transition: 0.1s;
-}
-.input-chanel:focus-within {
-    width: 200px !important;
 }
 </style>

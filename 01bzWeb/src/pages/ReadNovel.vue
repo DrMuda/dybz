@@ -55,6 +55,7 @@ export default {
             imgCache: ImgBase64.get(), // 图片与base64的映射
             novelId: this.$route.query.id,
             loading: "false",
+            autoRefreshChar: null,
         };
     },
     props: {
@@ -62,8 +63,13 @@ export default {
     },
     mounted: async function () {
         this.load();
+        this.autoRefreshChar = setInterval(() => {
+            this.imgMapCache = ImgMapChar.get(); // 图片与文字的映射
+            this.imgCache = ImgBase64.get(); // 图片与base64的映射
+        }, 1000);
     },
     beforeUnmount() {
+        this.autoRefreshChar && clearInterval(this.autoRefreshChar);
         const idList = this.novelId.split("/");
         const currPage = this.novel.currPage.replace(".html", "");
         const nextNovelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
