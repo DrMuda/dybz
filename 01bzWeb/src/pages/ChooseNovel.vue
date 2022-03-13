@@ -248,6 +248,7 @@ export default {
     max-width: 600px;
     position: fixed;
     margin: 0 auto;
+    pointer-events: none;
 }
 .sync-btn {
     height: 50px;
@@ -260,6 +261,7 @@ export default {
     justify-content: center;
     align-items: center;
     box-shadow: 0 0 5px #575757;
+    pointer-events: all;
 }
 .push {
     bottom: 110px;

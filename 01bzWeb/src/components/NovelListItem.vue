@@ -97,4 +97,10 @@ export default {
     justify-content: space-between;
     align-items: flex-start;
 }
+.novel-info {
+    flex: 1 1 auto;
+}
+.operation {
+    flex: 0 0 auto;
+}
 </style>
