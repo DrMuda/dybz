@@ -27,7 +27,7 @@ import ImgMapChar from "@/utils/ImgMapChar.js";
 import { ElMessage, ElMessageBox, ElIcon } from "element-plus";
 import { Upload, Download } from "@element-plus/icons-vue";
 import axios from "axios";
-import moment from "moment";
+import moment, { locale } from "moment";
 
 export default {
     components: {
@@ -48,7 +48,10 @@ export default {
         } catch (error) {
             this.novelList = [];
         }
-        this.pullCache();
+        if (!sessionStorage.getItem("isFirst") || sessionStorage.getItem("isFirst") === "true") {
+            this.pullCache();
+            sessionStorage.setItem("isFirst", "false");
+        }
     },
     methods: {
         onChange(id, name, initId) {
@@ -195,6 +198,8 @@ export default {
                         localStorage.setItem("novelList", JSON.stringify(res.data.user.novelList));
                         localStorage.setItem("ocrToken", res.data.user.ocrToken);
                         localStorage.setItem("lastUpdate", res.data.user.lastUpdate);
+                        this.novelList = res.data.user.novelList;
+                        location.reload(false);
                         ElMessage({
                             type: "info",
                             message: "已更新本地记录",
