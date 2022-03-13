@@ -59,7 +59,8 @@
 
 <script>
 import { ElIcon, ElButton, ElRadioGroup, ElRadio } from "element-plus";
-import { Setting, Close, TurnOff } from "@element-plus/icons-vue";
+import { Setting, Close } from "@element-plus/icons-vue";
+import moment from "moment";
 
 export default {
     components: {
@@ -105,6 +106,7 @@ export default {
         },
         onTokenChange() {
             localStorage.setItem("ocrToken", this.ocrToken);
+            localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
         },
     },
 };

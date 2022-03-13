@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import { ElInput, ElButton } from "element-plus";
+import { ElInput } from "element-plus";
 import ImgBase64 from "@/utils/ImgBase64";
 import ImgMapChar from "@/utils/ImgMapChar";
 
@@ -42,9 +42,19 @@ export default {
             filterInput: "",
         };
     },
+    mounted() {
+        const temp = {};
+        Object.keys(this.imgMapCache).forEach((key) => {
+            temp[key] = "";
+        });
+        this.originImgCache = {
+            ...temp,
+            ...this.originImgCache,
+        };
+    },
     methods: {
         onChange() {
-            ImgMapChar.set(this.imgMapCache)
+            ImgMapChar.set(this.imgMapCache);
         },
         onFilterInputChange() {
             if (this.filterInput) {

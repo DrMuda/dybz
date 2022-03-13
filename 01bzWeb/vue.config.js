@@ -28,8 +28,8 @@ module.exports = {
                 pathRewrite: {},
                 logLevel: "debug",
             },
-            "/pushCache": {
-                target: "http://127.0.0.1:8010/",
+            "/sync": {
+                target: "http://127.0.0.1:8081/",
                 changeOrigin: true,
                 pathRewrite: {},
                 logLevel: "debug",

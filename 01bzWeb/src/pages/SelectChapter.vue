@@ -31,6 +31,8 @@
 import { ElButton, ElInputNumber, ElMessage, ElTable } from "element-plus";
 import strToDom from "@/utils/strToDom";
 import axios from "axios";
+import moment from "moment";
+
 export default {
     components: {
         ElTable,
@@ -160,7 +162,6 @@ export default {
                 } catch (error) {
                     novelList = [];
                 }
-                console.log(novelList);
                 novelList = novelList.map((item) => {
                     if (item.id === this.novelId) {
                         return {
@@ -174,6 +175,7 @@ export default {
                     return item;
                 });
                 localStorage.setItem("novelList", JSON.stringify(novelList));
+                localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
             }
             tempEle.remove();
         },

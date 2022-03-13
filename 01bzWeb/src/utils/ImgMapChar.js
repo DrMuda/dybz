@@ -6,6 +6,7 @@
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\ImgMapChar.js
  */
+import moment from "moment";
 class ImgMapChar {
     get() {
         try {
@@ -17,6 +18,7 @@ class ImgMapChar {
     }
     set(nextImgMapChar) {
         localStorage.setItem("imgMapChar", JSON.stringify(nextImgMapChar));
+        localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
     }
 }
 const imgMapChar = new ImgMapChar();

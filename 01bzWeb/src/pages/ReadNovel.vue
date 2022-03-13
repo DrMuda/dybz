@@ -36,6 +36,7 @@ import ImgMapChar from "@/utils/ImgMapChar";
 import baiduOcr from "@/utils/baiduOcr";
 import EditableImg from "@/components/EditableImg.vue";
 import { ElMessage } from "element-plus";
+import moment from "moment";
 
 export default {
     components: {
@@ -86,6 +87,7 @@ export default {
             };
         }
         localStorage.setItem("novelList", JSON.stringify(nextNovelList));
+        localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
     },
     methods: {
         load: async function (e) {
@@ -101,7 +103,6 @@ export default {
                 this.toTop();
             } catch (error) {
                 console.error(error);
-                console.log(this.novel);
                 ElMessage({
                     showClose: true,
                     message: "出错了",
