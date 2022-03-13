@@ -114,11 +114,13 @@ export default {
 
         toPrev: function () {
             this.novelId = this.novel.prev.replace(".html", "");
+            this.$router.replace(`ReadNovel?id=${this.novelId}`);
             this.load();
         },
 
         toNext: function () {
             this.novelId = this.novel.next.replace(".html", "");
+            this.$router.replace(`ReadNovel?id=${this.novelId}`);
             this.load();
         },
 
@@ -126,6 +128,7 @@ export default {
             if (this.novel.currPage !== this.novel.pages[pageNumber]) {
                 const novelIdSplit = this.novelId.split("/");
                 this.novelId = `/${novelIdSplit[1]}/${novelIdSplit[2]}/${this.novel.pages[pageNumber].replace(".html", "")}`;
+                this.$router.replace(`ReadNovel?id=${this.novelId}`);
                 this.load();
             }
         },

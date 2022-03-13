@@ -9,11 +9,7 @@
 <template>
     <div class="select-chapter">
         <div v-loading="loading" class="list">
-            <el-table
-                :data="chapterList"
-                style="width: 100%"
-                @row-click="toReadNovel"
-            >
+            <el-table :data="chapterList" style="width: 100%" @row-click="toReadNovel">
                 <el-table-column prop="title" :label="novelName" />
             </el-table>
         </div>
@@ -23,16 +19,10 @@
                 <el-button @click="toNext" class="page-btn">下一页</el-button>
             </div>
             <div class="page-nav">
-                <el-input-number
-                    v-model="inputPage"
-                    class="page-input"
-                    :min="1"
-                />
+                <el-input-number v-model="inputPage" class="page-input" :min="1" />
                 <el-button @click="toPage" class="page-btn">跳转</el-button>
             </div>
-            <div style="text-align: center; width: 100%">
-                共{{ amountPage }}页
-            </div>
+            <div style="text-align: center; width: 100%">共{{ amountPage }}页</div>
         </div>
     </div>
 </template>
@@ -52,7 +42,7 @@ export default {
             novelName: this.$route.query.name,
             novelId: this.$route.query.id,
             chapterList: [],
-            currPage: 0,
+            currPage: 1,
             inputPage: 1,
             loading: false,
             amountPage: 0,
@@ -78,9 +68,11 @@ export default {
             this.loading = false;
         },
         toPrev() {
-            this.currPage > 0 || (this.currPage -= 1);
-            this.inputPage = this.currPage;
-            this.load();
+            if (this.currPage > 1) {
+                this.currPage -= 1;
+                this.inputPage = this.currPage;
+                this.load();
+            }
         },
         toNext() {
             this.currPage += 1;
@@ -97,25 +89,20 @@ export default {
         getWebData() {
             return new Promise((resolve, reject) => {
                 axios
-                    .get(
-                        `/getChapter/${localStorage.getItem("chanel")}${
-                            this.novelId
-                        }${this.currPage > 0 ? `_${this.currPage + 1}` : ""}`,
-                        {
-                            responseType: "blob",
-                            transformResponse: [
-                                async function (data) {
-                                    return new Promise((resolve) => {
-                                        let reader = new FileReader();
-                                        reader.readAsText(data, "GBK");
-                                        reader.onload = function () {
-                                            resolve(reader.result);
-                                        };
-                                    });
-                                },
-                            ],
-                        }
-                    )
+                    .get(`/getChapter/${localStorage.getItem("chanel")}${this.novelId}${this.currPage > 0 ? `_${this.currPage}` : ""}`, {
+                        responseType: "blob",
+                        transformResponse: [
+                            async function (data) {
+                                return new Promise((resolve) => {
+                                    let reader = new FileReader();
+                                    reader.readAsText(data, "GBK");
+                                    reader.onload = function () {
+                                        resolve(reader.result);
+                                    };
+                                });
+                            },
+                        ],
+                    })
                     .then(
                         async function (res) {
                             const content = await res.data;
@@ -141,18 +128,14 @@ export default {
             content = content.replace(/\n/g, "");
             content = content.replace(/\/images\/jipin-default.jpg/g, "");
 
-            this.amountPage = new RegExp(/(第[0-9]+\/[0-9]+页)/, "g").exec(
-                content
-            )?.[0];
+            this.amountPage = new RegExp(/(第[0-9]+\/[0-9]+页)/, "g").exec(content)?.[0];
             this.amountPage = this.amountPage.split("/")[1];
             this.amountPage = this.amountPage.replace("页", "");
             this.amountPage = parseInt(this.amountPage);
 
             // 转成dom元素，方便分析
             const tempEle = document.createElement("div");
-            let bodyStr = new RegExp('<body class="cover".*</body>').exec(
-                content
-            )?.[0];
+            let bodyStr = new RegExp('<body class="cover".*</body>').exec(content)?.[0];
             bodyStr = bodyStr?.replace("body", "div");
             const body = strToDom(bodyStr)[0];
             if (body) {
@@ -161,9 +144,7 @@ export default {
 
             // 提取章节列表
             this.chapterList = [];
-            const linkListEle = tempEle
-                .getElementsByClassName("mod block update chapter-list")[1]
-                .getElementsByTagName("a");
+            const linkListEle = tempEle.getElementsByClassName("mod block update chapter-list")[1].getElementsByTagName("a");
             for (let i = 0; i < linkListEle.length; i += 1) {
                 this.chapterList.push({
                     id: linkListEle[i].getAttribute("href"),
@@ -175,10 +156,7 @@ export default {
                 this.isFirt = true;
                 let novelList = [];
                 try {
-                    novelList =
-                        JSON.parse(
-                            `{"data":${localStorage.getItem("novelList")}}`
-                        ).data || [];
+                    novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
                 } catch (error) {
                     novelList = [];
                 }

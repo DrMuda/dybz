@@ -31,12 +31,4 @@ def getChapter(request, chanel, id1, id2):
     print("get chapter:", url)
     content = scraper.get(url).content
     return HttpResponse(content)
-
-def pushCache(request):
-    jsonstr = request.body
-    data = jsonstr.decode()
-    fp = open("01bzCache.txt","w")
-    fp.write(data)
-    fp.close()
-    return HttpResponse("success")
     

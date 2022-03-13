@@ -13,23 +13,12 @@
             <novel-list-item v-for="(item, index) in novelList" :key="item.id + index" :item="item" :onChange="onChange" :onDel="onDel" />
             <div class="add-btn" @click="onAdd">添加</div>
         </div>
-        <el-button @click="pushCache">上传数据</el-button>
     </div>
 </template>
 
 <script>
 import NovelListItem from "@/components/NovelListItem.vue";
-import { ElButton, ElInput } from "element-plus";
 import ConfigSet from "@/components/ConfigSet.vue";
-import ImgMapChar from "@/utils/ImgMapChar";
-import axios from "axios";
-
-let novelList = [];
-try {
-    novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
-} catch (error) {
-    novelList = [];
-}
 
 export default {
     components: {
@@ -38,8 +27,15 @@ export default {
     },
     data() {
         return {
-            novelList,
+            novelList: [],
         };
+    },
+    mounted() {
+        try {
+            this.novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
+        } catch (error) {
+            this.novelList = [];
+        }
     },
     methods: {
         onChange(id, name, initId) {
@@ -88,16 +84,6 @@ export default {
                 this.novelList.splice(index, 1);
             }
             localStorage.setItem("novelList", JSON.stringify(this.novelList));
-        },
-        pushCache() {
-            axios({
-                url: "/pushCache",
-                method: "post",
-                data: {
-                    ocrToken: localStorage.getItem("ocrToken"),
-                    imgMapChar: ImgMapChar.get(),
-                },
-            });
         },
     },
 };
