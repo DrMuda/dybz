@@ -9,6 +9,7 @@ const app = createApp(App);
 const router = createRouter({
     history: createWebHistory("/dybz/"),
     routes,
+    
 });
 app.use(ElementPlus);
 app.use(router);
