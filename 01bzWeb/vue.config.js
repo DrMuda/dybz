@@ -1,13 +1,14 @@
 /*
  * @Author: LXX
  * @Date: 2022-02-24 14:37:21
- * @LastEditTime: 2022-03-11 18:04:28
+ * @LastEditTime: 2022-03-14 14:26:39
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\vue.config.js
  */
 
 module.exports = {
+    publicPath: "/dybz",
     devServer: {
         proxy: {
             "/getNovelHtml": {
