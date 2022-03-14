@@ -1,6 +1,6 @@
-import axios from "axios";
 import ImgBase64 from "./ImgBase64";
 import ImgMapChar from "./ImgMapChar";
+import * as services from "@/service/index.js";
 
 const QPS = 10;
 
@@ -26,14 +26,15 @@ export default async () => {
                     img.src = imgBase64[key].replace("data:text/html", "data:image/png");
                     img.onload = () => {
                         ctx.drawImage(img, 0, 0);
-                        axios({
-                            url,
-                            method: "post",
-                            params: {
-                                access_token,
-                                image: canvas.toDataURL(),
-                            },
-                        })
+                        services
+                            .requestOCR({
+                                url,
+                                method: "post",
+                                params: {
+                                    access_token,
+                                    image: canvas.toDataURL(),
+                                },
+                            })
                             .then(
                                 (res) => {
                                     newImgMapChar[key] = res.data.words_result?.[0]?.words;

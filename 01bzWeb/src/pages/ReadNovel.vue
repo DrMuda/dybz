@@ -29,7 +29,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import strToDom from "@/utils/strToDom";
 import ImgBase64 from "@/utils/ImgBase64";
 import ImgMapChar from "@/utils/ImgMapChar";
@@ -37,6 +36,7 @@ import baiduOcr from "@/utils/baiduOcr";
 import EditableImg from "@/components/EditableImg.vue";
 import { ElMessage } from "element-plus";
 import moment from "moment";
+import * as services from "@/service/index.js";
 
 export default {
     components: {
@@ -152,21 +152,8 @@ export default {
 
         getWebData: function () {
             return new Promise((resolve, reject) => {
-                axios
-                    .get(`/getNovelHtml/${localStorage.getItem("chanel")}${this.novelId}`, {
-                        responseType: "blob",
-                        transformResponse: [
-                            async function (data) {
-                                return new Promise((resolve) => {
-                                    let reader = new FileReader();
-                                    reader.readAsText(data, "GBK");
-                                    reader.onload = function () {
-                                        resolve(reader.result);
-                                    };
-                                });
-                            },
-                        ],
-                    })
+                services
+                    .getNovelHtml(this.novelId)
                     .then(
                         async function (res) {
                             const content = await res.data;
@@ -277,39 +264,19 @@ export default {
                     if (!imgCache[key] && !imgMapCache[key]) {
                         pList.push(
                             new Promise((resolve, reject) => {
-                                axios
-                                    .get(`/getImg/${localStorage.getItem("chanel")}${key}`, {
-                                        responseType: "blob",
-                                        transformResponse: [
-                                            async function (data) {
-                                                return new Promise((resolve2, reject2) => {
-                                                    const fileReader = new FileReader();
-                                                    fileReader.onload = (e) => {
-                                                        resolve2(e?.target?.result);
-                                                    };
-                                                    // readAsDataURL
-                                                    fileReader.readAsDataURL(data);
-                                                    // fileReader.readAsArrayBuffer(data);
-                                                    fileReader.onerror = () => {
-                                                        reject2(new Error("blobToBase64 error"));
-                                                    };
-                                                });
-                                            },
-                                        ],
-                                    })
-                                    .then(
-                                        async (res) => {
-                                            const imgBase64 = await res.data;
-                                            if (typeof imgBase64 === "string") {
-                                                imgCache[key] = imgBase64.replace("data:text/html", "data:image/png");
-                                                // imgMapCache[key] = (await baiduOcr(imgBase64)).words_result[0].words;
-                                            }
-                                            resolve(`success:${key}`);
-                                        },
-                                        () => {
-                                            reject(`fail:${key}`);
+                                services.getImg(key).then(
+                                    async (res) => {
+                                        const imgBase64 = await res.data;
+                                        if (typeof imgBase64 === "string") {
+                                            imgCache[key] = imgBase64.replace("data:text/html", "data:image/png");
+                                            // imgMapCache[key] = (await baiduOcr(imgBase64)).words_result[0].words;
                                         }
-                                    );
+                                        resolve(`success:${key}`);
+                                    },
+                                    () => {
+                                        reject(`fail:${key}`);
+                                    }
+                                );
                             })
                         );
                     }

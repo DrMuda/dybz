@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-11 18:21:34
+ * @LastEditTime: 2022-03-14 18:01:29
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
@@ -26,8 +26,8 @@ import ConfigSet from "@/components/ConfigSet.vue";
 import ImgMapChar from "@/utils/ImgMapChar.js";
 import { ElMessage, ElMessageBox, ElIcon } from "element-plus";
 import { Upload, Download } from "@element-plus/icons-vue";
-import axios from "axios";
 import moment, { locale } from "moment";
+import * as services from "@/service/index.js";
 
 export default {
     components: {
@@ -127,8 +127,8 @@ export default {
             } catch (e) {
                 ocrToken = "";
             }
-            axios
-                .post("/sync/pushCache", {
+            services
+                .pushCache({
                     data: {
                         imgMapChar,
                         user: {
@@ -153,7 +153,7 @@ export default {
                 });
         },
         pullCache() {
-            axios.get("/sync/pullCache").then(async (res) => {
+            services.pullCache().then(async (res) => {
                 if (res.status === 200) {
                     const localLastUpdate = moment(localStorage.getItem("lastUpdate"));
                     const cloudLastUpdate = moment(res.data.user.lastUpdate);

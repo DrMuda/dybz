@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-02-24 14:37:21
- * @LastEditTime: 2022-03-14 14:26:39
+ * @LastEditTime: 2022-03-14 18:07:14
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\vue.config.js
@@ -11,28 +11,20 @@ module.exports = {
     publicPath: "/dybz",
     devServer: {
         proxy: {
-            "/getNovelHtml": {
+            "/pythonApi/": {
                 target: "http://127.0.0.1:8010/",
                 changeOrigin: true,
-                pathRewrite: {},
+                pathRewrite: {
+                    "/pythonApi/": "",
+                },
                 logLevel: "debug",
             },
-            "/getImg": {
-                target: "http://127.0.0.1:8010/",
-                changeOrigin: true,
-                pathRewrite: {},
-                logLevel: "debug",
-            },
-            "/getChapter": {
-                target: "http://127.0.0.1:8010/",
-                changeOrigin: true,
-                pathRewrite: {},
-                logLevel: "debug",
-            },
-            "/sync": {
+            "/nodeApi/": {
                 target: "http://127.0.0.1:8081/",
                 changeOrigin: true,
-                pathRewrite: {},
+                pathRewrite: {
+                    "/nodeApi/": "",
+                },
                 logLevel: "debug",
             },
             "/baiduocr": {

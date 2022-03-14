@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 14:02:18
- * @LastEditTime: 2022-03-03 17:40:36
+ * @LastEditTime: 2022-03-14 17:50:38
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SelectChapter.vue
@@ -30,8 +30,8 @@
 <script>
 import { ElButton, ElInputNumber, ElMessage, ElTable } from "element-plus";
 import strToDom from "@/utils/strToDom";
-import axios from "axios";
 import moment from "moment";
+import * as services from "@/service/index.js";
 
 export default {
     components: {
@@ -90,21 +90,8 @@ export default {
         },
         getWebData() {
             return new Promise((resolve, reject) => {
-                axios
-                    .get(`/getChapter/${localStorage.getItem("chanel")}${this.novelId}${this.currPage > 0 ? `_${this.currPage}` : ""}`, {
-                        responseType: "blob",
-                        transformResponse: [
-                            async function (data) {
-                                return new Promise((resolve) => {
-                                    let reader = new FileReader();
-                                    reader.readAsText(data, "GBK");
-                                    reader.onload = function () {
-                                        resolve(reader.result);
-                                    };
-                                });
-                            },
-                        ],
-                    })
+                services
+                    .getChapter(this.novelId, this.currPage)
                     .then(
                         async function (res) {
                             const content = await res.data;
