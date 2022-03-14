@@ -8,28 +8,35 @@
  */
 
 import axios from "axios";
+import { ElMessage } from "element-plus";
 
-export function checkUser({ data, params }) {
-    return axios.get("/nodeApi/sync/checkUser", { data, params });
-}
-
-export function pushCache({ data, params }) {
-    return axios.post("/nodeApi/sync/pushCache", {
-        data,
-        params: {
-            userName: "drMuda",
-            password: "123456",
-        },
-    });
+export function pushCache({ data }) {
+    const userName = localStorage.getItem("userName");
+    const password = localStorage.getItem("password");
+    if (userName && password) {
+        return axios.post("/nodeApi/sync/pushCache", {
+            data,
+            userName,
+            password,
+        });
+    }
+    ElMessage.warning("先在设置中填写账号密码吧！");
+    return Promise.reject({ status: "userError" });
 }
 
 export function pullCache() {
-    return axios.get("/nodeApi/sync/pullCache", {
-        params: {
-            userName: "drMuda",
-            password: "123456",
-        },
-    });
+    const userName = localStorage.getItem("userName");
+    const password = localStorage.getItem("password");
+    if (userName && password) {
+        return axios.get("/nodeApi/sync/pullCache", {
+            params: {
+                userName,
+                password,
+            },
+        });
+    }
+    ElMessage.warning("先在设置中填写账号密码吧！");
+    return Promise.reject({ status: "userError" });
 }
 
 export function getNovelHtml(novelId) {

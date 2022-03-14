@@ -139,7 +139,7 @@ export default {
                 })
                 .then((res) => {
                     ElMessage.closeAll();
-                    if (res.data === "success") {
+                    if (res.data.status === "success") {
                         ElMessage({
                             type: "success",
                             message: "上传成功",
@@ -154,7 +154,7 @@ export default {
         },
         pullCache() {
             services.pullCache().then(async (res) => {
-                if (res.status === 200) {
+                if (res.data.status === "success") {
                     const localLastUpdate = moment(localStorage.getItem("lastUpdate"));
                     const cloudLastUpdate = moment(res.data.user.lastUpdate);
                     let canUpdate = false;
@@ -205,6 +205,11 @@ export default {
                             message: "已更新本地记录",
                         });
                     }
+                } else {
+                    ElMessage({
+                        type: "error",
+                        message: "更新失败",
+                    });
                 }
             });
         },
@@ -273,5 +278,8 @@ export default {
 }
 .pull {
     bottom: 160px;
+}
+.el-message-box {
+    max-width: 100% !important;
 }
 </style>

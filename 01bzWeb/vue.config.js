@@ -11,19 +11,19 @@ module.exports = {
     publicPath: "/dybz",
     devServer: {
         proxy: {
-            "/pythonApi/": {
+            "/pythonApi": {
                 target: "http://127.0.0.1:8010/",
                 changeOrigin: true,
                 pathRewrite: {
-                    "/pythonApi/": "",
+                    "/pythonApi": "",
                 },
                 logLevel: "debug",
             },
-            "/nodeApi/": {
+            "/nodeApi": {
                 target: "http://127.0.0.1:8081/",
                 changeOrigin: true,
                 pathRewrite: {
-                    "/nodeApi/": "",
+                    "/nodeApi": "",
                 },
                 logLevel: "debug",
             },

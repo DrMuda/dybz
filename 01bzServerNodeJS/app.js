@@ -25,7 +25,7 @@ app.use(bodyParser.urlencoded());
  */
 app.post("/sync/pushCache", function (req, res) {
     let originData = null;
-    fs.open("data.json", "w+", (e, num) => {
+    fs.open("data.json", "r", (e, num) => {
         if (e) {
             console.error(e);
             res.send({ status: "readFileError" });
@@ -33,7 +33,7 @@ app.post("/sync/pushCache", function (req, res) {
             fs.readFile(
                 "data.json",
                 // 读取文件完成时调用的回调函数
-                function (err, data) {
+                function (e, data) {
                     if (e) {
                         console.error(e);
                         res.send({ status: "readFileError" });
@@ -41,17 +41,22 @@ app.post("/sync/pushCache", function (req, res) {
                         try {
                             originData = JSON.parse(data);
                         } catch (error) {
+                            console.log("数据有问题:", data);
                             originData = {};
                         } finally {
-                            const { userName, password } = req.query;
+                            const { userName, password } = req.body;
                             const foundUser = {};
-                            Object.keys(originData.users).forEach((userNameTemp) => {
-                                if (userNameTemp === userName) {
-                                    foundUser.name = userName;
-                                    foundUser.password = originData.users[userName].password;
-                                }
-                            });
-                            if (foundUser.name && foundUser.password === password) {
+                            if (originData.users) {
+                                Object.keys(originData.users).forEach((userNameTemp) => {
+                                    if (userNameTemp === userName) {
+                                        foundUser.name = userName;
+                                        foundUser.password = originData.users[userName].password;
+                                    }
+                                });
+                            }
+                            // 如果有合适的user，或者没有这个user，那就写入，当存在密码错误时， 不允许写入
+                            if ((foundUser.name && foundUser.password === password) || !foundUser.name) {
+                                console.log(originData.users);
                                 fs.writeFile(
                                     "data.json",
                                     JSON.stringify(
@@ -61,8 +66,8 @@ app.post("/sync/pushCache", function (req, res) {
                                                 ...req.body.data.imgMapChar,
                                             },
                                             users: {
+                                                ...originData.users,
                                                 [userName]: {
-                                                    ...originData.users,
                                                     ...req.body.data.user,
                                                     password,
                                                     lastUpdate: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -106,7 +111,7 @@ app.get("/sync/pullCache", function (req, res) {
             fs.readFile(
                 "data.json",
                 // 读取文件完成时调用的回调函数
-                function (err, data) {
+                function (e, data) {
                     if (e) {
                         console.error(e);
                         res.send({ status: "readFileError" });
@@ -115,16 +120,19 @@ app.get("/sync/pullCache", function (req, res) {
                         try {
                             originData = JSON.parse(data);
                         } catch (error) {
+                            console.log("数据有问题:", data);
                             originData = {};
                         } finally {
                             const { userName, password } = req.query;
                             const foundUser = {};
-                            Object.keys(originData.users).forEach((userNameTemp) => {
-                                if (userNameTemp === userName) {
-                                    foundUser.name = userName;
-                                    foundUser.password = originData.users[userName].password;
-                                }
-                            });
+                            if (originData.users) {
+                                Object.keys(originData.users).forEach((userNameTemp) => {
+                                    if (userNameTemp === userName) {
+                                        foundUser.name = userName;
+                                        foundUser.password = originData.users[userName].password;
+                                    }
+                                });
+                            }
                             if (foundUser.name && foundUser.password === password) {
                                 res.send({
                                     status: "success",
@@ -133,55 +141,6 @@ app.get("/sync/pullCache", function (req, res) {
                                 });
                             } else {
                                 res.send({ status: "userError" });
-                            }
-                        }
-                    }
-                }
-            );
-        }
-    });
-});
-app.get("/checkUser", function (req, res) {
-    fs.open("data.json", "r", (e, num) => {
-        if (e) {
-            console.error(e);
-            res.send({ status: "readFileError" });
-        } else {
-            fs.readFile(
-                "data.json",
-                // 读取文件完成时调用的回调函数
-                function (err, data) {
-                    if (e) {
-                        console.error(e);
-                        res.send({ status: "readFileError" });
-                    } else {
-                        let originData = null;
-                        try {
-                            originData = JSON.parse(data);
-                        } catch (error) {
-                            originData = {};
-                        } finally {
-                            const foundUser = {};
-                            Object.keys(originData.users).forEach((userName) => {
-                                if (userName === req.query.userName) {
-                                    foundUser.name = userName;
-                                    foundUser.password = originData.users[userName].password;
-                                }
-                            });
-                            if (foundUser.name) {
-                                if (foundUser.password === req.query.password) {
-                                    res.send({
-                                        status: "success",
-                                    });
-                                } else {
-                                    res.send({
-                                        status: "notMaster",
-                                    });
-                                }
-                            } else {
-                                res.send({
-                                    status: "notFound",
-                                });
                             }
                         }
                     }

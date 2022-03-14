@@ -20,6 +20,13 @@
                     <el-button type="primary" class="btn" @click="toSetChar">管理字符</el-button>
                 </div>
                 <div class="set-item">
+                    <div class="label">账号密码</div>
+                    <div>
+                        <el-input v-model="userName" @change="onUserNameChange" placeholder="用户名" />
+                        <el-input v-model="password" @change="onPasswordChange" type="password" placeholder="密码" />
+                    </div>
+                </div>
+                <div class="set-item">
                     <div class="label">路线选择</div>
                     <div>
                         <el-button
@@ -58,9 +65,11 @@
 </template>
 
 <script>
-import { ElIcon, ElButton, ElRadioGroup, ElRadio } from "element-plus";
+import { ElIcon, ElButton, ElRadioGroup, ElRadio, ElMessageBox } from "element-plus";
 import { Setting, Close } from "@element-plus/icons-vue";
 import moment from "moment";
+import md5 from "md5";
+import { ElMessage } from "element-plus/lib/components";
 
 export default {
     components: {
@@ -78,6 +87,8 @@ export default {
             currChanel: localStorage.getItem("chanel") || "www.banzhu222.xyz",
             ocr: localStorage.getItem("ocr") || "no",
             ocrToken: localStorage.getItem("ocrToken") || "",
+            userName: localStorage.getItem("userName"),
+            password: "",
         };
     },
     beforeUnMount() {
@@ -107,6 +118,23 @@ export default {
         onTokenChange() {
             localStorage.setItem("ocrToken", this.ocrToken);
             localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
+        },
+        onUserNameChange() {
+            localStorage.setItem("userName", this.userName);
+        },
+        onPasswordChange() {
+            if (localStorage.getItem("password")) {
+                ElMessageBox.confirm("确定更改已缓存的密码吗？")
+                    .then(() => {
+                        localStorage.setItem("password", md5(this.password));
+                        ElMessage.info("密码已更改");
+                    })
+                    .catch(() => {
+                        ElMessage.info("密码未更改");
+                    });
+            } else {
+                localStorage.setItem("password", md5(this.password));
+            }
         },
     },
 };
@@ -183,5 +211,8 @@ export default {
     margin-bottom: 8px !important;
     width: 60px;
     transition: 0.1s;
+}
+.el-message-box {
+    max-width: 100% !important;
 }
 </style>
