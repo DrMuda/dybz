@@ -1,7 +1,14 @@
 {
-  "dependencies": {
-    "-": "^0.0.1",
-    "express": "^4.17.3",
-    "moment": "^2.29.1"
-  }
+    "dependencies": {
+        "-": "^0.0.1",
+        "express": "^4.17.3",
+        "moment": "^2.29.1"
+    },
+    "devDependencies": {
+        "webpack": "^5.70.0",
+        "webpack-cli": "^4.9.2"
+    },
+    "scripts": {
+        "build": "webpack --config webpack.config.js"
+    }
 }

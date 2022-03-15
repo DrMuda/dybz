@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 09:33:39
- * @LastEditTime: 2022-03-14 17:53:13
+ * @LastEditTime: 2022-03-15 17:02:05
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\app.js
@@ -56,7 +56,6 @@ app.post("/sync/pushCache", function (req, res) {
                             }
                             // 如果有合适的user，或者没有这个user，那就写入，当存在密码错误时， 不允许写入
                             if ((foundUser.name && foundUser.password === password) || !foundUser.name) {
-                                console.log(originData.users);
                                 fs.writeFile(
                                     "data.json",
                                     JSON.stringify(
