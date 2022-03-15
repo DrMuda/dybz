@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 09:33:39
- * @LastEditTime: 2022-03-15 17:02:05
+ * @LastEditTime: 2022-03-15 17:21:45
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\app.js
@@ -149,7 +149,7 @@ app.get("/sync/pullCache", function (req, res) {
     });
 });
 
-const server = app.listen(8081, function () {
+const server = app.listen(8010, function () {
     const host = server.address().address;
     const port = server.address().port;
 

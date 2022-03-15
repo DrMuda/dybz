@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-02-24 14:37:21
- * @LastEditTime: 2022-03-14 18:07:14
+ * @LastEditTime: 2022-03-15 17:26:58
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\vue.config.js
@@ -11,19 +11,19 @@ module.exports = {
     publicPath: "/dybz",
     devServer: {
         proxy: {
-            "/pythonApi": {
+            "/nodeApi": {
                 target: "http://127.0.0.1:8010/",
                 changeOrigin: true,
                 pathRewrite: {
-                    "/pythonApi": "",
+                    "/nodeApi": "",
                 },
                 logLevel: "debug",
             },
-            "/nodeApi": {
-                target: "http://127.0.0.1:8081/",
+            "/pythonApi": {
+                target: "http://127.0.0.1:8011/",
                 changeOrigin: true,
                 pathRewrite: {
-                    "/nodeApi": "",
+                    "/pythonApi": "",
                 },
                 logLevel: "debug",
             },
