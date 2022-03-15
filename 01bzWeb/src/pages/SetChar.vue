@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-03 16:04:20
- * @LastEditTime: 2022-03-11 10:33:34
+ * @LastEditTime: 2022-03-15 10:20:35
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SetChar.vue
@@ -9,11 +9,15 @@
 <template>
     <div class="set-char">
         <div class="filter-bar">
-            <span style="flex: 0 0 auto">筛选：</span>
-            <el-input v-model="filterInput" @change="onFilterInputChange" />
-            <el-button @click="filter('wasSet')">已设值</el-button>
-            <el-button @click="filter('notSet')">未设值</el-button>
-            <el-button @click="filter('all')">所有值</el-button>
+            <div class="input-contain">
+                <span style="flex: 0 0 auto">筛选：</span>
+                <el-input v-model="filterInput" @change="onFilterInputChange" />
+            </div>
+            <div class="btn-contain">
+                <el-button @click="filter('wasSet')">已设值</el-button>
+                <el-button @click="filter('notSet')">未设值</el-button>
+                <el-button @click="filter('all')">所有值</el-button>
+            </div>
         </div>
         <div class="list">
             <div v-for="id in Object.keys(imgCache)" :key="id" class="item">
@@ -28,30 +32,29 @@ import { ElInput } from "element-plus";
 import ImgBase64 from "@/utils/ImgBase64";
 import ImgMapChar from "@/utils/ImgMapChar";
 
-const imgMapCache = ImgMapChar.get(); // 图片与文字的映射
-const originImgCache = ImgBase64.get(); // 图片与base64的映射
 export default {
     components: {
         ElInput,
     },
     data() {
         return {
-            imgMapCache,
-            originImgCache,
-            imgCache: originImgCache,
+            imgMapCache: ImgMapChar.get(), // 图片与文字的映射
+            originImgCache: ImgBase64.get(), // 图片与base64的映射
+            imgCache: ImgBase64.get(),
             filterInput: "",
         };
     },
-    mounted() {
-        const temp = {};
-        Object.keys(this.imgMapCache).forEach((key) => {
-            temp[key] = "";
-        });
-        this.originImgCache = {
-            ...temp,
-            ...this.originImgCache,
-        };
-    },
+    // mounted() {
+    //     const temp = {};
+    //     Object.keys(this.imgMapCache).forEach((key) => {
+    //         temp[key] = "";
+    //     });
+    //     this.originImgCache = {
+    //         ...temp,
+    //         ...this.originImgCache,
+    //     };
+    //     this.imgCache = this.originImgCache;
+    // },
     methods: {
         onChange() {
             ImgMapChar.set(this.imgMapCache);
@@ -98,7 +101,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .set-char {
     height: 99%;
     max-height: 99%;
@@ -106,17 +109,31 @@ export default {
     flex-direction: column;
 }
 .filter-bar {
-    height: 30px;
     flex-grow: 0;
     flex-shrink: 0;
     padding: 8px;
     display: flex;
+    flex-direction: column;
     align-items: center;
+}
+.input-contain {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    align-items: center;
+}
+.btn-contain {
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    align-items: center;
+    margin: 8px 0;
 }
 .list {
     flex-grow: 1;
     flex-shrink: 1;
     overflow: auto;
+    padding-top: 0;
 }
 .item {
     display: flex;

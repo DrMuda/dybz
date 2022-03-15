@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-14 18:16:02
+ * @LastEditTime: 2022-03-15 09:58:04
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -13,9 +13,21 @@ import { ElMessage } from "element-plus";
 export function pushCache({ data }) {
     const userName = localStorage.getItem("userName");
     const password = localStorage.getItem("password");
+    const imgMapChar = {};
+    // 筛选已设值的数据
+    data.imgMapChar &&
+        Object.keys(data.imgMapChar).forEach((key) => {
+            if (data.imgMapChar[key]) {
+                imgMapChar[key] = data.imgMapChar[key];
+            }
+        });
+    const nextData = {
+        imgMapChar,
+        user: data.user,
+    };
     if (userName && password) {
         return axios.post("/nodeApi/sync/pushCache", {
-            data,
+            data: nextData,
             userName,
             password,
         });
