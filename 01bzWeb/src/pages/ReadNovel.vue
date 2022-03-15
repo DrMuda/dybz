@@ -32,7 +32,7 @@
 import strToDom from "@/utils/strToDom";
 import ImgBase64 from "@/utils/ImgBase64";
 import ImgMapChar from "@/utils/ImgMapChar";
-import baiduOcr from "@/utils/baiduOcr";
+import cacheImg from "@/utils/cacheImg"
 import EditableImg from "@/components/EditableImg.vue";
 import { ElMessage } from "element-plus";
 import moment from "moment";
@@ -97,7 +97,7 @@ export default {
                 const webData = await this.getWebData();
                 const initRes = this.initContent(webData) || {};
                 this.novel = initRes.novel;
-                await this.cacheImg();
+                await cacheImg();
                 this.imgMapCache = ImgMapChar.get(); // 图片与文字的映射
                 this.imgCache = ImgBase64.get(); // 图片与base64的映射
                 this.toTop();
@@ -252,48 +252,6 @@ export default {
             ImgBase64.set(imgCache);
             ImgMapChar.set(imgMapCache);
             return { novel, imgMapCache, imgCache };
-        },
-
-        cacheImg: () => {
-            return new Promise((resolve, reject) => {
-                console.log("缓存图片");
-                let imgCache = ImgBase64.get(); // 图片与文字的映射
-                let imgMapCache = ImgMapChar.get(); // 图片与base64的映射
-                const pList = [];
-                Object.keys(imgCache).forEach((key) => {
-                    if (!imgCache[key] && !imgMapCache[key]) {
-                        pList.push(
-                            new Promise((resolve, reject) => {
-                                services.getImg(key).then(
-                                    async (res) => {
-                                        const imgBase64 = await res.data;
-                                        if (typeof imgBase64 === "string") {
-                                            imgCache[key] = imgBase64.replace("data:text/html", "data:image/png");
-                                            // imgMapCache[key] = (await baiduOcr(imgBase64)).words_result[0].words;
-                                        }
-                                        resolve(`success:${key}`);
-                                    },
-                                    () => {
-                                        reject(`fail:${key}`);
-                                    }
-                                );
-                            })
-                        );
-                    }
-                });
-                Promise.allSettled(pList).then(
-                    (res) => {
-                        ImgBase64.set(imgCache);
-                        baiduOcr();
-                        console.log("缓存完成");
-                        resolve();
-                    },
-                    (res) => {
-                        console.log("缓存完成");
-                        reject();
-                    }
-                );
-            });
         },
     },
 };

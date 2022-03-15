@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-03 16:04:20
- * @LastEditTime: 2022-03-15 13:38:29
+ * @LastEditTime: 2022-03-15 15:35:00
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SetChar.vue
@@ -35,9 +35,10 @@
 </template>
 
 <script>
-import { ElInput } from "element-plus";
+import { ElInput, ElMessage } from "element-plus";
 import ImgBase64 from "@/utils/ImgBase64";
 import ImgMapChar from "@/utils/ImgMapChar";
+import cacheImg from "@/utils/cacheImg";
 
 export default {
     components: {
@@ -50,6 +51,22 @@ export default {
             imgCache: ImgBase64.get(),
             filterInput: "",
         };
+    },
+    mounted() {
+        Object.keys(this.imgMapCache).forEach((key) => {
+            if (this.originImgCache[key] === undefined) {
+                this.originImgCache[key] = null;
+            }
+        });
+        ImgBase64.set(this.originImgCache);
+        ElMessage.info("正在下载图片...");
+        setTimeout(async () => {
+            await cacheImg(true);
+            this.imgMapCache = ImgMapChar.get(); // 图片与文字的映射
+            this.originImgCache = ImgBase64.get(); // 图片与base64的映射
+            this.imgCache = ImgBase64.get();
+            ElMessage.info("下载完成");
+        }, 10);
     },
     methods: {
         onChange(value, id) {
