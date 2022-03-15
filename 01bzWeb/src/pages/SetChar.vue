@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-03 16:04:20
- * @LastEditTime: 2022-03-15 10:20:35
+ * @LastEditTime: 2022-03-15 13:38:29
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SetChar.vue
@@ -21,7 +21,14 @@
         </div>
         <div class="list">
             <div v-for="id in Object.keys(imgCache)" :key="id" class="item">
-                <img :src="imgCache[id]" /><el-input v-model="imgMapCache[id]" @change="onChange" />
+                <img :src="imgCache[id]" /><el-input
+                    v-model="imgMapCache[id]"
+                    @change="
+                        (val) => {
+                            this.onChange(val, id);
+                        }
+                    "
+                />
             </div>
         </div>
     </div>
@@ -44,19 +51,11 @@ export default {
             filterInput: "",
         };
     },
-    // mounted() {
-    //     const temp = {};
-    //     Object.keys(this.imgMapCache).forEach((key) => {
-    //         temp[key] = "";
-    //     });
-    //     this.originImgCache = {
-    //         ...temp,
-    //         ...this.originImgCache,
-    //     };
-    //     this.imgCache = this.originImgCache;
-    // },
     methods: {
-        onChange() {
+        onChange(value, id) {
+            if (value.length > 1) {
+                this.imgMapCache[id] = value[0];
+            }
             ImgMapChar.set(this.imgMapCache);
         },
         onFilterInputChange() {
