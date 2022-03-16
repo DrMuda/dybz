@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-15 09:58:04
+ * @LastEditTime: 2022-03-16 10:46:08
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -51,8 +51,9 @@ export function pullCache() {
     return Promise.reject({ status: "userError" });
 }
 
-export function getNovelHtml(novelId) {
-    return axios.get(`/pythonApi/getNovelHtml/${localStorage.getItem("chanel")}${novelId}`, {
+export function getNovelHtml(novelUrl) {
+    novelUrl = novelUrl.replace(".html", "");
+    return axios.get(`/pythonApi/getNovelHtml/${localStorage.getItem("chanel")}${novelUrl}`, {
         responseType: "blob",
         transformResponse: [
             async function (data) {
@@ -90,8 +91,9 @@ export function getImg(key) {
     });
 }
 
-export function getChapter(novelId, currPage) {
-    return axios.get(`/pythonApi/getChapter/${localStorage.getItem("chanel")}${novelId}${currPage > 0 ? `_${currPage}` : ""}`, {
+export function getChapter(novelUrl, currPage) {
+    novelUrl = novelUrl.replace(".html", "");
+    return axios.get(`/pythonApi/getChapter/${localStorage.getItem("chanel")}${novelUrl}${currPage > 0 ? `_${currPage}` : ""}`, {
         responseType: "blob",
         transformResponse: [
             function (data) {

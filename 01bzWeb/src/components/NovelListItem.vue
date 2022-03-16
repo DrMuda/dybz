@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 09:44:33
- * @LastEditTime: 2022-03-03 17:46:25
+ * @LastEditTime: 2022-03-16 11:10:16
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\NovelListItem.vue
@@ -10,17 +10,21 @@
     <div class="novel-card">
         <div class="position-head">
             <div class="novel-info">
-                <el-input v-model="name" @change="onNameOrIdChange" />
-                <el-input v-model="id" @change="onNameOrIdChange" />
+                <el-input v-model="name" @change="onNameOrUrlChange" />
+                <el-input v-model="url" @change="onNameOrUrlChange" />
             </div>
             <div class="operation">
                 <a class="link" @click="onDelBtnClick" style="color: red">删除书籍</a>
-                <router-link :to="`/SelectChapter?id=${id}&name=${name}`" class="link">选择章节</router-link>
+                <router-link :to="`/SelectChapter?id=${id}&url=${url}&name=${name}`" class="link">选择章节</router-link>
             </div>
         </div>
         <div class="link-list">
-            <router-link :to="history.id ? '/ReadNovel?id=' + history.id : '/SelectChapter?id=' + id" class="link">上次读到：{{ history.title }}</router-link>
-            <router-link :to="firstChapter.id ? '/ReadNovel?id=' + firstChapter.id : '/SelectChapter?id=' + id" class="link"
+            <router-link :to="{ path: history.url ? '/ReadNovel' : '/SelectChapter', query: { url: history.url ? history.url : url, id: id } }" class="link"
+                >上次读到：{{ history.title }}</router-link
+            >
+            <router-link
+                :to="{ path: firstChapter.url ? '/ReadNovel' : '/SelectChapter', query: { url: firstChapter.url ? firstChapter.url : url, id: id } }"
+                class="link"
                 >重头开始读：{{ firstChapter.title }}</router-link
             >
         </div>
@@ -35,9 +39,9 @@ export default {
     },
     data() {
         return {
-            initId: this.item.id, // 初始id， 修改的依据
-            name: this.item.name,
             id: this.item.id,
+            name: this.item.name,
+            url: this.item.url,
             history: this.item.history,
             firstChapter: this.item.firstChapter,
         };
@@ -51,8 +55,8 @@ export default {
         onDelBtnClick() {
             this.onDel(this.id);
         },
-        onNameOrIdChange() {
-            this.onChange(this.id, this.name, this.initId);
+        onNameOrUrlChange() {
+            this.onChange(this.url, this.name, this.id);
         },
     },
 };

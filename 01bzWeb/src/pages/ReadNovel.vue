@@ -32,7 +32,7 @@
 import strToDom from "@/utils/strToDom";
 import ImgBase64 from "@/utils/ImgBase64";
 import ImgMapChar from "@/utils/ImgMapChar";
-import cacheImg from "@/utils/cacheImg"
+import cacheImg from "@/utils/cacheImg";
 import EditableImg from "@/components/EditableImg.vue";
 import { ElMessage } from "element-plus";
 import moment from "moment";
@@ -55,7 +55,9 @@ export default {
             imgMapCache: ImgMapChar.get(), // 图片与文字的映射
             imgCache: ImgBase64.get(), // 图片与base64的映射
             novelId: this.$route.query.id,
-            loading: "false",
+            novelUrl: this.$route.query.url,
+            loading: false,
+            loadSuccess: false,
             autoRefreshChar: null,
         };
     },
@@ -70,28 +72,39 @@ export default {
         }, 1000);
     },
     beforeUnmount() {
+        // eslint-disable-next-line no-debugger
+        // debugger;
         this.autoRefreshChar && clearInterval(this.autoRefreshChar);
-        const idList = this.novelId.split("/");
-        const currPage = this.novel.currPage.replace(".html", "");
-        const nextNovelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
-        const index = nextNovelList.findIndex((item) => {
-            return item.id === `/${idList[1]}/${idList[2]}`;
-        });
-        if (index > -1) {
-            nextNovelList[index] = {
-                ...nextNovelList[index],
-                history: {
-                    title: this.novel.title,
-                    id: `/${idList[1]}/${idList[2]}/${currPage}`,
-                },
-            };
-        }
-        localStorage.setItem("novelList", JSON.stringify(nextNovelList));
-        localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
+        this.setHistory();
     },
     methods: {
+        setHistory: function () {
+            if (this.loadSuccess) {
+                const urlList = this.novelUrl.split("/");
+                const currPage = this.novel.currPage?.replace?.(".html", "");
+                const nextNovelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
+                const index = nextNovelList.findIndex((item) => {
+                    console.log(item.id.toString(), this.novelId.toString());
+                    return item.id.toString() === this.novelId.toString();
+                });
+                // eslint-disable-next-line no-debugger
+                // debugger;
+                if (index > -1) {
+                    nextNovelList[index] = {
+                        ...nextNovelList[index],
+                        history: {
+                            title: this.novel.title,
+                            url: `/${urlList[1]}/${urlList[2]}/${currPage || urlList[3]}`,
+                        },
+                    };
+                }
+                localStorage.setItem("novelList", JSON.stringify(nextNovelList));
+                localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
+            }
+        },
         load: async function (e) {
             console.log("加载中...");
+            this.loadSuccess = false;
             this.loading = true;
             try {
                 const webData = await this.getWebData();
@@ -101,6 +114,8 @@ export default {
                 this.imgMapCache = ImgMapChar.get(); // 图片与文字的映射
                 this.imgCache = ImgBase64.get(); // 图片与base64的映射
                 this.toTop();
+                this.loadSuccess = true;
+                this.setHistory();
             } catch (error) {
                 console.error(error);
                 ElMessage({
@@ -114,22 +129,22 @@ export default {
         },
 
         toPrev: function () {
-            this.novelId = this.novel.prev.replace(".html", "");
-            this.$router.replace(`ReadNovel?id=${this.novelId}`);
+            this.novelUrl = this.novel.prev.replace(".html", "");
+            this.$router.replace(`ReadNovel?id=${this.novelId}&url=${this.novelUrl}`);
             this.load();
         },
 
         toNext: function () {
-            this.novelId = this.novel.next.replace(".html", "");
-            this.$router.replace(`ReadNovel?id=${this.novelId}`);
+            this.novelUrl = this.novel.next.replace(".html", "");
+            this.$router.replace(`ReadNovel?id=${this.novelId}&url=${this.novelUrl}`);
             this.load();
         },
 
         toPages: function (pageNumber) {
             if (this.novel.currPage !== this.novel.pages[pageNumber]) {
-                const novelIdSplit = this.novelId.split("/");
-                this.novelId = `/${novelIdSplit[1]}/${novelIdSplit[2]}/${this.novel.pages[pageNumber].replace(".html", "")}`;
-                this.$router.replace(`ReadNovel?id=${this.novelId}`);
+                const novelUrlSplit = this.novelUrl.split("/");
+                this.novelId = `/${novelUrlSplit[1]}/${novelUrlSplit[2]}/${this.novel.pages[pageNumber].replace(".html", "")}`;
+                this.$router.replace(`ReadNovel?id=${this.novelId}&url=${this.novelUrlSplit}`);
                 this.load();
             }
         },
@@ -153,7 +168,7 @@ export default {
         getWebData: function () {
             return new Promise((resolve, reject) => {
                 services
-                    .getNovelHtml(this.novelId)
+                    .getNovelHtml(this.novelUrl)
                     .then(
                         async function (res) {
                             const content = await res.data;

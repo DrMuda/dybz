@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-14 18:01:29
+ * @LastEditTime: 2022-03-16 10:53:29
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
@@ -54,30 +54,32 @@ export default {
         }
     },
     methods: {
-        onChange(id, name, initId) {
-            if (initId) {
+        onChange(url, name, id) {
+            if (id) {
                 const index = this.novelList.findIndex((item) => {
-                    return item.id === initId;
+                    return item.id.toString() === id.toString();
                 });
                 if (index > -1) {
                     this.novelList[index] = {
                         ...this.novelList[index],
-                        id,
+                        url,
                         name,
                     };
                 } else {
                     this.novelList.push({
                         ...this.novelList[index],
-                        id,
+                        id: new Date().getTime(),
+                        url,
                         name,
                     });
                 }
             } else {
                 this.novelList.push({
-                    id,
+                    id: new Date().getTime(),
+                    url,
                     name,
-                    history: { title: "无历史记录", id: null },
-                    firstChapter: { title: "查找章节", id: null },
+                    history: { title: "无历史记录", url: null },
+                    firstChapter: { title: "查找章节", url: null },
                 });
             }
             localStorage.setItem("novelList", JSON.stringify(this.novelList));
@@ -86,10 +88,11 @@ export default {
         onAdd() {
             this.novelList || (this.novelList = []);
             this.novelList.push({
-                id: `书籍id${new Date().getTime()}`,
+                id: new Date().getTime(),
+                url: "",
                 name: "书籍名称",
-                history: { title: "无历史记录", id: null },
-                firstChapter: { title: "查找章节", id: null },
+                history: { title: "无历史记录", url: null },
+                firstChapter: { title: "查找章节", url: null },
             });
             localStorage.setItem("novelList", JSON.stringify(this.novelList));
             localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
@@ -100,9 +103,9 @@ export default {
             });
             if (index > -1) {
                 this.novelList.splice(index, 1);
+                localStorage.setItem("novelList", JSON.stringify(this.novelList));
+                localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
             }
-            localStorage.setItem("novelList", JSON.stringify(this.novelList));
-            localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
         },
         pushCache() {
             ElMessage({

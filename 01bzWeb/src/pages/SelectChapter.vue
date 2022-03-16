@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 14:02:18
- * @LastEditTime: 2022-03-15 15:17:50
+ * @LastEditTime: 2022-03-16 10:58:51
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SelectChapter.vue
@@ -43,6 +43,7 @@ export default {
         return {
             novelName: this.$route.query.name,
             novelId: this.$route.query.id,
+            novelUrl: this.$route.query.url,
             chapterList: [],
             currPage: 1,
             inputPage: 1,
@@ -85,13 +86,13 @@ export default {
             this.currPage = this.inputPage;
             this.load();
         },
-        toReadNovel(row) {
-            this.$router.push("/ReadNovel?id=" + row.id.replace(".html", ""));
+        toReadNovel(row,b,c,d) {
+            this.$router.push(`/ReadNovel?id=${this.novelId}&url=${row.url}`);
         },
         getWebData() {
             return new Promise((resolve, reject) => {
                 services
-                    .getChapter(this.novelId, this.currPage)
+                    .getChapter(this.novelUrl, this.currPage)
                     .then(
                         async function (res) {
                             const content = await res.data;
@@ -136,7 +137,7 @@ export default {
             const linkListEle = tempEle.getElementsByClassName("mod block update chapter-list")[1].getElementsByTagName("a");
             for (let i = 0; i < linkListEle.length; i += 1) {
                 this.chapterList.push({
-                    id: linkListEle[i].getAttribute("href"),
+                    url: linkListEle[i].getAttribute("href"),
                     title: linkListEle[i].innerText,
                 });
             }
@@ -150,12 +151,12 @@ export default {
                     novelList = [];
                 }
                 novelList = novelList.map((item) => {
-                    if (item.id === this.novelId) {
+                    if (item.id.toString() === this.novelId.toString()) {
                         return {
                             ...item,
                             firstChapter: {
                                 title: this.chapterList[0].title,
-                                id: this.chapterList[0].id.replace(".html", ""),
+                                url: this.chapterList[0].url.replace(".html", ""),
                             },
                         };
                     }
