@@ -4,7 +4,7 @@
             <el-button class="nav-btn" @click="this.load">刷新</el-button>
             <el-button class="nav-btn" @click="this.toPrev">上一章</el-button>
             <el-button class="nav-btn" @click="this.toNext">下一章</el-button>
-            <el-button class="nav-btn" v-for="(item, index) in this.novel.pages" :key="item" @click="this.toPages(index)" :type="this.setPageBtnType(item)"
+            <el-button class="nav-btn" v-for="(item, index) in this.novel.pages" :key="item" @click="this.toPages(index)" :type="setPageBtnType(index)"
                 >[{{ index + 1 }}]
             </el-button>
         </div>
@@ -37,6 +37,7 @@ import EditableImg from "@/components/EditableImg.vue";
 import { ElMessage } from "element-plus";
 import moment from "moment";
 import * as services from "@/service/index.js";
+import { tr } from "element-plus/lib/locale";
 
 export default {
     components: {
@@ -47,16 +48,22 @@ export default {
             novel: {
                 title: "",
                 pages: [],
-                currPage: "",
+                currPage: 0,
                 prev: "",
                 next: "",
                 mainContext: [],
             },
+            // 预加载, 下一页/章节的内容, 结构与novel一致
+            nextPageNovel: null,
             imgMapCache: ImgMapChar.get(), // 图片与文字的映射
             imgCache: ImgBase64.get(), // 图片与base64的映射
             novelId: this.$route.query.id,
             novelUrl: this.$route.query.url,
             loading: false,
+            isPreLoad: false, // 是否预加载
+            stopLoad: false,
+            tryPreLoadNum: 1, // 预加载第几次
+            maxTryPreloadNum: 3, // 最多重试预加载几次
             loadSuccess: false,
             autoRefreshChar: null,
         };
@@ -65,11 +72,25 @@ export default {
         msg: String,
     },
     mounted: async function () {
-        this.load();
+        await this.load();
         this.autoRefreshChar = setInterval(() => {
-            this.imgMapCache = ImgMapChar.get(); // 图片与文字的映射
-            this.imgCache = ImgBase64.get(); // 图片与base64的映射
+            const imgMapCache = ImgMapChar.get();
+            const imgCache = ImgBase64.get();
+            if (JSON.stringify(imgMapCache) !== JSON.stringify(this.imgMapCache)) {
+                this.imgMapCache = imgMapCache;
+            }
+            if (JSON.stringify(imgCache) !== JSON.stringify(this.imgCache)) {
+                this.imgCache = imgCache;
+            }
         }, 1000);
+        setTimeout(() => {
+            console.log("开始预加载");
+            this.nextPageNovel = null;
+            this.isPreLoad = true;
+            this.tryPreLoadNum = 1;
+            this.maxTryPreloadNum = 3;
+            this.load();
+        }, 500);
     },
     beforeUnmount() {
         // eslint-disable-next-line no-debugger
@@ -81,10 +102,9 @@ export default {
         setHistory: function () {
             if (this.loadSuccess) {
                 const urlList = this.novelUrl.split("/");
-                const currPage = this.novel.currPage?.replace?.(".html", "");
+                const currPage = this.novel.pages[currPage]?.replace?.(".html", "") || this.novelUrl;
                 const nextNovelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
                 const index = nextNovelList.findIndex((item) => {
-                    console.log(item.id.toString(), this.novelId.toString());
                     return item.id.toString() === this.novelId.toString();
                 });
                 // eslint-disable-next-line no-debugger
@@ -102,50 +122,205 @@ export default {
                 localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
             }
         },
-        load: async function (e) {
-            console.log("加载中...");
-            this.loadSuccess = false;
-            this.loading = true;
-            try {
-                const webData = await this.getWebData();
-                const initRes = this.initContent(webData) || {};
-                this.novel = initRes.novel;
-                await cacheImg();
-                this.imgMapCache = ImgMapChar.get(); // 图片与文字的映射
-                this.imgCache = ImgBase64.get(); // 图片与base64的映射
-                this.toTop();
-                this.loadSuccess = true;
-                this.setHistory();
-            } catch (error) {
-                console.error(error);
-                ElMessage({
-                    showClose: true,
-                    message: "出错了",
-                    type: "error",
-                });
-            }
-            console.log("加载完成");
-            this.loading = false;
+
+        load: function () {
+            return new Promise((resolve) => {
+                let timer = setInterval(() => {
+                    if (this.stopLoad) {
+                        this.stopLoad = false;
+                        clearInterval(timer);
+                        resolve();
+                    }
+                }, 1);
+                this.loadSuccess = false;
+                !this.isPreLoad && (this.loading = true);
+                try {
+                    let novelUrl = this.novelUrl;
+                    console.log(this.novel);
+                    if (this.isPreLoad) {
+                        // 如果有下一页，则预加载下一页，否则加载下一章，再不然就停止加载
+                        if (this.novel.pages[this.novel.currPage + 1]) {
+                            novelUrl =
+                                "/" +
+                                this.novelUrl.split("/")[1] +
+                                "/" +
+                                this.novelUrl.split("/")[2] +
+                                "/" +
+                                this.novel.pages[this.novel.currPage + 1].replace(".html", "");
+                        } else if (this.novel.next) {
+                            novelUrl = this.novel.next.replace(".html", "");
+                        } else {
+                            resolve();
+                        }
+                    }
+                    if (novelUrl) {
+                        const webData = this.getWebData(novelUrl);
+                        webData.then(
+                            (data) => {
+                                const initRes = this.initContent(data) || {};
+                                let sleep = new Promise((resolve) => {
+                                    setTimeout(
+                                        () => {
+                                            resolve();
+                                        },
+                                        this.isPreLoad ? 10000 : 0
+                                    );
+                                });
+                                sleep.then(() => {
+                                    if (this.isPreLoad) {
+                                        this.nextPageNovel = initRes.novel;
+                                    } else {
+                                        this.novel = initRes.novel;
+                                    }
+                                    this.cacheImg().then(() => {
+                                        this.imgMapCache = ImgMapChar.get(); // 图片与文字的映射
+                                        this.imgCache = ImgBase64.get(); // 图片与base64的映射
+                                        this.isPreLoad && this.toTop();
+                                        this.loadSuccess = true;
+                                        this.isPreLoad = false;
+
+                                        !this.isPreLoad && (this.loading = false);
+                                        setTimeout(() => {
+                                            // 如果是预加载， 且加载次数小于最大加载次数， 且本次加载失败， 进行下一次预加载
+                                            if (this.isPreLoad && this.tryPreLoadNum < this.maxTryPreloadNum && !this.loadSuccess) {
+                                                console.log("开始重试预加载");
+                                                this.loading();
+                                            }
+                                        }, 500);
+                                        !this.isPreLoad && this.setHistory();
+                                        clearInterval(timer);
+                                        resolve();
+                                    });
+                                });
+                            },
+                            () => {
+                                resolve();
+                            }
+                        );
+                    }
+                } catch (error) {
+                    console.error(error);
+                    if (!this.isPreLoad) {
+                        ElMessage({
+                            showClose: true,
+                            message: "出错了",
+                            type: "error",
+                        });
+                    }
+                    !this.isPreLoad && (this.loading = false);
+                }
+            });
         },
 
-        toPrev: function () {
+        toPrev: async function () {
             this.novelUrl = this.novel.prev.replace(".html", "");
             this.$router.replace(`ReadNovel?id=${this.novelId}&url=${this.novelUrl}`);
-            this.load();
+            if (this.isPreLoad) {
+                this.stopLoad = true;
+            }
+            this.isPreLoad = false;
+            await this.load();
+            setTimeout(() => {
+                console.log("加载上一页完成，开始预加载");
+                this.nextPageNovel = null;
+                this.isPreLoad = true;
+                this.tryPreLoadNum = 1;
+                this.maxTryPreloadNum = 3;
+                this.load();
+            }, 500);
         },
 
-        toNext: function () {
+        toNext: async function () {
             this.novelUrl = this.novel.next.replace(".html", "");
             this.$router.replace(`ReadNovel?id=${this.novelId}&url=${this.novelUrl}`);
-            this.load();
+            // 如果当前是最后一页， 那么下一章就是预加载的内容， 直接使用预加载的内容
+            console.log("当前页数与最大页数页数", this.novel.currPage, this.novel.pages.length);
+            if (!this.novel.currPage || this.novel.currPage === this.novel.pages.length - 1) {
+                if (this.nextPageNovel) {
+                    console.log("使用预加载内容");
+                    this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
+                } else {
+                    console.log("没有预加载内容");
+                    if (this.isPreLoad) {
+                        console.log("目前正在加载， 等待这次加载完毕");
+                        this.isPreLoad = false;
+                        this.loading = true;
+                        await new Promise((resolve) => {
+                            this.$watch("loading", (newValue, oldValue) => {
+                                console.log("这次加载完毕");
+                                resolve();
+                            });
+                        });
+                    } else {
+                        console.log("开始新的加载");
+                        if (this.isPreLoad) {
+                            this.stopLoad = true;
+                        }
+                        this.isPreLoad = false;
+                        await this.load();
+                    }
+                }
+            } else {
+                console.log("不是下一页, 不使用预加载内容");
+                if (this.isPreLoad) {
+                    this.stopLoad = true;
+                }
+                this.isPreLoad = false;
+                await this.load();
+            }
+            setTimeout(() => {
+                console.log("加载下一页完成，开始预加载");
+                this.nextPageNovel = null;
+                this.isPreLoad = true;
+                this.tryPreLoadNum = 1;
+                this.maxTryPreloadNum = 3;
+                this.load();
+            }, 500);
         },
 
-        toPages: function (pageNumber) {
-            if (this.novel.currPage !== this.novel.pages[pageNumber]) {
+        toPages: async function (pageNumber) {
+            // 点击同一页的话， 不做处理
+            if (this.novel.currPage !== pageNumber) {
                 const novelUrlSplit = this.novelUrl.split("/");
-                this.novelId = `/${novelUrlSplit[1]}/${novelUrlSplit[2]}/${this.novel.pages[pageNumber].replace(".html", "")}`;
-                this.$router.replace(`ReadNovel?id=${this.novelId}&url=${this.novelUrlSplit}`);
-                this.load();
+                this.novelUrl = `/${novelUrlSplit[1]}/${novelUrlSplit[2]}/${this.novel.pages[pageNumber].replace(".html", "")}`;
+                this.$router.replace(`ReadNovel?id=${this.novelId}&url=${this.novelUrl}`);
+                // 如果刚好点击的是下一页， 使用预加载的内容
+                console.log("当前页数与点击页数", this.novel.currPage, pageNumber);
+                if (this.novel.currPage + 1 === pageNumber) {
+                    if (this.nextPageNovel) {
+                        console.log("使用预加载内容");
+                        this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
+                    } else {
+                        console.log("没有预加载内容");
+                        if (this.isPreLoad) {
+                            console.log("目前正在加载， 等待这次加载完毕");
+                            this.isPreLoad = false;
+                            this.loading = true;
+                            await new Promise((resolve) => {
+                                this.$watch("loading", (newValue, oldValue) => {
+                                    console.log("这次加载完毕");
+                                    resolve();
+                                });
+                            });
+                        } else {
+                            console.log("开始新的加载");
+                            this.isPreLoad = false;
+                            await this.load();
+                        }
+                    }
+                } else {
+                    console.log("不是下一页, 不使用预加载内容");
+                    this.isPreLoad = false;
+                    await this.load();
+                }
+                setTimeout(() => {
+                    console.log("加载", pageNumber, "完成，开始预加载");
+                    this.nextPageNovel = null;
+                    this.isPreLoad = true;
+                    this.tryPreLoadNum = 1;
+                    this.maxTryPreloadNum = 3;
+                    this.load();
+                }, 500);
             }
         },
 
@@ -165,10 +340,10 @@ export default {
             ImgMapChar.set(this.imgMapCache);
         },
 
-        getWebData: function () {
+        getWebData: function (novelUrl = this.novelUrl) {
             return new Promise((resolve, reject) => {
                 services
-                    .getNovelHtml(this.novelUrl)
+                    .getNovelHtml(novelUrl)
                     .then(
                         async function (res) {
                             const content = await res.data;
@@ -206,11 +381,9 @@ export default {
                 tempEle?.appendChild(body);
             }
 
-            console.log("提取title");
             // 提取title
             novel.title = tempEle.getElementsByClassName("page-title")?.[0]?.innerHTML;
 
-            console.log("提取章小节");
             // 提取章小节
             const aList = tempEle.getElementsByClassName("chapterPages")?.[0]?.childNodes;
             if (aList?.length > 0) {
@@ -220,21 +393,19 @@ export default {
                     novel.pages || (novel.pages = []);
                     novel.pages = [...novel.pages, href];
                     if (link.getAttribute("class") === "curr") {
-                        novel.currPage = href;
+                        novel.currPage = i;
                     }
                 }
             } else {
                 novel.pages = [];
             }
 
-            console.log("提取上一章、下一章");
             // 提取上一章、下一章
             const prevLink = tempEle.getElementsByClassName("mod page-control")?.[1]?.getElementsByClassName("prev")?.[0];
             const nextLink = tempEle.getElementsByClassName("mod page-control")?.[1]?.getElementsByClassName("next")?.[0];
             novel.prev = prevLink?.getAttribute("href");
             novel.next = nextLink?.getAttribute("href");
 
-            console.log("提取正文");
             // 提取正文，正文是由文本、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
             const mainContextEleList = tempEle.getElementsByClassName("neirong")[0]?.childNodes;
             if (mainContextEleList?.length > 0) {

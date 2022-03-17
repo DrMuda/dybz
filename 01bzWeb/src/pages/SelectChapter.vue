@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 14:02:18
- * @LastEditTime: 2022-03-16 10:58:51
+ * @LastEditTime: 2022-03-17 16:20:03
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SelectChapter.vue
@@ -19,7 +19,7 @@
                 <el-button @click="toNext" class="page-btn">下一页</el-button>
             </div>
             <div class="page-nav">
-                <el-input-number v-model="inputPage" class="page-input" :min="1" />
+                <el-input-number v-model="inputPage" class="page-input" :min="1" :max="amountPage" />
                 <el-button @click="toPage" class="page-btn">跳转</el-button>
             </div>
             <div style="text-align: center; width: 100%">共{{ amountPage }}页</div>
@@ -78,19 +78,21 @@ export default {
             }
         },
         toNext() {
-            this.currPage += 1;
-            this.inputPage = this.currPage;
-            this.load();
+            if (this.currPage < this.amountPage) {
+                this.currPage += 1;
+                this.inputPage = this.currPage;
+                this.load();
+            }
         },
         toPage() {
             this.currPage = this.inputPage;
             this.load();
         },
-        toReadNovel(row,b,c,d) {
+        toReadNovel(row) {
             this.$router.push(`/ReadNovel?id=${this.novelId}&url=${row.url}`);
         },
         getWebData() {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 services
                     .getChapter(this.novelUrl, this.currPage)
                     .then(
