@@ -6,7 +6,7 @@
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\cacheImg.js
  */
-/* eslint-disable */ 
+/* eslint-disable */
 
 import ImgBase64 from "./ImgBase64";
 import ImgMapChar from "./ImgMapChar";
@@ -19,7 +19,7 @@ export default (ignoreChar = false) => {
         let imgMapCache = ImgMapChar.get(); // 图片与base64的映射
         const pList = [];
         Object.keys(imgCache).forEach((key) => {
-            if (!imgCache[key] && (ignoreChar || !imgMapCache[key])) {
+            if (!imgCache[key] && (ignoreChar || !imgMapCache[key]) && pList.length < 150) {
                 pList.push(
                     new Promise((resolve, reject) => {
                         services.getImg(key).then(

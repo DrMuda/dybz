@@ -66,6 +66,9 @@ export default {
             loadSuccess: false,
             autoRefreshChar: null,
             cancelTokenList: [],
+            reloadTimeInterval: () => {
+                return Math.random() * 1000 + 1000;
+            }, // 预加载与重新加载间隔时间
         };
     },
     props: {
@@ -82,14 +85,14 @@ export default {
             if (JSON.stringify(imgCache) !== JSON.stringify(this.imgCache)) {
                 this.imgCache = imgCache;
             }
-        }, 1000);
+        }, 500);
         setTimeout(() => {
             this.nextPageNovel = null;
             this.isPreLoad = true;
             this.tryPreLoadNum = 1;
             this.maxTryPreloadNum = 3;
             this.load();
-        }, 500);
+        }, this.reloadTimeInterval());
     },
     beforeUnmount() {
         // eslint-disable-next-line no-debugger
@@ -156,7 +159,7 @@ export default {
                                 cacheImg().then(() => {
                                     this.imgMapCache = ImgMapChar.get(); // 图片与文字的映射
                                     this.imgCache = ImgBase64.get(); // 图片与base64的映射
-                                    this.isPreLoad && this.toTop();
+                                    !this.isPreLoad && this.toTop();
                                     this.loadSuccess = true;
                                     this.isPreLoad = false;
 
@@ -179,7 +182,7 @@ export default {
                                                 resolve();
                                             }
                                         }.bind(this),
-                                        500
+                                        this.reloadTimeInterval()
                                     );
                                 }
                                 resolve();
@@ -224,7 +227,7 @@ export default {
                     this.tryPreLoadNum = 1;
                     this.maxTryPreloadNum = 3;
                     this.load();
-                }, 500);
+                }, this.reloadTimeInterval());
             }
         },
 
@@ -236,6 +239,7 @@ export default {
                 if (this.novel.currPage === undefined || this.novel.currPage === this.novel.pages.length - 1) {
                     if (this.nextPageNovel) {
                         this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
+                        this.toTop();
                     } else {
                         if (this.isPreLoad) {
                             this.isPreLoad = false;
@@ -245,6 +249,7 @@ export default {
                                     resolve();
                                 });
                             });
+                            this.toTop();
                         } else {
                             if (this.isPreLoad) {
                                 this.stopLoad = true;
@@ -273,7 +278,7 @@ export default {
                     this.tryPreLoadNum = 1;
                     this.maxTryPreloadNum = 3;
                     this.load();
-                }, 500);
+                }, this.reloadTimeInterval());
             }
         },
 
@@ -287,6 +292,7 @@ export default {
                 if (this.novel.currPage + 1 === pageNumber) {
                     if (this.nextPageNovel) {
                         this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
+                        this.toTop();
                     } else {
                         if (this.isPreLoad) {
                             this.isPreLoad = false;
@@ -296,6 +302,7 @@ export default {
                                     resolve();
                                 });
                             });
+                            this.toTop();
                         } else {
                             this.isPreLoad = false;
                             await this.load();
@@ -321,7 +328,7 @@ export default {
                     this.tryPreLoadNum = 1;
                     this.maxTryPreloadNum = 3;
                     this.load();
-                }, 500);
+                }, this.reloadTimeInterval());
             }
         },
 
@@ -377,6 +384,8 @@ export default {
             // 清除空格，防止扰乱正则匹配
             content = content.replace(/\n/g, "");
             content = content.replace(/\r/g, "");
+            // 防止转成dom时加载资源
+            content = content.replace(/src=/g, "my-src=");
 
             // 转成dom元素，方便分析
             const tempEle = document.createElement("div");
@@ -426,7 +435,7 @@ export default {
                         }
                     }
                     if (itemEle instanceof HTMLImageElement) {
-                        let imgId = itemEle.getAttribute("src");
+                        let imgId = itemEle.getAttribute("my-src");
                         if (imgId) {
                             novel.mainContext.push(`img:${imgId}`);
                             imgMapCache[imgId] || (imgMapCache[imgId] = null);
