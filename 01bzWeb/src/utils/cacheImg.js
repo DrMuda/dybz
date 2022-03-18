@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-15 15:12:36
- * @LastEditTime: 2022-03-18 14:21:59
+ * @LastEditTime: 2022-03-18 15:30:42
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\cacheImg.js
@@ -15,7 +15,6 @@ import * as services from "@/service/index.js";
 
 export default (ignoreChar = false) => {
     return new Promise((resolve, reject) => {
-        console.log("缓存图片");
         let imgCache = ImgBase64.get(); // 图片与文字的映射
         let imgMapCache = ImgMapChar.get(); // 图片与base64的映射
         const pList = [];

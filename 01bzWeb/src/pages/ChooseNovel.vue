@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-16 10:53:29
+ * @LastEditTime: 2022-03-18 16:24:42
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
@@ -10,7 +10,9 @@
     <div class="choose-novel">
         <config-set />
         <div class="novel-list">
-            <novel-list-item v-for="(item, index) in novelList" :key="item.id + index" :item="item" :onChange="onChange" :onDel="onDel" />
+            <template v-for="item in novelList">
+                <novel-list-item v-if="item.id" :key="item.key" :item="item" :onChange="onChange" :onDel="onDel" />
+            </template>
             <div class="add-btn" @click="onAdd">添加</div>
         </div>
         <div class="sync-btn-contain">
@@ -40,11 +42,15 @@ export default {
     data() {
         return {
             novelList: [],
+            updateTag: true,
         };
     },
     mounted() {
         try {
             this.novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
+            this.novelList = this.novelList.map((item) => {
+                return { ...item, key: Math.random() };
+            });
         } catch (error) {
             this.novelList = [];
         }
@@ -201,8 +207,9 @@ export default {
                         localStorage.setItem("novelList", JSON.stringify(res.data.user.novelList));
                         localStorage.setItem("ocrToken", res.data.user.ocrToken);
                         localStorage.setItem("lastUpdate", res.data.user.lastUpdate);
-                        this.novelList = res.data.user.novelList;
-                        location.reload(false);
+                        this.novelList = res.data.user.novelList.map((item) => {
+                            return { ...item, key: Math.random() };
+                        });
                         ElMessage({
                             type: "info",
                             message: "已更新本地记录",
