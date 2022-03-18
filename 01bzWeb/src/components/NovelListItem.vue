@@ -32,6 +32,7 @@
 </template>
 
 <script>
+/* eslint-disable */
 import { ElInput } from "element-plus";
 export default {
     components: {

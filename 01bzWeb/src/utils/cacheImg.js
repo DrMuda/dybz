@@ -1,11 +1,12 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-15 15:12:36
- * @LastEditTime: 2022-03-15 15:32:51
+ * @LastEditTime: 2022-03-18 14:21:59
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\cacheImg.js
  */
+/* eslint-disable */ 
 
 import ImgBase64 from "./ImgBase64";
 import ImgMapChar from "./ImgMapChar";
@@ -43,11 +44,9 @@ export default (ignoreChar = false) => {
             () => {
                 ImgBase64.set(imgCache);
                 baiduOcr();
-                console.log("缓存完成");
                 resolve();
             },
             () => {
-                console.log("缓存完成");
                 reject();
             }
         );

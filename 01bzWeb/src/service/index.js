@@ -1,12 +1,13 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-16 10:46:08
+ * @LastEditTime: 2022-03-18 14:19:00
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
  */
 
+/* eslint-disable */
 import axios from "axios";
 import { ElMessage } from "element-plus";
 
@@ -51,7 +52,7 @@ export function pullCache() {
     return Promise.reject({ status: "userError" });
 }
 
-export function getNovelHtml(novelUrl) {
+export function getNovelHtml(novelUrl, cancelTokenList) {
     novelUrl = novelUrl.replace(".html", "");
     return axios.get(`/pythonApi/getNovelHtml/${localStorage.getItem("chanel")}${novelUrl}`, {
         responseType: "blob",
@@ -66,6 +67,9 @@ export function getNovelHtml(novelUrl) {
                 });
             },
         ],
+        cancelToken: new axios.CancelToken((c) => {
+            cancelTokenList.push(c);
+        }),
     });
 }
 
