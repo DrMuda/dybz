@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-03 16:04:20
- * @LastEditTime: 2022-03-15 15:35:00
+ * @LastEditTime: 2022-03-21 11:33:04
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SetChar.vue
@@ -20,12 +20,11 @@
             </div>
         </div>
         <div class="list">
-            <div v-for="id in Object.keys(imgCache)" :key="id" class="item">
-                <img :src="imgCache[id]" /><el-input
-                    v-model="imgMapCache[id]"
+            <div v-for="id in Object.keys(imgAndChar)" :key="id" class="item">
+                <img :src="imgAndChar[id].img" /><el-input
                     @change="
                         (val) => {
-                            this.onChange(val, id);
+                            this.onChange(id, char);
                         }
                     "
                 />
@@ -36,8 +35,7 @@
 
 <script>
 import { ElInput, ElMessage } from "element-plus";
-import ImgBase64 from "@/utils/ImgBase64";
-import ImgMapChar from "@/utils/ImgMapChar";
+import ImgAndChar from "@/utils/ImgAndChar";
 import cacheImg from "@/utils/cacheImg";
 
 export default {
@@ -46,72 +44,76 @@ export default {
     },
     data() {
         return {
-            imgMapCache: ImgMapChar.get(), // 图片与文字的映射
-            originImgCache: ImgBase64.get(), // 图片与base64的映射
-            imgCache: ImgBase64.get(),
+            imgAndChar: ImgAndChar.get(),
+            originImgAndChar: ImgAndChar.get(),
             filterInput: "",
         };
     },
     mounted() {
-        Object.keys(this.imgMapCache).forEach((key) => {
-            if (this.originImgCache[key] === undefined) {
-                this.originImgCache[key] = null;
+        let canCache = false;
+        Object.keys(this.ImgAndChar).forEach((key) => {
+            if (!this.imgAndChar[key].img) {
+                canCache = true;
             }
         });
-        ImgBase64.set(this.originImgCache);
-        ElMessage.info("正在下载图片...");
-        setTimeout(async () => {
-            await cacheImg(true);
-            this.imgMapCache = ImgMapChar.get(); // 图片与文字的映射
-            this.originImgCache = ImgBase64.get(); // 图片与base64的映射
-            this.imgCache = ImgBase64.get();
-            ElMessage.info("下载完成");
-        }, 10);
+        if (canCache) {
+            ElMessage.info("正在下载图片...");
+            (async () => {
+                await cacheImg(true);
+                setTimeout(async () => {
+                    this.imgAndChar = ImgAndChar.get();
+                    this.originImgAndChar = ImgAndChar.get();
+                    ElMessage.info("下载完成");
+                }, 10);
+            })();
+        }
     },
     methods: {
-        onChange(value, id) {
-            if (value.length > 1) {
-                this.imgMapCache[id] = value[0];
-            }
-            ImgMapChar.set(this.imgMapCache);
+        onChange(id, char) {
+            this.imgAndChar[id].char = char[0] || "";
+            this.originImgAndChar[id].char = char[0] || "";
+            ImgAndChar.setCharByKey(id, char[0] || "");
         },
         onFilterInputChange() {
             if (this.filterInput) {
-                const nextImgCache = {};
-                Object.keys(this.originImgCache).forEach((key) => {
-                    if (this.imgMapCache[key]?.indexOf(this.filterInput) > -1) {
-                        nextImgCache[key] = this.originImgCache[key];
+                const nextImgAndChar = {};
+                Object.keys(this.originImgAndChar).forEach((id) => {
+                    const item = this.originImgAndChar[id];
+                    if (item.char?.indexOf(this.filterInput) > -1) {
+                        nextImgAndChar[id] = item;
                     }
                 });
-                this.imgCache = nextImgCache;
+                this.imgAndChar = nextImgAndChar;
             }
         },
         filter(tag) {
-            let nextImgCache = {};
+            let nextImgAndChar = {};
             this.filterInput = "";
             switch (tag) {
                 case "wasSet": {
-                    Object.keys(this.originImgCache).forEach((key) => {
-                        if (this.imgMapCache[key]) {
-                            nextImgCache[key] = this.originImgCache[key];
+                    Object.keys(this.originImgAndChar).forEach((id) => {
+                        const item = this.originImgAndChar[id];
+                        if (item.char) {
+                            nextImgAndChar[id] = item;
                         }
                     });
                     break;
                 }
                 case "notSet": {
-                    Object.keys(this.originImgCache).forEach((key) => {
-                        if (!this.imgMapCache[key]) {
-                            nextImgCache[key] = this.originImgCache[key];
+                    Object.keys(this.originImgAndChar).forEach((id) => {
+                        const item = this.originImgAndChar[id];
+                        if (!item.char) {
+                            nextImgAndChar[id] = item;
                         }
                     });
                     break;
                 }
                 default: {
-                    nextImgCache = this.originImgCache;
+                    nextImgAndChar = this.originImgAndChar;
                     break;
                 }
             }
-            this.imgCache = nextImgCache;
+            this.imgAndChar = nextImgAndChar;
         },
     },
 };

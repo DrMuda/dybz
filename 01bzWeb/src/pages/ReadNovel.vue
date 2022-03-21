@@ -12,14 +12,14 @@
             <template v-for="(item, index) in this.novel.mainContext">
                 <br v-if="new RegExp(/^<br \/>/).test(item) === true" :key="item + index" />
                 <editable-img
-                    v-else-if="new RegExp(/^img:/).test(item) === true && !this.imgMapCache[item.replace('img:', '')]"
+                    v-else-if="new RegExp(/^img:/).test(item) === true && !this.imgAndChar[item.replace('img:', '')]?.char"
                     :key="item + index"
-                    :imgSrc="this.imgCache[item.replace('img:', '')]"
+                    :imgSrc="this.imgAndChar[item.replace('img:', '')]?.img || '#'"
                     :id="item.replace('img:', '')"
                     :updateCache="this.updateCache"
                 />
-                <span v-else-if="new RegExp(/^img:/).test(item) === true && this.imgMapCache[item.replace('img:', '')]" :key="item + index">{{
-                    this.imgMapCache[item.replace("img:", "")]
+                <span v-else-if="new RegExp(/^img:/).test(item) === true && this.imgAndChar[item.replace('img:', '')]?.char" :key="item + index">{{
+                    this.imgAndChar[item.replace("img:", "")]?.char
                 }}</span>
                 <span v-else :key="item + index">{{ item }}</span>
             </template>
@@ -30,8 +30,7 @@
 
 <script>
 import strToDom from "@/utils/strToDom";
-import ImgBase64 from "@/utils/ImgBase64";
-import ImgMapChar from "@/utils/ImgMapChar";
+import ImgAndChar from "../utils/ImgAndChar";
 import cacheImg from "@/utils/cacheImg";
 import EditableImg from "@/components/EditableImg.vue";
 import { ElMessage } from "element-plus";
@@ -55,8 +54,7 @@ export default {
             },
             // 预加载, 下一页/章节的内容, 结构与novel一致
             nextPageNovel: null,
-            imgMapCache: ImgMapChar.get(), // 图片与文字的映射
-            imgCache: ImgBase64.get(), // 图片与base64的映射
+            imgAndChar: ImgAndChar.get(),
             novelId: this.$route.query.id,
             novelUrl: this.$route.query.url,
             loading: false,
@@ -76,14 +74,10 @@ export default {
     },
     mounted: async function () {
         await this.load();
+        this.toTop();
         this.autoRefreshChar = setInterval(() => {
-            const imgMapCache = ImgMapChar.get();
-            const imgCache = ImgBase64.get();
-            if (JSON.stringify(imgMapCache) !== JSON.stringify(this.imgMapCache)) {
-                this.imgMapCache = imgMapCache;
-            }
-            if (JSON.stringify(imgCache) !== JSON.stringify(this.imgCache)) {
-                this.imgCache = imgCache;
+            if (JSON.stringify(ImgAndChar.get()) !== JSON.stringify(this.imgAndChar)) {
+                this.imgAndChar = ImgAndChar.get();
             }
         }, 500);
         setTimeout(() => {
@@ -148,27 +142,50 @@ export default {
                     if (novelUrl) {
                         const webData = this.getWebData(novelUrl, this.cancelTokenList);
                         webData.then(
-                            (data) => {
+                            function (data) {
                                 this.cancelTokenList = [];
-                                const initRes = this.initContent(data) || {};
-                                if (this.isPreLoad) {
-                                    this.nextPageNovel = initRes.novel;
-                                } else {
-                                    this.novel = initRes.novel;
-                                }
-                                cacheImg().then(() => {
-                                    this.imgMapCache = ImgMapChar.get(); // 图片与文字的映射
-                                    this.imgCache = ImgBase64.get(); // 图片与base64的映射
-                                    !this.isPreLoad && this.toTop();
-                                    this.loadSuccess = true;
-                                    this.isPreLoad = false;
+                                const novel = this.initContent(data) || {};
+                                const oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
+                                let canSetNewKey = false;
+                                cacheImg(
+                                    function (oldKey, newKey) {
+                                        oldNewKey[oldKey] = newKey;
+                                        canSetNewKey = true;
+                                    }.bind(this)
+                                ).then(
+                                    function () {
+                                        if (canSetNewKey) {
+                                            // localStorage.setItem("oldNewKey", JSON.stringify(oldNewKey));
+                                            const oldKeys = Object.keys(oldNewKey);
+                                            let nextContext = null;
+                                            debugger;
+                                            nextContext = JSON.parse(JSON.stringify(novel)).mainContext;
+                                            nextContext = "__" + nextContext.join("__") + "__";
+                                            for (let i = 0; i < oldKeys.length; i += 1) {
+                                                const oldKey = oldKeys[i];
+                                                const newKey = oldNewKey[oldKey];
+                                                const reg = new RegExp(`__img:${oldKey}__`, "g");
+                                                nextContext = nextContext.replace(reg, `__img:${newKey}__`);
+                                            }
+                                            nextContext = nextContext.split("__");
+                                            if (this.isPreLoad) {
+                                                this.nextPageNovel = { ...novel, mainContext: nextContext };
+                                            } else {
+                                                this.novel = { ...novel, mainContext: nextContext };
+                                            }
+                                        }
 
-                                    !this.isPreLoad && (this.loading = false);
-                                    !this.isPreLoad && this.setHistory();
-                                    resolve();
-                                });
-                            },
-                            (err) => {
+                                        this.loading = false;
+                                        this.imgAndChar = ImgAndChar.get();
+                                        this.loadSuccess = true;
+                                        this.isPreLoad = false;
+
+                                        resolve();
+                                    }.bind(this)
+                                );
+                            }.bind(this),
+                            function (err) {
+                                console.error(err);
                                 this.cancelTokenList = [];
                                 if (err !== "中断请求") {
                                     setTimeout(
@@ -186,7 +203,7 @@ export default {
                                     );
                                 }
                                 resolve();
-                            }
+                            }.bind(this)
                         );
                     }
                 } catch (error) {
@@ -221,6 +238,7 @@ export default {
                 }
                 this.isPreLoad = false;
                 await this.load();
+                this.toTop();
                 setTimeout(() => {
                     this.nextPageNovel = null;
                     this.isPreLoad = true;
@@ -238,28 +256,33 @@ export default {
                 // 如果当前是最后一页， 那么下一章就是预加载的内容， 直接使用预加载的内容
                 if (this.novel.currPage === undefined || this.novel.currPage === this.novel.pages.length - 1) {
                     if (this.nextPageNovel) {
+                        console.log("1");
                         this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
                         this.toTop();
                     } else {
                         if (this.isPreLoad) {
-                            this.isPreLoad = false;
+                            console.log("2");
                             this.loading = true;
                             await new Promise((resolve) => {
                                 this.$watch("loading", () => {
                                     resolve();
                                 });
                             });
+                            this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
+                            this.nextPageNovel = null;
+                            this.isPreLoad = false;
+                            this.loading = false;
                             this.toTop();
                         } else {
-                            if (this.isPreLoad) {
-                                this.stopLoad = true;
-                            }
+                            console.log("4");
                             this.isPreLoad = false;
                             await this.load();
+                            this.toTop();
                         }
                     }
                 } else {
                     if (this.isPreLoad) {
+                        console.log("5");
                         // 如果现在有在加载中， 使当前请求中断
                         await new Promise((resolve) => {
                             this.cancelTokenList.forEach((c) => {
@@ -271,6 +294,7 @@ export default {
                     }
                     this.isPreLoad = false;
                     await this.load();
+                    this.toTop();
                 }
                 setTimeout(() => {
                     this.nextPageNovel = null;
@@ -291,25 +315,30 @@ export default {
                 // 如果刚好点击的是下一页， 使用预加载的内容
                 if (this.novel.currPage + 1 === pageNumber) {
                     if (this.nextPageNovel) {
+                        console.log("1");
                         this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
                         this.toTop();
                     } else {
                         if (this.isPreLoad) {
-                            this.isPreLoad = false;
+                            console.log("2");
                             this.loading = true;
                             await new Promise((resolve) => {
                                 this.$watch("loading", () => {
                                     resolve();
                                 });
                             });
+                            this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
                             this.toTop();
                         } else {
+                            console.log("4");
                             this.isPreLoad = false;
                             await this.load();
+                            this.toTop();
                         }
                     }
                 } else {
                     if (this.isPreLoad) {
+                        console.log("5");
                         // 如果现在有在加载中， 使当前请求中断
                         await new Promise((resolve) => {
                             this.cancelTokenList.forEach((c) => {
@@ -321,6 +350,7 @@ export default {
                     }
                     this.isPreLoad = false;
                     await this.load();
+                    this.toTop();
                 }
                 setTimeout(() => {
                     this.nextPageNovel = null;
@@ -344,8 +374,8 @@ export default {
         },
 
         updateCache(id, input) {
-            this.imgMapCache[id] = input;
-            ImgMapChar.set(this.imgMapCache);
+            this.imgAndChar[id].char = input;
+            ImgAndChar.setCharByKey(id, input);
         },
 
         getWebData: function (novelUrl = this.novelUrl, cancelTokenList = this.cancelTokenList) {
@@ -377,10 +407,9 @@ export default {
             });
         },
 
-        initContent: (content) => {
+        initContent: function (content) {
             const novel = {};
-            let imgMapCache = ImgMapChar.get(); // 图片与文字的映射
-            let imgCache = ImgBase64.get(); // 图片与base64的映射
+            this.imgAndChar = ImgAndChar.get();
             // 清除空格，防止扰乱正则匹配
             content = content.replace(/\n/g, "");
             content = content.replace(/\r/g, "");
@@ -435,11 +464,15 @@ export default {
                         }
                     }
                     if (itemEle instanceof HTMLImageElement) {
+                        const oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
                         let imgId = itemEle.getAttribute("my-src");
                         if (imgId) {
-                            novel.mainContext.push(`img:${imgId}`);
-                            imgMapCache[imgId] || (imgMapCache[imgId] = null);
-                            imgCache[imgId] || (imgCache[imgId] = null);
+                            if (oldNewKey[imgId]) {
+                                novel.mainContext.push(`img:${oldNewKey[imgId]}`);
+                            } else {
+                                novel.mainContext.push(`img:${imgId}`);
+                                this.imgAndChar[imgId] = { char: null, img: null };
+                            }
                         }
                     }
                     if (itemEle instanceof HTMLBRElement) {
@@ -449,10 +482,8 @@ export default {
             } else {
                 novel.mainContext = [];
             }
-
-            ImgBase64.set(imgCache);
-            ImgMapChar.set(imgMapCache);
-            return { novel, imgMapCache, imgCache };
+            ImgAndChar.set(this.imgAndChar);
+            return novel;
         },
     },
 };

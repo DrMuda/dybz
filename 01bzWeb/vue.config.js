@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-02-24 14:37:21
- * @LastEditTime: 2022-03-15 17:26:58
+ * @LastEditTime: 2022-03-21 17:29:05
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\vue.config.js
@@ -36,4 +36,7 @@ module.exports = {
             },
         },
     },
+    chainWebpack: config=>{
+        config.when(process.env.NODE_ENV === "development", config=>config.devtool('source-map'))
+    }
 };
