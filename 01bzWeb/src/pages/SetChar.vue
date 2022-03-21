@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-03 16:04:20
- * @LastEditTime: 2022-03-21 11:33:04
+ * @LastEditTime: 2022-03-21 18:07:46
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SetChar.vue
@@ -51,7 +51,7 @@ export default {
     },
     mounted() {
         let canCache = false;
-        Object.keys(this.ImgAndChar).forEach((key) => {
+        Object.keys(this.imgAndChar).forEach((key) => {
             if (!this.imgAndChar[key].img) {
                 canCache = true;
             }

@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-15 15:12:36
- * @LastEditTime: 2022-03-21 15:21:52
+ * @LastEditTime: 2022-03-21 18:08:41
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\cacheImg.js
@@ -31,7 +31,9 @@ export default (onCacheSuccess) => {
                                         img: imgBase64.replace("data:text/html", "data:image/png"),
                                         ...imgAndChar[md5Key],
                                     };
-                                    onCacheSuccess?.(key, md5Key);
+                                    if (onCacheSuccess instanceof Function) {
+                                        onCacheSuccess(key, md5Key);
+                                    }
                                     delete imgAndChar[key];
                                 }
                                 resolve(`success:${key}`);
