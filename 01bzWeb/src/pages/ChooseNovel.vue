@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-22 11:25:10
+ * @LastEditTime: 2022-03-22 16:18:01
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
@@ -14,7 +14,6 @@
                 <novel-list-item v-if="item.id" :key="item.key" :item="item" :onChange="onChange" :onDel="onDel" />
             </template>
             <div class="add-btn" @click="onAdd">添加</div>
-            <div class="add-btn" @click="tran">转换</div>
         </div>
         <div class="sync-btn-contain">
             <el-icon :size="40" @click="pushCache" class="sync-btn pull"><upload /></el-icon>
@@ -27,7 +26,6 @@
 import NovelListItem from "@/components/NovelListItem.vue";
 import ConfigSet from "@/components/ConfigSet.vue";
 import ImgMapChar from "@/utils/ImgMapChar.js";
-import tranform from "../utils/tranform";
 import syncCache from "../utils/syncCache";
 import { ElMessage, ElMessageBox, ElIcon } from "element-plus";
 import { Upload, Download } from "@element-plus/icons-vue";
@@ -63,9 +61,6 @@ export default {
         }
     },
     methods: {
-        tran() {
-            tranform();
-        },
         onChange(url, name, id) {
             if (id) {
                 const index = this.novelList.findIndex((item) => {
@@ -123,7 +118,16 @@ export default {
             syncCache.pushCache();
         },
         pullCache() {
-            syncCache.pullCache();
+            syncCache.pullCache().then(() => {
+                try {
+                    this.novelList = JSON.parse(localStorage.getItem("novelList")).map((item) => {
+                        return { ...item, key: Math.random() };
+                    });
+                } catch (error) {
+                    console.error(error);
+                    this.novelList = [];
+                }
+            });
         },
     },
 };

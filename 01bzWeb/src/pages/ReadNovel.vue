@@ -1,25 +1,25 @@
 <template>
     <div id="main">
         <div class="nav">
-            <el-button class="nav-btn" @click="this.load">刷新</el-button>
-            <el-button class="nav-btn" @click="this.toPrev">上一章</el-button>
-            <el-button class="nav-btn" @click="this.toNext">下一章</el-button>
-            <el-button class="nav-btn" v-for="(item, index) in this.novel.pages" :key="item" @click="this.toPages(index)" :type="setPageBtnType(index)"
+            <el-button class="nav-btn" @click="load">刷新</el-button>
+            <el-button class="nav-btn" @click="toPrev">上一章</el-button>
+            <el-button class="nav-btn" @click="toNext">下一章</el-button>
+            <el-button class="nav-btn" v-for="(item, index) in novel.pages" :key="item" @click="toPages(index)" :type="setPageBtnType(index)"
                 >[{{ index + 1 }}]
             </el-button>
         </div>
         <div id="main-context">
-            <template v-for="(item, index) in this.novel.mainContext">
+            <template v-for="(item, index) in novel.mainContext">
                 <br v-if="new RegExp(/^<br \/>/).test(item) === true" :key="item + index" />
                 <editable-img
-                    v-else-if="new RegExp(/^img:/).test(item) === true && !this.imgAndChar[item.replace('img:', '')]?.char"
+                    v-else-if="new RegExp(/^img:/).test(item) === true && !imgAndChar[item.replace('img:', '')]?.char"
                     :key="item + index"
-                    :imgSrc="this.imgAndChar[item.replace('img:', '')]?.img || '#'"
+                    :imgSrc="imgAndChar[item.replace('img:', '')]?.img || '#'"
                     :id="item.replace('img:', '')"
-                    :updateCache="this.updateCache"
+                    :updateCache="updateCache"
                 />
-                <span v-else-if="new RegExp(/^img:/).test(item) === true && this.imgAndChar[item.replace('img:', '')]?.char" :key="item + index">{{
-                    this.imgAndChar[item.replace("img:", "")]?.char
+                <span v-else-if="new RegExp(/^img:/).test(item) === true && imgAndChar[item.replace('img:', '')]?.char" :key="item + index">{{
+                    imgAndChar[item.replace("img:", "")]?.char
                 }}</span>
                 <span v-else :key="item + index">{{ item }}</span>
             </template>

@@ -1,11 +1,13 @@
 /*
  * @Author: LXX
  * @Date: 2022-02-24 14:37:21
- * @LastEditTime: 2022-03-21 17:29:05
+ * @LastEditTime: 2022-03-22 16:30:49
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\vue.config.js
  */
+
+ const CompositionPlugin = require("compression-webpack-plugin")
 
 module.exports = {
     publicPath: "/dybz",
@@ -36,7 +38,17 @@ module.exports = {
             },
         },
     },
-    chainWebpack: config=>{
-        config.when(process.env.NODE_ENV === "development", config=>config.devtool('source-map'))
-    }
+    chainWebpack: (config) => {},
+    configureWebpack: {
+        plugins: [
+            new CompositionPlugin({
+                filename: "[path].gz[query]",
+                algorithm: "gzip",
+                test: new RegExp("\\.(js|css)$"),
+                threshold: 10240,
+                minRatio: 0.8,
+                deleteOriginalAssets: false,
+            }),
+        ],
+    },
 };
