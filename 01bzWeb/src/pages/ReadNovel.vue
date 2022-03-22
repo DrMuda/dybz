@@ -61,7 +61,6 @@ export default {
             isPreLoad: false, // 是否预加载
             tryPreLoadNum: 1, // 预加载第几次
             maxTryPreloadNum: 3, // 最多重试预加载几次
-            loadSuccess: false,
             autoRefreshChar: null,
             cancelTokenList: [],
             reloadTimeInterval: () => {
@@ -96,7 +95,7 @@ export default {
     },
     methods: {
         setHistory: function () {
-            if (this.loadSuccess) {
+            if (this.novel.mainContext?.length > 0) {
                 const urlList = this.novelUrl.split("/");
                 const currPage = this.novel.pages[currPage]?.replace?.(".html", "");
                 const nextNovelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
@@ -119,7 +118,7 @@ export default {
 
         load: function () {
             return new Promise((resolve) => {
-                this.loadSuccess = false;
+                let loadSuccess = false;
                 !this.isPreLoad && (this.loading = true);
                 try {
                     let novelUrl = this.novelUrl;
@@ -154,10 +153,10 @@ export default {
                                     }.bind(this)
                                 ).then(
                                     function () {
+                                        let nextContext = novel.mainContext;
                                         if (canSetNewKey) {
-                                            // localStorage.setItem("oldNewKey", JSON.stringify(oldNewKey));
+                                            localStorage.setItem("oldNewKey", JSON.stringify(oldNewKey));
                                             const oldKeys = Object.keys(oldNewKey);
-                                            let nextContext = null;
                                             debugger;
                                             nextContext = JSON.parse(JSON.stringify(novel)).mainContext;
                                             nextContext = "__" + nextContext.join("__") + "__";
@@ -168,16 +167,16 @@ export default {
                                                 nextContext = nextContext.replace(reg, `__img:${newKey}__`);
                                             }
                                             nextContext = nextContext.split("__");
-                                            if (this.isPreLoad) {
-                                                this.nextPageNovel = { ...novel, mainContext: nextContext };
-                                            } else {
-                                                this.novel = { ...novel, mainContext: nextContext };
-                                            }
+                                        }
+                                        if (this.isPreLoad) {
+                                            this.nextPageNovel = { ...novel, mainContext: nextContext };
+                                        } else {
+                                            this.novel = { ...novel, mainContext: nextContext };
                                         }
 
                                         this.loading = false;
                                         this.imgAndChar = ImgAndChar.get();
-                                        this.loadSuccess = true;
+                                        loadSuccess = true;
                                         this.isPreLoad = false;
 
                                         resolve();
@@ -191,7 +190,7 @@ export default {
                                     setTimeout(
                                         function () {
                                             // 如果是预加载， 且加载次数小于最大加载次数， 且本次加载失败， 进行下一次预加载
-                                            if (this.isPreLoad && this.tryPreLoadNum < this.maxTryPreloadNum && !this.loadSuccess) {
+                                            if (this.isPreLoad && this.tryPreLoadNum < this.maxTryPreloadNum && !loadSuccess) {
                                                 this.tryPreLoadNum += 1;
                                                 this.load();
                                             } else {
@@ -256,12 +255,12 @@ export default {
                 // 如果当前是最后一页， 那么下一章就是预加载的内容， 直接使用预加载的内容
                 if (this.novel.currPage === undefined || this.novel.currPage === this.novel.pages.length - 1) {
                     if (this.nextPageNovel) {
-                        console.log("1");
+                        // console.log("1");
                         this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
                         this.toTop();
                     } else {
                         if (this.isPreLoad) {
-                            console.log("2");
+                            // console.log("2");
                             this.loading = true;
                             await new Promise((resolve) => {
                                 this.$watch("loading", () => {
@@ -274,7 +273,7 @@ export default {
                             this.loading = false;
                             this.toTop();
                         } else {
-                            console.log("4");
+                            // console.log("4");
                             this.isPreLoad = false;
                             await this.load();
                             this.toTop();
@@ -282,7 +281,7 @@ export default {
                     }
                 } else {
                     if (this.isPreLoad) {
-                        console.log("5");
+                        // console.log("5");
                         // 如果现在有在加载中， 使当前请求中断
                         await new Promise((resolve) => {
                             this.cancelTokenList.forEach((c) => {
@@ -315,12 +314,12 @@ export default {
                 // 如果刚好点击的是下一页， 使用预加载的内容
                 if (this.novel.currPage + 1 === pageNumber) {
                     if (this.nextPageNovel) {
-                        console.log("1");
+                        // console.log("1");
                         this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
                         this.toTop();
                     } else {
                         if (this.isPreLoad) {
-                            console.log("2");
+                            // console.log("2");
                             this.loading = true;
                             await new Promise((resolve) => {
                                 this.$watch("loading", () => {
@@ -330,7 +329,7 @@ export default {
                             this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
                             this.toTop();
                         } else {
-                            console.log("4");
+                            // console.log("4");
                             this.isPreLoad = false;
                             await this.load();
                             this.toTop();
@@ -338,7 +337,7 @@ export default {
                     }
                 } else {
                     if (this.isPreLoad) {
-                        console.log("5");
+                        // console.log("5");
                         // 如果现在有在加载中， 使当前请求中断
                         await new Promise((resolve) => {
                             this.cancelTokenList.forEach((c) => {

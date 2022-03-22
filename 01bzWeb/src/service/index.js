@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-18 14:19:00
+ * @LastEditTime: 2022-03-22 14:06:37
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -14,16 +14,16 @@ import { ElMessage } from "element-plus";
 export function pushCache({ data }) {
     const userName = localStorage.getItem("userName");
     const password = localStorage.getItem("password");
-    const imgMapChar = {};
+    const imgAndChar = {};
     // 筛选已设值的数据
-    data.imgMapChar &&
-        Object.keys(data.imgMapChar).forEach((key) => {
-            if (data.imgMapChar[key]) {
-                imgMapChar[key] = data.imgMapChar[key];
+    data.imgAndChar &&
+        Object.keys(data.imgAndChar).forEach((key) => {
+            if (data.imgAndChar[key].char) {
+                imgAndChar[key] = data.imgAndChar[key];
             }
         });
     const nextData = {
-        imgMapChar,
+        imgAndChar,
         user: data.user,
     };
     if (userName && password) {

@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-11 15:10:27
- * @LastEditTime: 2022-03-11 17:29:52
+ * @LastEditTime: 2022-03-22 11:17:45
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\ConfigSet.vue
@@ -18,6 +18,7 @@
                 <div class="set-item">
                     <div class="label"></div>
                     <el-button type="primary" class="btn" @click="toSetChar">管理字符</el-button>
+                    <el-button class="btn" @click="tranformChar">字符升级</el-button>
                 </div>
                 <div class="set-item">
                     <div class="label">账号密码</div>
@@ -70,6 +71,7 @@ import { Setting, Close } from "@element-plus/icons-vue";
 import moment from "moment";
 import md5 from "md5";
 import { ElMessage } from "element-plus/lib/components";
+import tranform from "../utils/tranform";
 
 export default {
     components: {
@@ -95,6 +97,9 @@ export default {
         this.iconIsShow = true;
     },
     methods: {
+        tranformChar() {
+            tranform();
+        },
         openCardMode() {
             this.iconIsShow = false;
         },

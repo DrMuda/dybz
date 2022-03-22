@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-16 11:37:42
- * @LastEditTime: 2022-03-16 14:21:38
+ * @LastEditTime: 2022-03-22 14:08:19
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\urls.js
@@ -19,6 +19,7 @@ function pushCache(req, res) {
                 if (e) {
                     console.error(e);
                     res.send({ status: "readFileError1" });
+                    return;
                 } else {
                     fs.readFile(
                         "data.json",
@@ -27,13 +28,21 @@ function pushCache(req, res) {
                             if (e) {
                                 console.error(e);
                                 res.send({ status: "readFileError2" });
+                                return;
                             } else {
                                 try {
                                     originData = JSON.parse(data);
                                 } catch (error) {
-                                    console.log("数据有问题:", data);
+                                    console.error("数据有问题:", data);
                                     originData = {};
                                 } finally {
+                                    const newData = {
+                                        ...originData,
+                                        imgAndChar: {
+                                            ...originData.imgAndChar,
+                                            ...req.body.data.imgAndChar,
+                                        },
+                                    };
                                     const { userName, password } = req.body;
                                     const foundUser = {};
                                     if (originData.users) {
@@ -46,37 +55,27 @@ function pushCache(req, res) {
                                     }
                                     // 如果有合适的user，或者没有这个user，那就写入，当存在密码错误时， 不允许写入
                                     if ((foundUser.name && foundUser.password === password) || !foundUser.name) {
-                                        fs.writeFile(
-                                            "data.json",
-                                            JSON.stringify(
-                                                {
-                                                    imgMapChar: {
-                                                        ...originData.imgMapChar,
-                                                        ...req.body.data.imgMapChar,
-                                                    },
-                                                    users: {
-                                                        ...originData.users,
-                                                        [userName]: {
-                                                            ...req.body.data.user,
-                                                            password,
-                                                            lastUpdate: moment().format("YYYY-MM-DD HH:mm:ss"),
-                                                        },
-                                                    },
-                                                },
-                                                null,
-                                                4
-                                            ),
-                                            (e) => {
-                                                if (e) {
-                                                    console.error(e);
-                                                    res.send({ status: "readFileError3" });
-                                                } else {
-                                                    res.send({ status: "success" });
-                                                }
+                                        newData.users = {
+                                            ...newData.users,
+                                            [userName]: {
+                                                ...req.body.data.user,
+                                                password,
+                                                lastUpdate: moment().format("YYYY-MM-DD HH:mm:ss"),
+                                            },
+                                        };
+                                        fs.writeFile("data.json", JSON.stringify(newData, null, 4), (e) => {
+                                            if (e) {
+                                                console.error(e);
+                                                res.send({ status: "readFileError3" });
+                                                return;
+                                            } else {
+                                                res.send({ status: "success" });
+                                                return;
                                             }
-                                        );
+                                        });
                                     } else {
                                         res.send({ status: "userError" });
+                                        return;
                                     }
                                 }
                             }
@@ -87,6 +86,7 @@ function pushCache(req, res) {
         },
         () => {
             res.send({ status: "readFileError4" });
+            return;
         }
     );
 }
@@ -98,6 +98,7 @@ function pullCache(req, res) {
                 if (e) {
                     console.error(e);
                     res.send({ status: "readFileError" });
+                    return;
                 } else {
                     fs.readFile(
                         "data.json",
@@ -106,12 +107,13 @@ function pullCache(req, res) {
                             if (e) {
                                 console.error(e);
                                 res.send({ status: "readFileError" });
+                                return;
                             } else {
                                 let originData = null;
                                 try {
                                     originData = JSON.parse(data);
                                 } catch (error) {
-                                    console.log("数据有问题:", data);
+                                    console.error("数据有问题:", data);
                                     originData = {};
                                 } finally {
                                     const { userName, password } = req.query;
@@ -127,11 +129,13 @@ function pullCache(req, res) {
                                     if (foundUser.name && foundUser.password === password) {
                                         res.send({
                                             status: "success",
-                                            imgMapChar: originData.imgMapChar || {},
+                                            imgAndChar: originData.imgAndChar || {},
                                             user: originData.users[userName] || {},
                                         });
+                                        return;
                                     } else {
                                         res.send({ status: "userError" });
+                                        return;
                                     }
                                 }
                             }
@@ -142,6 +146,7 @@ function pullCache(req, res) {
         },
         () => {
             res.send({ status: "readFileError" });
+            return;
         }
     );
 }

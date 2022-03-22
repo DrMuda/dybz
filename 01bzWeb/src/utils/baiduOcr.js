@@ -1,6 +1,6 @@
-import ImgBase64 from "./ImgBase64";
-import ImgMapChar from "./ImgMapChar";
+import ImgAndChar from "./ImgAndChar";
 import * as services from "@/service/index.js";
+import { ElMessage } from "element-plus";
 
 const QPS = 10;
 
@@ -8,13 +8,13 @@ export default async () => {
     const url = localStorage.getItem("ocr");
     const access_token = localStorage.getItem("ocrToken");
     if (url && url !== "no" && access_token) {
-        const imgBase64 = ImgBase64.get();
-        const imgMapChar = ImgMapChar.get();
-        const newImgMapChar = {};
-        const keys = Object.keys(imgBase64);
+        ElMessage.warning("正在使用百度ocr， 注意使用量");
+        const imgAndChar = ImgAndChar.get();
+        const keys = Object.keys(imgAndChar);
         for (let i = 0; i < keys.length; i += 1) {
             const key = keys[i];
-            if (!imgMapChar[key] && imgBase64[key] && imgMapChar[key] !== undefined) {
+            const item = imgAndChar[key];
+            if (!item.char && item.img) {
                 await new Promise((resolve, reject) => {
                     const canvas = document.createElement("canvas");
                     const ctx = canvas.getContext("2d");
@@ -23,7 +23,7 @@ export default async () => {
                     ctx.fillStyle = "#fff";
                     ctx.fillRect(0, 0, 25, 25);
                     const img = new Image();
-                    img.src = imgBase64[key].replace("data:text/html", "data:image/png");
+                    img.src = item.img;
                     img.onload = () => {
                         ctx.drawImage(img, 0, 0);
                         services
@@ -37,7 +37,11 @@ export default async () => {
                             })
                             .then(
                                 (res) => {
-                                    newImgMapChar[key] = res.data.words_result?.[0]?.words;
+                                    ImgAndChar.setCharByKey(key, res.data.words_result?.[0]?.words);
+                                    imgAndChar[key] = {
+                                        ...imgAndChar[key],
+                                        char: res.data.words_result?.[0]?.words,
+                                    };
                                     resolve();
                                 },
                                 () => {
@@ -53,14 +57,12 @@ export default async () => {
                 });
             }
         }
-        ImgMapChar.set({
-            ...imgMapChar,
-            ...newImgMapChar,
-        });
         await new Promise((resolve) => {
             setTimeout(() => {
                 resolve();
             }, 1000 / QPS);
         });
+    } else if (!access_token) {
+        ElMessage.error("无access_token");
     }
 };

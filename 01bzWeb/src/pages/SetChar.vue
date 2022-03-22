@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-03 16:04:20
- * @LastEditTime: 2022-03-21 18:07:46
+ * @LastEditTime: 2022-03-22 11:19:13
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SetChar.vue
@@ -20,8 +20,9 @@
             </div>
         </div>
         <div class="list">
-            <div v-for="id in Object.keys(imgAndChar)" :key="id" class="item">
-                <img :src="imgAndChar[id].img" /><el-input
+            <div v-for="id in Object.keys(imgAndChar)" :key="id" :class="'item ' + id">
+                <img :src="imgAndChar[id].img || '#'" /><el-input
+                    v-model="imgAndChar[id].char"
                     @change="
                         (val) => {
                             this.onChange(id, char);
@@ -37,6 +38,7 @@
 import { ElInput, ElMessage } from "element-plus";
 import ImgAndChar from "@/utils/ImgAndChar";
 import cacheImg from "@/utils/cacheImg";
+import baiduOcr from "../utils/baiduOcr.js";
 
 export default {
     components: {
@@ -56,23 +58,27 @@ export default {
                 canCache = true;
             }
         });
-        if (canCache) {
-            ElMessage.info("正在下载图片...");
-            (async () => {
+        (async () => {
+            if (canCache) {
+                ElMessage.info("正在下载图片...");
                 await cacheImg(true);
-                setTimeout(async () => {
-                    this.imgAndChar = ImgAndChar.get();
-                    this.originImgAndChar = ImgAndChar.get();
-                    ElMessage.info("下载完成");
-                }, 10);
-            })();
-        }
+                ElMessage.closeAll();
+                ElMessage.info("下载完成");
+                this.$forceUpdate();
+            }
+            setTimeout(async () => {
+                this.imgAndChar = ImgAndChar.get();
+                this.originImgAndChar = ImgAndChar.get();
+                await baiduOcr();
+                this.$forceUpdate();
+            }, 10);
+        })();
     },
     methods: {
         onChange(id, char) {
-            this.imgAndChar[id].char = char[0] || "";
-            this.originImgAndChar[id].char = char[0] || "";
-            ImgAndChar.setCharByKey(id, char[0] || "");
+            this.imgAndChar[id].char = char?.[0] || "";
+            this.originImgAndChar[id].char = char?.[0] || "";
+            ImgAndChar.setCharByKey(id, char?.[0] || "");
         },
         onFilterInputChange() {
             if (this.filterInput) {
@@ -84,6 +90,8 @@ export default {
                     }
                 });
                 this.imgAndChar = nextImgAndChar;
+            } else {
+                this.filter("all");
             }
         },
         filter(tag) {
@@ -94,6 +102,7 @@ export default {
                     Object.keys(this.originImgAndChar).forEach((id) => {
                         const item = this.originImgAndChar[id];
                         if (item.char) {
+                            console.log(item.char);
                             nextImgAndChar[id] = item;
                         }
                     });
