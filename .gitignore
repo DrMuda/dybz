@@ -27,3 +27,4 @@ pnpm-debug.log*
 users.json
 imgAndChar.json
 oldNewKey.json
+nodeServerLog.txt

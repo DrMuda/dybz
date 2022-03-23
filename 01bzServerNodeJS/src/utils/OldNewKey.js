@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-23 11:22:36
- * @LastEditTime: 2022-03-23 14:35:56
+ * @LastEditTime: 2022-03-23 16:57:08
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\OldNewKey.js
@@ -11,6 +11,7 @@
 const isFileExistedAndCreate = require("./isFileExistedAndCreate");
 const fs = require("fs");
 const fileName = "../oldNewKey.json";
+const Log = require("./Log")
 
 class OldNewKey {
 
@@ -25,11 +26,11 @@ class OldNewKey {
         if (isExist) {
             fs.open(fileName, "r", (e) => {
                 if (e) {
-                    console.error(`文件读取有误：${fileName}`);
+                    Log.error(`文件读取有误：${fileName}`);
                 } else {
                     fs.readFile(fileName, (e, data) => {
                         if (e) {
-                            console.error(`文件读取有误：${fileName}`);
+                            Log.error(`文件读取有误：${fileName}`);
                         } else {
                             this.oldNewKey = JSON.parse(data);
                         }
@@ -37,7 +38,7 @@ class OldNewKey {
                 }
             });
         } else {
-            console.error(`文不存在且创建失败：${fileName}`);
+            Log.error(`文不存在且创建失败：${fileName}`);
         }
     }
 
@@ -49,15 +50,15 @@ class OldNewKey {
                     if (!reverse) {
                         fs.open(fileName, "r", (e) => {
                             if (e) {
-                                console.error(`文件读取有误：${fileName}`);
+                                Log.error(`文件读取有误：${fileName}`);
                             } else {
                                 fs.writeFile(fileName, JSON.stringify(this.oldNewKey, null, 4), (e) => {
                                     if (e) {
-                                        console.error(`文件写入失败：${fileName}`);
-                                        console.error(e);
+                                        Log.error(`文件写入失败：${fileName}`);
+                                        Log.error(e);
                                         reject(false);
                                     } else {
-                                        console.log(`文件写入成功：${fileName}`);
+                                        Log.info(`文件写入成功：${fileName}`);
                                         resolve(true);
                                     }
                                 });
@@ -66,16 +67,16 @@ class OldNewKey {
                     } else {
                         fs.open(fileName, "r", (e) => {
                             if (e) {
-                                console.error(`文件读取有误：${fileName}`);
+                                Log.error(`文件读取有误：${fileName}`);
                                 reject(false);
                             } else {
                                 fs.readFile(fileName, (e, data) => {
                                     if (e) {
-                                        console.error(`文件读取有误：${fileName}`);
+                                        Log.error(`文件读取有误：${fileName}`);
                                         reject(false);
                                     } else {
                                         this.oldNewKey = JSON.parse(data);
-                                        console.log(`已更新内存数据：${fileName}`);
+                                        Log.info(`已更新内存数据：${fileName}`);
                                         resolve(true);
                                     }
                                 });
@@ -83,7 +84,7 @@ class OldNewKey {
                         });
                     }
                 } else {
-                    console.error(`文不存在且创建失败：${fileName}`);
+                    Log.error(`文不存在且创建失败：${fileName}`);
                     reject(false);
                 }
             });

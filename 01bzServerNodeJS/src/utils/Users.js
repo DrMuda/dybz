@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-23 10:41:28
- * @LastEditTime: 2022-03-23 15:59:07
+ * @LastEditTime: 2022-03-23 17:07:28
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\Users.js
@@ -31,6 +31,8 @@ const isFileExistedAndCreate = require("./isFileExistedAndCreate");
 const fs = require("fs");
 const moment = require("moment");
 const fileName = "../users.json";
+const Log = require("./Log");
+const timeFomat = "YYYY-MM-DD HH:mm:ss";
 
 class Users {
     users = {};
@@ -44,11 +46,11 @@ class Users {
         if (isExist) {
             fs.open(fileName, "r", (e) => {
                 if (e) {
-                    console.error(`文件读取有误：${fileName}`);
+                    Log.error(`文件读取有误：${fileName}`);
                 } else {
                     fs.readFile(fileName, (e, data) => {
                         if (e) {
-                            console.error(`文件读取有误：${fileName}`);
+                            Log.error(`文件读取有误：${fileName}`);
                         } else {
                             this.users = JSON.parse(data);
                         }
@@ -56,7 +58,7 @@ class Users {
                 }
             });
         } else {
-            console.error(`文不存在且创建失败：${fileName}`);
+            Log.error(`文不存在且创建失败：${fileName}`);
         }
     }
 
@@ -68,16 +70,16 @@ class Users {
                     if (!reverse) {
                         fs.open(fileName, "r", (e) => {
                             if (e) {
-                                console.error(`文件读取有误：${fileName}`);
+                                Log.error(`文件读取有误：${fileName}`);
                                 reject(false);
                             } else {
                                 fs.writeFile(fileName, JSON.stringify(this.users, null, 4), (e) => {
                                     if (e) {
-                                        console.error(`文件写入失败：${fileName}`);
-                                        console.error(e);
+                                        Log.error(`文件写入失败：${fileName}`);
+                                        Log.error(e);
                                         reject(false);
                                     } else {
-                                        console.log(`文件写入成功：${fileName}`);
+                                        Log.info(`文件写入成功：${fileName}`);
                                         resolve(true);
                                     }
                                 });
@@ -86,16 +88,16 @@ class Users {
                     } else {
                         fs.open(fileName, "r", (e) => {
                             if (e) {
-                                console.error(`文件读取有误：${fileName}`);
+                                Log.error(`文件读取有误：${fileName}`);
                                 reject(false);
                             } else {
                                 fs.readFile(fileName, (e, data) => {
                                     if (e) {
-                                        console.error(`文件读取有误：${fileName}`);
+                                        Log.error(`文件读取有误：${fileName}`);
                                         reject(false);
                                     } else {
                                         this.users = JSON.parse(data);
-                                        console.log(`已更新内存数据：${fileName}`);
+                                        Log.info(`已更新内存数据：${fileName}`);
                                         resolve(true);
                                     }
                                 });
@@ -103,7 +105,7 @@ class Users {
                         });
                     }
                 } else {
-                    console.error(`文不存在且创建失败：${fileName}`);
+                    Log.error(`文不存在且创建失败：${fileName}`);
                     reject(false);
                 }
             });
@@ -132,12 +134,12 @@ class Users {
     async setUser(id, password, user) {
         if (this.users[id]) {
             if (this.users[id].password === password) {
-                this.users[id] = { ...user, password, lastUpdate: moment().format("YYYY-MM-dd HH:mm:ss") };
+                this.users[id] = { ...user, password, lastUpdate: moment().format(timeFomat) };
                 return await this._updateFile();
             }
             return "user error";
         } else {
-            this.users[id] = { ...user, password, lastUpdate: moment().format("YYYY-MM-dd HH:mm:ss") };
+            this.users[id] = { ...user, password, lastUpdate: moment().format(timeFomat) };
             return await this._updateFile();
         }
     }
