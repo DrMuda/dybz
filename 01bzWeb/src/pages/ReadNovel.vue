@@ -12,14 +12,15 @@
             <template v-for="(item, index) in novel.mainContext">
                 <br v-if="new RegExp(/^<br \/>/).test(item) === true" :key="item + index" />
                 <editable-img
-                    v-else-if="new RegExp(/^img:/).test(item) === true && !imgAndChar[item.replace('img:', '')]?.char"
+                    v-else-if="new RegExp(/^img:/).test(item) === true && !imgAndChar[oldNewKey[item.replace('img:', '')]]?.char"
                     :key="item + index"
-                    :imgSrc="imgAndChar[item.replace('img:', '')]?.img || '#'"
+                    :imgSrc="imgAndChar[oldNewKey[item.replace('img:', '')]]?.img || '#'"
                     :id="item.replace('img:', '')"
                     :updateCache="updateCache"
+                    :class="item + ' ' + oldNewKey[item.replace('img:', '')]"
                 />
-                <span v-else-if="new RegExp(/^img:/).test(item) === true && imgAndChar[item.replace('img:', '')]?.char" :key="item + index">{{
-                    imgAndChar[item.replace("img:", "")]?.char
+                <span v-else-if="new RegExp(/^img:/).test(item) === true && imgAndChar[oldNewKey[item.replace('img:', '')]]?.char" :key="item + index">{{
+                    imgAndChar[oldNewKey[item.replace("img:", "")]]?.char
                 }}</span>
                 <span v-else :key="item + index">{{ item }}</span>
             </template>
@@ -55,6 +56,7 @@ export default {
             // 预加载, 下一页/章节的内容, 结构与novel一致
             nextPageNovel: null,
             imgAndChar: ImgAndChar.get(),
+            oldNewKey: {},
             novelId: this.$route.query.id,
             novelUrl: this.$route.query.url,
             loading: false,
@@ -76,6 +78,9 @@ export default {
         this.toTop();
         this.autoRefreshChar = setInterval(() => {
             if (JSON.stringify(ImgAndChar.get()) !== JSON.stringify(this.imgAndChar)) {
+                this.imgAndChar = ImgAndChar.get();
+            }
+            if (localStorage.getItem("oldNewKey") !== JSON.stringify(this.oldNewKey)) {
                 this.imgAndChar = ImgAndChar.get();
             }
         }, 500);
@@ -156,17 +161,17 @@ export default {
                                         let nextContext = novel.mainContext;
                                         if (canSetNewKey) {
                                             localStorage.setItem("oldNewKey", JSON.stringify(oldNewKey));
-                                            const oldKeys = Object.keys(oldNewKey);
-                                            debugger;
-                                            nextContext = JSON.parse(JSON.stringify(novel)).mainContext;
-                                            nextContext = "__" + nextContext.join("__") + "__";
-                                            for (let i = 0; i < oldKeys.length; i += 1) {
-                                                const oldKey = oldKeys[i];
-                                                const newKey = oldNewKey[oldKey];
-                                                const reg = new RegExp(`__img:${oldKey}__`, "g");
-                                                nextContext = nextContext.replace(reg, `__img:${newKey}__`);
-                                            }
-                                            nextContext = nextContext.split("__");
+                                            // const oldKeys = Object.keys(oldNewKey);
+                                            // debugger;
+                                            // nextContext = JSON.parse(JSON.stringify(novel)).mainContext;
+                                            // nextContext = "__" + nextContext.join("__") + "__";
+                                            // for (let i = 0; i < oldKeys.length; i += 1) {
+                                            //     const oldKey = oldKeys[i];
+                                            //     const newKey = oldNewKey[oldKey];
+                                            //     const reg = new RegExp(`__img:${oldKey}__`, "g");
+                                            //     nextContext = nextContext.replace(reg, `__img:${newKey}__`);
+                                            // }
+                                            // nextContext = nextContext.split("__");
                                         }
                                         if (this.isPreLoad) {
                                             this.nextPageNovel = { ...novel, mainContext: nextContext };
@@ -395,7 +400,7 @@ export default {
                                     showClose: true,
                                     message: "加载失败",
                                     type: "error",
-                                    duration: 1000
+                                    duration: 1000,
                                 });
                             this.loading = false;
                             if (err.message === "中断请求") {
