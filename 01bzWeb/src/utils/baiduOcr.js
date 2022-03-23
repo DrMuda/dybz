@@ -8,7 +8,12 @@ export default async () => {
     const url = localStorage.getItem("ocr");
     const access_token = localStorage.getItem("ocrToken");
     if (url && url !== "no" && access_token) {
-        ElMessage.warning("正在使用百度ocr， 注意使用量");
+        ElMessage({
+            message: "正在使用百度ocr， 注意使用量",
+            type: "warning",
+            duration: 1000,
+            showClose: true,
+        });
         const imgAndChar = ImgAndChar.get();
         const keys = Object.keys(imgAndChar);
         for (let i = 0; i < keys.length; i += 1) {
@@ -63,6 +68,11 @@ export default async () => {
             }, 1000 / QPS);
         });
     } else if (!access_token) {
-        ElMessage.error("无access_token");
+        ElMessage({
+            message: "无access_token",
+            type: "error",
+            duration: 1000,
+            showClose: true,
+        });
     }
 };

@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-23 10:41:28
- * @LastEditTime: 2022-03-23 15:03:57
+ * @LastEditTime: 2022-03-23 15:59:07
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\Users.js
@@ -33,7 +33,6 @@ const moment = require("moment");
 const fileName = "../users.json";
 
 class Users {
-
     users = {};
 
     constructor() {
@@ -133,12 +132,12 @@ class Users {
     async setUser(id, password, user) {
         if (this.users[id]) {
             if (this.users[id].password === password) {
-                this.users[id] = { ...user, lastUpdate: moment().format("YYYY-MM-dd HH:mm:ss") };
+                this.users[id] = { ...user, password, lastUpdate: moment().format("YYYY-MM-dd HH:mm:ss") };
                 return await this._updateFile();
             }
             return "user error";
         } else {
-            this.users[id] = user;
+            this.users[id] = { ...user, password, lastUpdate: moment().format("YYYY-MM-dd HH:mm:ss") };
             return await this._updateFile();
         }
     }

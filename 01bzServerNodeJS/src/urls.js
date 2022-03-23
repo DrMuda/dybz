@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-16 11:37:42
- * @LastEditTime: 2022-03-23 15:24:17
+ * @LastEditTime: 2022-03-23 15:55:50
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\urls.js
@@ -12,15 +12,20 @@ const OldNewKey = require("./utils/OldNewKey.js");
 const ImgAndChar = require("./utils/ImgAndChar.js");
 
 async function pushCache(req, res) {
-    const { oldNewKey, imgAndChar, user, userName, password } = req.body?.data || {};
+    const { oldNewKey, imgAndChar, user } = req.body?.data || {};
+    const { userName, password } = req.body || {};
     if (user) {
-        Users.setUser(userName, password, user).then((status) => {
-            if (typeof status === "boolean") {
-                res.send({ status: status ? "success" : "file io fail" });
-            } else {
-                res.send({ status });
-            }
-        });
+        if (userName) {
+            Users.setUser(userName, password, user).then((status) => {
+                if (typeof status === "boolean") {
+                    res.send({ status: status ? "success" : "file io fail" });
+                } else {
+                    res.send({ status });
+                }
+            });
+        } else {
+            res.send({ status: "user error" });
+        }
     }
     if (imgAndChar) {
         ImgAndChar.set({

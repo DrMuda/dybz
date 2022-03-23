@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-11 15:10:27
- * @LastEditTime: 2022-03-23 15:25:45
+ * @LastEditTime: 2022-03-23 16:08:58
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\ConfigSet.vue
@@ -127,10 +127,20 @@ export default {
                 ElMessageBox.confirm("确定更改已缓存的密码吗？")
                     .then(() => {
                         localStorage.setItem("password", md5(this.password));
-                        ElMessage.info("密码已更改");
+                        ElMessage({
+                            message: "密码已更改",
+                            type: "info",
+                            duration: 1000,
+                            showClose: true,
+                        });
                     })
                     .catch(() => {
-                        ElMessage.info("密码未更改");
+                        ElMessage({
+                            message: "密码未更改",
+                            type: "info",
+                            duration: 1000,
+                            showClose: true,
+                        });
                     });
             } else {
                 localStorage.setItem("password", md5(this.password));

@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 14:02:18
- * @LastEditTime: 2022-03-17 16:20:03
+ * @LastEditTime: 2022-03-23 16:05:40
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SelectChapter.vue
@@ -66,6 +66,7 @@ export default {
                     showClose: true,
                     message: "出错了",
                     type: "error",
+                    duration: 1000
                 });
             }
             this.loading = false;
@@ -107,6 +108,7 @@ export default {
                                 showClose: true,
                                 message: "加载失败",
                                 type: "error",
+                                duration: 1000
                             });
                             this.loading = false;
                             console.error("failed", err);

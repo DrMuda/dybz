@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-23 15:26:56
+ * @LastEditTime: 2022-03-23 16:04:49
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
@@ -26,7 +26,7 @@
 import NovelListItem from "@/components/NovelListItem.vue";
 import ConfigSet from "@/components/ConfigSet.vue";
 import syncCache from "../utils/syncCache";
-import { ElMessage, ElMessageBox, ElIcon } from "element-plus";
+import { ElIcon } from "element-plus";
 import { Upload, Download } from "@element-plus/icons-vue";
 import moment, { locale } from "moment";
 import * as services from "@/service/index.js";

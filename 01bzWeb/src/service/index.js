@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-23 15:18:02
+ * @LastEditTime: 2022-03-23 16:07:26
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -34,7 +34,12 @@ export function pushCache({ data }) {
             password,
         });
     }
-    ElMessage.warning("先在设置中填写账号密码吧！");
+    ElMessage({
+        message: "先在设置中填写账号密码吧！",
+        type: "warning",
+        duration: 1000,
+        showClose: true,
+    });
     return Promise.reject({ status: "userError" });
 }
 
@@ -49,7 +54,12 @@ export function pullCache() {
             },
         });
     }
-    ElMessage.warning("先在设置中填写账号密码吧！");
+    ElMessage({
+        message: "先在设置中填写账号密码吧！",
+        type: "warning",
+        duration: 1000,
+        showClose: true,
+    });
     return Promise.reject({ status: "userError" });
 }
 

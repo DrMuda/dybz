@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 09:44:33
- * @LastEditTime: 2022-03-18 16:19:28
+ * @LastEditTime: 2022-03-23 16:15:51
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\NovelListItem.vue
@@ -14,7 +14,11 @@
                 <el-input v-model="url" @change="onNameOrUrlChange" />
             </div>
             <div class="operation">
-                <a class="link" @click="onDelBtnClick" style="color: red">删除书籍</a>
+                <el-popconfirm title="确定？" @cancel="null" @confirm="onDelBtnClick">
+                    <template #reference>
+                        <a class="link" style="color: red">删除书籍</a>
+                    </template>
+                </el-popconfirm>
                 <router-link :to="`/SelectChapter?id=${id}&url=${url}&name=${name}`" class="link">选择章节</router-link>
             </div>
         </div>
@@ -33,10 +37,11 @@
 
 <script>
 /* eslint-disable */
-import { ElInput } from "element-plus";
+import { ElInput, ElPopcoElPopconfirm } from "element-plus";
 export default {
     components: {
         ElInput,
+        ElPopcoElPopconfirm,
     },
     data() {
         return {

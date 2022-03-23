@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-03 16:04:20
- * @LastEditTime: 2022-03-22 14:54:52
+ * @LastEditTime: 2022-03-23 16:06:46
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SetChar.vue
@@ -60,10 +60,21 @@ export default {
         });
         (async () => {
             if (canCache) {
-                ElMessage.info("正在下载图片...");
+                ElMessage({
+                    message: "正在下载图片...",
+                    type: "info",
+                    duration: 1000,
+                    showClose: true,
+                });
                 await cacheImg(true);
                 ElMessage.closeAll();
-                ElMessage.info("下载完成");
+
+                ElMessage({
+                    message: "下载完成",
+                    type: "info",
+                    duration: 1000,
+                    showClose: true,
+                });
                 this.$forceUpdate();
             }
             setTimeout(async () => {

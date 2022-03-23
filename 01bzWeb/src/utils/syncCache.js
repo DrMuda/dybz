@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-22 11:21:46
- * @LastEditTime: 2022-03-23 15:20:26
+ * @LastEditTime: 2022-03-23 16:09:55
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\syncCache.js
@@ -18,6 +18,8 @@ export default {
             ElMessage({
                 type: "info",
                 message: "上传数据中...",
+                duration: 1000,
+                showClose: true,
             });
             let imgAndChar = ImgAndChar.get();
             let novelList = null;
@@ -55,11 +57,15 @@ export default {
                         ElMessage({
                             type: "success",
                             message: "上传成功",
+                            duration: 1000,
+                            showClose: true,
                         });
                     } else {
                         ElMessage({
                             type: "error",
                             message: "上传失败",
+                            duration: 1000,
+                            showClose: true,
                         });
                     }
                     resolve();
@@ -95,6 +101,8 @@ export default {
                                         ElMessage({
                                             type: "info",
                                             message: "推荐将本地记录上传",
+                                            duration: 1000,
+                                            showClose: true,
                                         });
                                         resolve2();
                                     });
@@ -127,6 +135,8 @@ export default {
                         ElMessage({
                             type: "info",
                             message: "已更新本地记录",
+                            duration: 1000,
+                            showClose: true,
                         });
                         resolve1();
                     }
@@ -134,6 +144,8 @@ export default {
                     ElMessage({
                         type: "error",
                         message: "更新失败",
+                        duration: 1000,
+                        showClose: true,
                     });
                     resolve1();
                 }

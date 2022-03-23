@@ -212,6 +212,7 @@ export default {
                             showClose: true,
                             message: "出错了",
                             type: "error",
+                            duration: 1000,
                         });
                     }
                     !this.isPreLoad && (this.loading = false);
@@ -394,6 +395,7 @@ export default {
                                     showClose: true,
                                     message: "加载失败",
                                     type: "error",
+                                    duration: 1000
                                 });
                             this.loading = false;
                             if (err.message === "中断请求") {
