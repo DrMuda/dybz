@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-22 14:06:37
+ * @LastEditTime: 2022-03-23 15:18:02
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -23,6 +23,7 @@ export function pushCache({ data }) {
             }
         });
     const nextData = {
+        ...data,
         imgAndChar,
         user: data.user,
     };

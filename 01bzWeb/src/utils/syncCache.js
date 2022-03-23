@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-22 11:21:46
- * @LastEditTime: 2022-03-22 16:14:14
+ * @LastEditTime: 2022-03-23 15:20:26
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\syncCache.js
@@ -20,13 +20,18 @@ export default {
                 message: "上传数据中...",
             });
             let imgAndChar = ImgAndChar.get();
-            console.log(imgAndChar);
             let novelList = null;
             let ocrToken = null;
+            let oldNewKey = null;
             try {
                 novelList = JSON.parse(localStorage.getItem("novelList") || {});
             } catch (e) {
                 novelList = {};
+            }
+            try {
+                oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || {});
+            } catch (e) {
+                oldNewKey = {};
             }
             try {
                 ocrToken = localStorage.getItem("ocrToken") || "";
@@ -37,6 +42,7 @@ export default {
                 .pushCache({
                     data: {
                         imgAndChar,
+                        oldNewKey,
                         user: {
                             novelList,
                             ocrToken,
@@ -103,22 +109,33 @@ export default {
                     });
 
                     if (canUpdate) {
+                        let oldNewKey = null;
+                        try {
+                            oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || {});
+                        } catch (e) {
+                            oldNewKey = {};
+                        }
+                        oldNewKey = {
+                            ...oldNewKey,
+                            ...res.data.oldNewKey,
+                        };
                         ImgAndChar.set({ ...ImgAndChar.get(), ...res.data.imgAndChar });
                         localStorage.setItem("novelList", JSON.stringify(res.data.user.novelList));
+                        localStorage.setItem("oldNewKey", JSON.stringify(oldNewKey));
                         localStorage.setItem("ocrToken", res.data.user.ocrToken);
                         localStorage.setItem("lastUpdate", res.data.user.lastUpdate);
                         ElMessage({
                             type: "info",
                             message: "已更新本地记录",
                         });
-                        resolve1()
+                        resolve1();
                     }
                 } else {
                     ElMessage({
                         type: "error",
                         message: "更新失败",
                     });
-                    resolve1()
+                    resolve1();
                 }
             });
         });
