@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-03 16:04:20
- * @LastEditTime: 2022-03-23 16:06:46
+ * @LastEditTime: 2022-03-23 16:36:55
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SetChar.vue
@@ -17,6 +17,7 @@
                 <el-button @click="filter('wasSet')">已设值</el-button>
                 <el-button @click="filter('notSet')">未设值</el-button>
                 <el-button @click="filter('all')">所有值</el-button>
+                <el-button @click="filter('notNormal')">异常值</el-button>
             </div>
         </div>
         <div class="list">
@@ -25,7 +26,7 @@
                     v-model="imgAndChar[id].char"
                     @change="
                         (val) => {
-                            this.onChange(id, char);
+                            this.onChange(id, val);
                         }
                     "
                 />
@@ -113,7 +114,6 @@ export default {
                     Object.keys(this.originImgAndChar).forEach((id) => {
                         const item = this.originImgAndChar[id];
                         if (item.char) {
-                            console.log(item.char);
                             nextImgAndChar[id] = item;
                         }
                     });
@@ -124,6 +124,18 @@ export default {
                         const item = this.originImgAndChar[id];
                         if (!item.char) {
                             nextImgAndChar[id] = item;
+                        }
+                    });
+                    break;
+                }
+                case "notNormal": {
+                    Object.keys(this.originImgAndChar).forEach((id) => {
+                        const item = this.originImgAndChar[id];
+                        const char = item.char;
+                        if (char && typeof char === "string") {
+                            if (char.search(/[0-9]|[a-z]|[A-Z]/g) > -1 || char.length > 1) {
+                                nextImgAndChar[id] = item;
+                            }
                         }
                     });
                     break;
