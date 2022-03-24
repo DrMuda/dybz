@@ -74,6 +74,12 @@ export default {
         msg: String,
     },
     mounted: async function () {
+        try {
+            this.oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
+        } catch (error) {
+            console.error(error);
+            this.oldNewKey = {};
+        }
         await this.load();
         this.toTop();
         this.autoRefreshChar = setInterval(() => {
@@ -81,7 +87,12 @@ export default {
                 this.imgAndChar = ImgAndChar.get();
             }
             if (localStorage.getItem("oldNewKey") !== JSON.stringify(this.oldNewKey)) {
-                this.imgAndChar = ImgAndChar.get();
+                try {
+                    this.oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
+                } catch (error) {
+                    console.error(error);
+                    this.oldNewKey = {};
+                }
             }
         }, 500);
         setTimeout(() => {
@@ -161,17 +172,6 @@ export default {
                                         let nextContext = novel.mainContext;
                                         if (canSetNewKey) {
                                             localStorage.setItem("oldNewKey", JSON.stringify(oldNewKey));
-                                            // const oldKeys = Object.keys(oldNewKey);
-                                            // debugger;
-                                            // nextContext = JSON.parse(JSON.stringify(novel)).mainContext;
-                                            // nextContext = "__" + nextContext.join("__") + "__";
-                                            // for (let i = 0; i < oldKeys.length; i += 1) {
-                                            //     const oldKey = oldKeys[i];
-                                            //     const newKey = oldNewKey[oldKey];
-                                            //     const reg = new RegExp(`__img:${oldKey}__`, "g");
-                                            //     nextContext = nextContext.replace(reg, `__img:${newKey}__`);
-                                            // }
-                                            // nextContext = nextContext.split("__");
                                         }
                                         if (this.isPreLoad) {
                                             this.nextPageNovel = { ...novel, mainContext: nextContext };
@@ -406,7 +406,7 @@ export default {
                             if (err.message === "中断请求") {
                                 reject("中断请求");
                             } else {
-                                reject();
+                                reject(err.message);
                             }
                         }.bind(this)
                     );
@@ -470,13 +470,14 @@ export default {
                         }
                     }
                     if (itemEle instanceof HTMLImageElement) {
-                        const oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
                         let imgId = itemEle.getAttribute("my-src");
-                        if (imgId) {
-                            if (oldNewKey[imgId]) {
-                                novel.mainContext.push(`img:${oldNewKey[imgId]}`);
-                            } else {
-                                novel.mainContext.push(`img:${imgId}`);
+                        novel.mainContext.push(`img:${imgId}`);
+                        // 如果没有图片id的映射， 则生成新的
+                        if (!this.oldNewKey[imgId]) {
+                            this.imgAndChar[imgId] = { char: null, img: null };
+                        } else {
+                            // 有映射关系， 但实际没有图片也生成新的
+                            if (!this.imgAndChar[this.oldNewKey[imgId]]?.img) {
                                 this.imgAndChar[imgId] = { char: null, img: null };
                             }
                         }
