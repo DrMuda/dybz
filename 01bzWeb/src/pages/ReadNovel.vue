@@ -74,14 +74,36 @@ export default {
         msg: String,
     },
     mounted: async function () {
+        let cachePage = {};
+        try {
+            cachePage = JSON.parse(sessionStorage.getItem("cachePage") || "{}");
+        } catch (error) {
+            console.error(error);
+            cachePage = {};
+        }
+
         try {
             this.oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
         } catch (error) {
             console.error(error);
             this.oldNewKey = {};
         }
-        await this.load();
-        this.toTop();
+
+        if (cachePage.novelUrl === this.novelUrl && cachePage.novelId === this.novelId) {
+            this.novel = cachePage.novel;
+            this.nextPageNovel = cachePage.nextPageNovel;
+        } else {
+            await this.load();
+            this.toTop();
+            setTimeout(() => {
+                this.nextPageNovel = null;
+                this.isPreLoad = true;
+                this.tryPreLoadNum = 1;
+                this.maxTryPreloadNum = 3;
+                this.load();
+            }, this.reloadTimeInterval());
+        }
+
         this.autoRefreshChar = setInterval(() => {
             if (JSON.stringify(ImgAndChar.get()) !== JSON.stringify(this.imgAndChar)) {
                 this.imgAndChar = ImgAndChar.get();
@@ -95,21 +117,29 @@ export default {
                 }
             }
         }, 500);
-        setTimeout(() => {
-            this.nextPageNovel = null;
-            this.isPreLoad = true;
-            this.tryPreLoadNum = 1;
-            this.maxTryPreloadNum = 3;
-            this.load();
-        }, this.reloadTimeInterval());
     },
     beforeUnmount() {
         // eslint-disable-next-line no-debugger
         // debugger;
         this.autoRefreshChar && clearInterval(this.autoRefreshChar);
         this.setHistory();
+        this.cachePage();
+    },
+    beforeRouteLeave(_, __, next) {
+        this.novelId = this.$route.query.id;
+        this.novelUrl = this.$route.query.url;
+        next();
     },
     methods: {
+        cachePage: function () {
+            const data = {
+                novelId: this.novelId,
+                novelUrl: this.novelUrl,
+                novel: this.novel,
+                nextPageNovel: this.nextPageNovel,
+            };
+            sessionStorage.setItem("cachePage", JSON.stringify(data));
+        },
         setHistory: function () {
             if (this.novel.mainContext?.length > 0) {
                 const urlList = this.novelUrl.split("/");
