@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-23 16:44:47
- * @LastEditTime: 2022-03-23 17:41:26
+ * @LastEditTime: 2022-03-24 16:10:38
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\log.js
@@ -16,8 +16,17 @@ class Log {
     list = [];
     constructor() {
         setInterval(async () => {
-            for (; this.list.length > 0; ) {
-                await this.append(this.list.shift());
+            if (this.list.length > 0) {
+                console.log("写入记录条数: ", this.list.length);
+                const appendData = this.list.join("\r\n");
+                this.list = [];
+                const appendSuccess = await this.append(appendData);
+                // 如果写入失败， 还原内存中的日志
+                // 等待写入完成还会有新的日志输入， 所以需要追加this.list
+                if (!appendSuccess) {
+                    const temp = appendData.split("\r\n");
+                    this.list = [...temp, ...this.list];
+                }
             }
         }, 5000);
     }
@@ -28,21 +37,29 @@ class Log {
                     fs.open(fileName, "r", (e, fd) => {
                         if (e) {
                             console.error(`日志读取有误：${fileName}`);
-                            fs.close(fd, resolve);
+                            fs.close(fd, () => {
+                                resolve(false);
+                            });
                         } else {
                             fs.readFile(fileName, (e, data) => {
                                 if (e) {
                                     console.error(`日志读取有误：${fileName}`);
-                                    fs.close(fd, resolve);
+                                    fs.close(fd, () => {
+                                        resolve(false);
+                                    });
                                 } else {
                                     fs.writeFile(fileName, data + "\r\n" + message, (e) => {
                                         if (e) {
                                             console.error(`日志写入失败：${fileName}`);
                                             console.error(e);
-                                            fs.close(fd, resolve);
+                                            fs.close(fd, () => {
+                                                resolve(false);
+                                            });
                                         } else {
                                             console.log(`日志写入成功：${fileName}`);
-                                            fs.close(fd, resolve);
+                                            fs.close(fd, () => {
+                                                resolve(true);
+                                            });
                                         }
                                     });
                                 }

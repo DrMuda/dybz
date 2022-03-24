@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-23 11:22:36
- * @LastEditTime: 2022-03-23 17:04:22
+ * @LastEditTime: 2022-03-24 16:02:38
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\ImgAndChar.js
@@ -17,13 +17,19 @@
 const isFileExistedAndCreate = require("./isFileExistedAndCreate");
 const fs = require("fs");
 const fileName = "../imgAndChar.json";
-const Log = require("./Log")
+const Log = require("./Log");
 
 class ImgAndChar {
     imgAndChar = {};
+    hasNewData = false;
 
     constructor() {
         this._init();
+        setInterval(() => {
+            if (this.hasNewData) {
+                this._updateFile();
+            }
+        }, 5000);
     }
 
     async _init() {
@@ -64,6 +70,7 @@ class ImgAndChar {
                                         reject(false);
                                     } else {
                                         Log.info(`文件写入成功：${fileName}`);
+                                        this.hasNewData = false;
                                         resolve(true);
                                     }
                                 });
@@ -109,12 +116,16 @@ class ImgAndChar {
 
     async set(imgAndChar) {
         this.imgAndChar = imgAndChar;
-        return await this._updateFile();
+        this.hasNewData = true;
+        return true;
+        // return await this._updateFile();
     }
 
     async setItem(key, item) {
         this.imgAndChar[key] = item;
-        return await this._updateFile();
+        this.hasNewData = true;
+        return true;
+        // return await this._updateFile();
     }
 }
 

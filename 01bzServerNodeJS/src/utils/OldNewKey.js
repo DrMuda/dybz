@@ -1,24 +1,28 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-23 11:22:36
- * @LastEditTime: 2022-03-23 16:57:08
+ * @LastEditTime: 2022-03-24 15:51:51
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\OldNewKey.js
  */
 
- 
 const isFileExistedAndCreate = require("./isFileExistedAndCreate");
 const fs = require("fs");
 const fileName = "../oldNewKey.json";
-const Log = require("./Log")
+const Log = require("./Log");
 
 class OldNewKey {
-
     oldNewKey = {};
+    hasNewData = false;
 
     constructor() {
         this._init();
+        setInterval(() => {
+            if (this.hasNewData) {
+                this._updateFile();
+            }
+        }, 5000);
     }
 
     async _init() {
@@ -59,6 +63,7 @@ class OldNewKey {
                                         reject(false);
                                     } else {
                                         Log.info(`文件写入成功：${fileName}`);
+                                        this.hasNewData = false;
                                         resolve(true);
                                     }
                                 });
@@ -101,12 +106,16 @@ class OldNewKey {
 
     async set(oldNewKey) {
         this.oldNewKey = oldNewKey;
-        return await this._updateFile();
+        this.hasNewData = true;
+        return true;
+        // return await this._updateFile();
     }
 
     async setByOldKey(oldKey, newKey) {
         this.oldNewKey[oldKey] = newKey;
-        return await this._updateFile();
+        this.hasNewData = true;
+        return true;
+        // return await this._updateFile();
     }
 }
 

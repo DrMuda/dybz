@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-23 10:41:28
- * @LastEditTime: 2022-03-23 17:07:28
+ * @LastEditTime: 2022-03-24 16:02:28
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\Users.js
@@ -36,9 +36,15 @@ const timeFomat = "YYYY-MM-DD HH:mm:ss";
 
 class Users {
     users = {};
-
+    hasNewData = false;
     constructor() {
         this._init();
+        setInterval(() => {
+            if (this.hasNewData) {
+                this.hasNewData = false;
+                this._updateFile();
+            }
+        }, 5000);
     }
 
     async _init() {
@@ -80,6 +86,7 @@ class Users {
                                         reject(false);
                                     } else {
                                         Log.info(`文件写入成功：${fileName}`);
+                                        this.hasNewData = false;
                                         resolve(true);
                                     }
                                 });
@@ -128,6 +135,7 @@ class Users {
 
     async set(users) {
         this.users = users;
+        this.hasNewData = true;
         return await this._updateFile();
     }
 
@@ -135,12 +143,15 @@ class Users {
         if (this.users[id]) {
             if (this.users[id].password === password) {
                 this.users[id] = { ...user, password, lastUpdate: moment().format(timeFomat) };
-                return await this._updateFile();
+                this.hasNewData = true;
+                return true;
+                // return await this._updateFile();
             }
             return "user error";
         } else {
             this.users[id] = { ...user, password, lastUpdate: moment().format(timeFomat) };
-            return await this._updateFile();
+            return true;
+            // return await this._updateFile();
         }
     }
 }
