@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-02-28 11:28:14
- * @LastEditTime: 2022-03-15 11:28:06
+ * @LastEditTime: 2022-03-24 17:21:48
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\EditableImg.vue
@@ -30,6 +30,8 @@ export default {
         imgSrc: String,
         id: String,
         updateCache: Function,
+        item: String,
+        newKey: String,
     },
     watch: {
         input() {
@@ -47,7 +49,7 @@ export default {
         },
         handleClose: function () {
             this.dialogIsShow = false;
-            this.updateCache(this.id.replace("img:", ""), this.input);
+            this.updateCache(this.newKey, this.input);
         },
     },
 };

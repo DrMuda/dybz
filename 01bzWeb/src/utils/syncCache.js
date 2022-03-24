@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-22 11:21:46
- * @LastEditTime: 2022-03-24 15:42:37
+ * @LastEditTime: 2022-03-24 17:28:27
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\syncCache.js
@@ -129,27 +129,26 @@ export default {
                         resolve1();
                     }
                 } else {
-                    let tempOldNewKey = null;
-                    try {
-                        tempOldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || {});
-                    } catch (e) {
-                        tempOldNewKey = {};
-                    }
-                    tempOldNewKey = {
-                        ...tempOldNewKey,
-                        ...oldNewKey,
-                    };
-                    localStorage.setItem("oldNewKey", JSON.stringify(tempOldNewKey));
-                    ImgAndChar.set({ ...ImgAndChar.get(), ...imgAndChar });
-
                     ElMessage({
                         type: "error",
                         message: "更新失败",
                         duration: 1000,
                         showClose: true,
                     });
-                    resolve1();
                 }
+                let tempOldNewKey = null;
+                try {
+                    tempOldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || {});
+                } catch (e) {
+                    tempOldNewKey = {};
+                }
+                tempOldNewKey = {
+                    ...tempOldNewKey,
+                    ...oldNewKey,
+                };
+                localStorage.setItem("oldNewKey", JSON.stringify(tempOldNewKey));
+                ImgAndChar.set({ ...ImgAndChar.get(), ...imgAndChar });
+                resolve1();
             });
         });
     },

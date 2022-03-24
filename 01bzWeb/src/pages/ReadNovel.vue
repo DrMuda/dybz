@@ -17,7 +17,8 @@
                     :imgSrc="imgAndChar[oldNewKey[item.replace('img:', '')]]?.img || '#'"
                     :id="item.replace('img:', '')"
                     :updateCache="updateCache"
-                    :class="item + ' ' + oldNewKey[item.replace('img:', '')]"
+                    :item="item"
+                    :newKey="oldNewKey[item.replace('img:', '')]"
                 />
                 <span v-else-if="new RegExp(/^img:/).test(item) === true && imgAndChar[oldNewKey[item.replace('img:', '')]]?.char" :key="item + index">{{
                     imgAndChar[oldNewKey[item.replace("img:", "")]]?.char
