@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-23 16:07:26
+ * @LastEditTime: 2022-03-24 15:38:49
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -27,40 +27,38 @@ export function pushCache({ data }) {
         imgAndChar,
         user: data.user,
     };
-    if (userName && password) {
-        return axios.post("/nodeApi/sync/pushCache", {
-            data: nextData,
-            userName,
-            password,
+    if (!userName || !password) {
+        ElMessage({
+            message: "先在设置中填写账号密码吧！",
+            type: "warning",
+            duration: 1000,
+            showClose: true,
         });
     }
-    ElMessage({
-        message: "先在设置中填写账号密码吧！",
-        type: "warning",
-        duration: 1000,
-        showClose: true,
+    return axios.post("/nodeApi/sync/pushCache", {
+        data: nextData,
+        userName,
+        password,
     });
-    return Promise.reject({ status: "userError" });
 }
 
 export function pullCache() {
     const userName = localStorage.getItem("userName");
     const password = localStorage.getItem("password");
-    if (userName && password) {
-        return axios.get("/nodeApi/sync/pullCache", {
-            params: {
-                userName,
-                password,
-            },
+    if (!userName || !password) {
+        ElMessage({
+            message: "先在设置中填写账号密码吧！",
+            type: "warning",
+            duration: 1000,
+            showClose: true,
         });
     }
-    ElMessage({
-        message: "先在设置中填写账号密码吧！",
-        type: "warning",
-        duration: 1000,
-        showClose: true,
+    return axios.get("/nodeApi/sync/pullCache", {
+        params: {
+            userName,
+            password,
+        },
     });
-    return Promise.reject({ status: "userError" });
 }
 
 export function getNovelHtml(novelUrl, cancelTokenList) {

@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-22 11:21:46
- * @LastEditTime: 2022-03-23 16:09:55
+ * @LastEditTime: 2022-03-24 15:42:37
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\syncCache.js
@@ -52,7 +52,6 @@ export default {
                     },
                 })
                 .then((res) => {
-                    ElMessage.closeAll();
                     if (res.data.status === "success") {
                         ElMessage({
                             type: "success",
@@ -75,9 +74,10 @@ export default {
     pullCache() {
         return new Promise((resolve1) => {
             services.pullCache().then(async (res) => {
-                if (res.data.status === "success") {
+                const { imgAndChar, oldNewKey, status, user } = res.data || {};
+                if (status === "success") {
                     const localLastUpdate = moment(localStorage.getItem("lastUpdate"));
-                    const cloudLastUpdate = moment(res.data.user.lastUpdate);
+                    const cloudLastUpdate = moment(user.lastUpdate);
                     let canUpdate = false;
                     await new Promise((resolve2) => {
                         if (moment().isValid(localLastUpdate) && moment().isValid(cloudLastUpdate)) {
@@ -85,7 +85,7 @@ export default {
                                 ElMessageBox.alert(
                                     `<p>本地记录较新，确定更新?</p>
                                     <p>本地：${localStorage.getItem("lastUpdate")}</p>
-                                    <p>云端：${res.data.user.lastUpdate}</p>`,
+                                    <p>云端：${user.lastUpdate}</p>`,
                                     "更新提示",
                                     {
                                         confirmButtonText: "确定",
@@ -117,21 +117,9 @@ export default {
                     });
 
                     if (canUpdate) {
-                        let oldNewKey = null;
-                        try {
-                            oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || {});
-                        } catch (e) {
-                            oldNewKey = {};
-                        }
-                        oldNewKey = {
-                            ...oldNewKey,
-                            ...res.data.oldNewKey,
-                        };
-                        ImgAndChar.set({ ...ImgAndChar.get(), ...res.data.imgAndChar });
-                        localStorage.setItem("novelList", JSON.stringify(res.data.user.novelList));
-                        localStorage.setItem("oldNewKey", JSON.stringify(oldNewKey));
-                        localStorage.setItem("ocrToken", res.data.user.ocrToken);
-                        localStorage.setItem("lastUpdate", res.data.user.lastUpdate);
+                        localStorage.setItem("novelList", JSON.stringify(user.novelList));
+                        localStorage.setItem("ocrToken", user.ocrToken);
+                        localStorage.setItem("lastUpdate", user.lastUpdate);
                         ElMessage({
                             type: "info",
                             message: "已更新本地记录",
@@ -141,6 +129,19 @@ export default {
                         resolve1();
                     }
                 } else {
+                    let tempOldNewKey = null;
+                    try {
+                        tempOldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || {});
+                    } catch (e) {
+                        tempOldNewKey = {};
+                    }
+                    tempOldNewKey = {
+                        ...tempOldNewKey,
+                        ...oldNewKey,
+                    };
+                    localStorage.setItem("oldNewKey", JSON.stringify(tempOldNewKey));
+                    ImgAndChar.set({ ...ImgAndChar.get(), ...imgAndChar });
+
                     ElMessage({
                         type: "error",
                         message: "更新失败",
