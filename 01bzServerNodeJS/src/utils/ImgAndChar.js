@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-23 11:22:36
- * @LastEditTime: 2022-03-24 16:02:38
+ * @LastEditTime: 2022-03-25 15:14:24
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\ImgAndChar.js
@@ -16,7 +16,7 @@
 // }
 const isFileExistedAndCreate = require("./isFileExistedAndCreate");
 const fs = require("fs");
-const fileName = "../imgAndChar.json";
+const fileName = "../data/imgAndChar.json";
 const Log = require("./Log");
 
 class ImgAndChar {

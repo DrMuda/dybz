@@ -9,7 +9,7 @@
 
 const isFileExistedAndCreate = require("./isFileExistedAndCreate");
 const fs = require("fs");
-const fileName = "../oldNewKey.json";
+const fileName = "../data/oldNewKey.json";
 const Log = require("./Log");
 
 class OldNewKey {

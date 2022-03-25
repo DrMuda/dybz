@@ -2,7 +2,8 @@
     "dependencies": {
         "-": "^0.0.1",
         "express": "^4.17.3",
-        "moment": "^2.29.1"
+        "moment": "^2.29.1",
+        "pako": "^2.0.4"
     },
     "devDependencies": {
         "webpack": "^5.70.0",

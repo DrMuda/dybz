@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-16 11:37:42
- * @LastEditTime: 2022-03-23 17:00:14
+ * @LastEditTime: 2022-03-25 15:15:34
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\urls.js
@@ -10,10 +10,32 @@
 const Users = require("./utils/Users.js");
 const OldNewKey = require("./utils/OldNewKey.js");
 const ImgAndChar = require("./utils/ImgAndChar.js");
-const Log = require("./utils/Log")
+const Log = require("./utils/Log");
+const pako = require("pako");
+
+function zip(input) {
+    output = pako.deflate(input, {
+        to: "string",
+        level: 6,
+    });
+    return output;
+}
+function unZip(input) {
+    try {
+        const result = pako.inflate(input, {
+            to: "string",
+        });
+        return result;
+    } catch (err) {
+        console.log(err);
+        return null;
+    }
+}
 
 async function pushCache(req, res) {
-    const { oldNewKey, imgAndChar, user } = req.body?.data || {};
+    let { oldNewKey, imgAndChar, user } = req.body.data || {};
+    imgAndChar = JSON.parse(unZip(imgAndChar));
+    oldNewKey = JSON.parse(unZip(oldNewKey) || "{}");
     const { userName, password } = req.body || {};
     Log.info(`pushCache: ${userName} ${password}`);
     if (user) {
@@ -56,7 +78,7 @@ async function pullCache(req, res) {
     } else {
         data.status = "success";
     }
-    res.send(data);
+    res.send(zip(JSON.stringify(data)));
 }
 
 module.exports = {

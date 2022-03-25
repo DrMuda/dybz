@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-23 10:41:28
- * @LastEditTime: 2022-03-24 16:02:28
+ * @LastEditTime: 2022-03-25 15:14:37
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\Users.js
@@ -30,7 +30,7 @@
 const isFileExistedAndCreate = require("./isFileExistedAndCreate");
 const fs = require("fs");
 const moment = require("moment");
-const fileName = "../users.json";
+const fileName = "../data/users.json";
 const Log = require("./Log");
 const timeFomat = "YYYY-MM-DD HH:mm:ss";
 

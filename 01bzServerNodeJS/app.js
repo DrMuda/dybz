@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 09:33:39
- * @LastEditTime: 2022-03-16 14:20:45
+ * @LastEditTime: 2022-03-25 11:04:28
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\app.js
@@ -12,9 +12,9 @@ const urls = require("./src/urls.js");
 
 const app = express();
 // 解析 application/json
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "50mb" }));
 // 解析 application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 Object.keys(urls).forEach((path) => {
     const { method, message } = urls[path];
