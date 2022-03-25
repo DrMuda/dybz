@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 09:44:33
- * @LastEditTime: 2022-03-23 16:15:51
+ * @LastEditTime: 2022-03-25 14:55:38
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\NovelListItem.vue
@@ -37,11 +37,11 @@
 
 <script>
 /* eslint-disable */
-import { ElInput, ElPopcoElPopconfirm } from "element-plus";
+import { ElInput, ElPopconfirm } from "element-plus";
 export default {
     components: {
         ElInput,
-        ElPopcoElPopconfirm,
+        ElPopconfirm,
     },
     data() {
         return {

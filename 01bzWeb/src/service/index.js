@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-24 15:38:49
+ * @LastEditTime: 2022-03-25 15:20:37
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -14,19 +14,7 @@ import { ElMessage } from "element-plus";
 export function pushCache({ data }) {
     const userName = localStorage.getItem("userName");
     const password = localStorage.getItem("password");
-    const imgAndChar = {};
-    // 筛选已设值的数据
-    data.imgAndChar &&
-        Object.keys(data.imgAndChar).forEach((key) => {
-            if (data.imgAndChar[key].char) {
-                imgAndChar[key] = data.imgAndChar[key];
-            }
-        });
-    const nextData = {
-        ...data,
-        imgAndChar,
-        user: data.user,
-    };
+    
     if (!userName || !password) {
         ElMessage({
             message: "先在设置中填写账号密码吧！",
@@ -36,7 +24,7 @@ export function pushCache({ data }) {
         });
     }
     return axios.post("/nodeApi/sync/pushCache", {
-        data: nextData,
+        data,
         userName,
         password,
     });

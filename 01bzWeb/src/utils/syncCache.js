@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-22 11:21:46
- * @LastEditTime: 2022-03-24 17:28:27
+ * @LastEditTime: 2022-03-25 15:17:45
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\syncCache.js
@@ -11,6 +11,27 @@ import ImgAndChar from "./ImgAndChar";
 import { ElMessage, ElMessageBox } from "element-plus";
 import moment from "moment";
 import * as services from "@/service/index.js";
+import pako from "pako";
+
+function zip(input) {
+    const output = pako.deflate(input, {
+        to: "string",
+        level: 6,
+    });
+    return output;
+}
+function unZip(input) {
+    try {
+        const result = pako.inflate(input, {
+            to: "string",
+        });
+        return result;
+        // ... continue processing
+    } catch (err) {
+        console.log(err);
+        return null;
+    }
+}
 
 export default {
     pushCache() {
@@ -21,7 +42,15 @@ export default {
                 duration: 1000,
                 showClose: true,
             });
-            let imgAndChar = ImgAndChar.get();
+            let tempImgAndChar = ImgAndChar.get();
+            let imgAndChar = {};
+            // 筛选已设值的数据
+            imgAndChar &&
+                Object.keys(tempImgAndChar).forEach((key) => {
+                    if (tempImgAndChar[key].char) {
+                        imgAndChar[key] = tempImgAndChar[key];
+                    }
+                });
             let novelList = null;
             let ocrToken = null;
             let oldNewKey = null;
@@ -31,10 +60,13 @@ export default {
                 novelList = {};
             }
             try {
-                oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || {});
+                oldNewKey = localStorage.getItem("oldNewKey") || "{}";
             } catch (e) {
-                oldNewKey = {};
+                oldNewKey = "{}";
             }
+            imgAndChar = zip(JSON.stringify(imgAndChar));
+            oldNewKey = zip(oldNewKey);
+
             try {
                 ocrToken = localStorage.getItem("ocrToken") || "";
             } catch (e) {
@@ -51,30 +83,43 @@ export default {
                         },
                     },
                 })
-                .then((res) => {
-                    if (res.data.status === "success") {
-                        ElMessage({
-                            type: "success",
-                            message: "上传成功",
-                            duration: 1000,
-                            showClose: true,
-                        });
-                    } else {
+                .then(
+                    (res) => {
+                        if (res.data.status === "success") {
+                            ElMessage({
+                                type: "success",
+                                message: "上传成功",
+                                duration: 1000,
+                                showClose: true,
+                            });
+                        } else {
+                            ElMessage({
+                                type: "error",
+                                message: "上传失败",
+                                duration: 1000,
+                                showClose: true,
+                            });
+                        }
+                        resolve();
+                    },
+                    (res) => {
                         ElMessage({
                             type: "error",
                             message: "上传失败",
                             duration: 1000,
                             showClose: true,
                         });
+                        console.error(res);
+                        resolve();
                     }
-                    resolve();
-                });
+                );
         });
     },
     pullCache() {
         return new Promise((resolve1) => {
             services.pullCache().then(async (res) => {
-                const { imgAndChar, oldNewKey, status, user } = res.data || {};
+                const unZipData = JSON.parse(unZip(res.data) || "{}");
+                const { imgAndChar, oldNewKey, status, user } = unZipData || {};
                 if (status === "success") {
                     const localLastUpdate = moment(localStorage.getItem("lastUpdate"));
                     const cloudLastUpdate = moment(user.lastUpdate);

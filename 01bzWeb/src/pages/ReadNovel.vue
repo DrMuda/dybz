@@ -543,6 +543,7 @@ export default {
     max-height: 100%;
     overflow-y: auto;
     padding: 0 8px;
+    margin-bottom: 0;
 }
 #loading {
     position: fixed;
@@ -557,11 +558,14 @@ export default {
     display: flex;
     width: 80px;
     height: 100%;
+    margin-bottom: 0;
+    padding-bottom: 50px;
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
     box-shadow: 1px 0px 5px #666666;
     z-index: 2;
+    box-sizing: border-box;
 }
 .nav-btn {
     margin: 0 !important;

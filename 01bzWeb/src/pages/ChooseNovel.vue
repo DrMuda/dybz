@@ -1,14 +1,14 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-23 16:04:49
+ * @LastEditTime: 2022-03-25 16:12:33
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
 -->
 <template>
     <div class="choose-novel">
-        <config-set />
+        <!-- <config-set /> -->
         <div class="novel-list">
             <template v-for="item in novelList">
                 <novel-list-item v-if="item.id" :key="item.key" :item="item" :onChange="onChange" :onDel="onDel" />
@@ -16,15 +16,14 @@
             <div class="add-btn" @click="onAdd">添加</div>
         </div>
         <div class="sync-btn-contain">
-            <el-icon :size="40" @click="pushCache" class="sync-btn pull"><upload /></el-icon>
-            <el-icon :size="40" @click="pullCache" class="sync-btn push"><download /></el-icon>
+            <el-icon :size="25" @click="pushCache" class="sync-btn pull"><upload /></el-icon>
+            <el-icon :size="25" @click="pullCache" class="sync-btn push"><download /></el-icon>
         </div>
     </div>
 </template>
 
 <script>
 import NovelListItem from "@/components/NovelListItem.vue";
-import ConfigSet from "@/components/ConfigSet.vue";
 import syncCache from "../utils/syncCache";
 import { ElIcon } from "element-plus";
 import { Upload, Download } from "@element-plus/icons-vue";
@@ -34,7 +33,6 @@ import * as services from "@/service/index.js";
 export default {
     components: {
         NovelListItem,
-        ConfigSet,
         ElIcon,
         Upload,
         Download,
@@ -176,11 +174,11 @@ export default {
     pointer-events: none;
 }
 .sync-btn {
-    height: 50px;
-    width: 50px;
-    border-radius: 50px;
+    height: 30px;
+    width: 30px;
+    border-radius: 30px;
     position: absolute;
-    left: 30px;
+    left: 25px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -189,10 +187,10 @@ export default {
     pointer-events: all;
 }
 .push {
-    bottom: 110px;
+    bottom: 60px;
 }
 .pull {
-    bottom: 160px;
+    bottom: 90px;
 }
 .el-message-box {
     max-width: 100% !important;

@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-11 15:10:27
- * @LastEditTime: 2022-03-23 16:08:58
+ * @LastEditTime: 2022-03-25 16:07:44
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\ConfigSet.vue
@@ -10,7 +10,7 @@
 <template>
     <div id="setting-contain">
         <div :class="iconIsShow ? 'main btn-mode' : 'main card-mode'">
-            <el-icon v-show="iconIsShow" :size="50" color="#575757" @click="openCardMode"><setting /></el-icon>
+            <el-icon v-show="iconIsShow" :size="30" color="#575757" @click="openCardMode"><setting /></el-icon>
             <div v-show="!iconIsShow">
                 <div class="close-btn-contain">
                     <el-icon @click="closeCardMode" :size="40" color="#575757"><close /></el-icon>
@@ -18,6 +18,10 @@
                 <div class="set-item">
                     <div class="label"></div>
                     <el-button type="primary" class="btn" @click="toSetChar">管理字符</el-button>
+                </div>
+                <div class="set-item">
+                    <div class="label">控制台</div>
+                    <el-switch v-model="openVConsole" />
                 </div>
                 <div class="set-item">
                     <div class="label">账号密码</div>
@@ -65,11 +69,12 @@
 </template>
 
 <script>
-import { ElIcon, ElButton, ElRadioGroup, ElRadio, ElMessageBox } from "element-plus";
+import { ElIcon, ElButton, ElRadioGroup, ElRadio, ElMessageBox, ElSwitch } from "element-plus";
 import { Setting, Close } from "@element-plus/icons-vue";
 import moment from "moment";
 import md5 from "md5";
 import { ElMessage } from "element-plus/lib/components";
+import VConsole from "vconsole";
 
 export default {
     components: {
@@ -79,6 +84,7 @@ export default {
         Close,
         ElRadioGroup,
         ElRadio,
+        ElSwitch,
     },
     data() {
         return {
@@ -89,10 +95,22 @@ export default {
             ocrToken: localStorage.getItem("ocrToken") || "",
             userName: localStorage.getItem("userName"),
             password: "",
+            openVConsole: false,
+            vConsole: null,
         };
     },
     beforeUnMount() {
         this.iconIsShow = true;
+    },
+    watch: {
+        openVConsole() {
+            if (this.openVConsole) {
+                this.vConsole = new VConsole();
+            } else {
+                this.vConsole.destroy()
+                this.vConsole = null;
+            }
+        },
     },
     methods: {
         openCardMode() {
@@ -124,7 +142,7 @@ export default {
         },
         onPasswordChange() {
             if (localStorage.getItem("password")) {
-                ElMessageBox.confirm("确定更改已缓存的密码吗？")
+                ElMessageBox.confirm("确定更改已缓存的密码吗？", { cancelButtonText: "取消", confirmButtonText: "确定" })
                     .then(() => {
                         localStorage.setItem("password", md5(this.password));
                         ElMessage({
@@ -166,11 +184,11 @@ export default {
     pointer-events: all;
 }
 .btn-mode {
-    height: 70px;
-    width: 70px;
+    height: 40px;
+    width: 40px;
     border-radius: 70px;
     position: absolute;
-    bottom: 20px;
+    bottom: 10px;
     left: 20px;
     display: flex;
     flex-direction: column;
