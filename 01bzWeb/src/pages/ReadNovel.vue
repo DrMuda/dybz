@@ -282,6 +282,13 @@ export default {
                     this.maxTryPreloadNum = 3;
                     this.load();
                 }, this.reloadTimeInterval());
+            } else {
+                ElMessage({
+                    message: "已是第一章",
+                    type: "info",
+                    showClose: true,
+                    duration: 1000,
+                });
             }
         },
 
@@ -339,6 +346,13 @@ export default {
                     this.maxTryPreloadNum = 3;
                     this.load();
                 }, this.reloadTimeInterval());
+            } else {
+                ElMessage({
+                    message: "已是最后一章",
+                    type: "info",
+                    showClose: true,
+                    duration: 1000,
+                });
             }
         },
 
@@ -486,6 +500,13 @@ export default {
             const nextLink = tempEle.getElementsByClassName("mod page-control")?.[1]?.getElementsByClassName("next")?.[0];
             novel.prev = prevLink?.getAttribute("href");
             novel.next = nextLink?.getAttribute("href");
+            const test = /.html$/g;
+            if (!test.test(novel.prev)) {
+                novel.prev = null;
+            }
+            if (!test.test(novel.next)) {
+                novel.next = null;
+            }
 
             // 提取正文，正文是由文本、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
             const mainContextEleList = tempEle.getElementsByClassName("neirong")[0]?.childNodes;
