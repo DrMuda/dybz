@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-25 15:20:37
+ * @LastEditTime: 2022-03-28 11:33:45
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -14,7 +14,7 @@ import { ElMessage } from "element-plus";
 export function pushCache({ data }) {
     const userName = localStorage.getItem("userName");
     const password = localStorage.getItem("password");
-    
+
     if (!userName || !password) {
         ElMessage({
             message: "先在设置中填写账号密码吧！",
@@ -56,10 +56,13 @@ export function getNovelHtml(novelUrl, cancelTokenList) {
         transformResponse: [
             async function (data) {
                 return new Promise((resolve) => {
-                    let reader = new FileReader();
-                    reader.readAsText(data, "GBK");
-                    reader.onload = function () {
-                        resolve(reader.result);
+                    const fileReader = new FileReader();
+                    fileReader.readAsText(data, "GBK");
+                    fileReader.onload = function () {
+                        resolve(fileReader.result);
+                    };
+                    fileReader.onerror = () => {
+                        reject2(new Error("blobToBase64 error"));
                     };
                 });
             },
@@ -105,7 +108,7 @@ export function getChapter(novelUrl, currPage) {
                         resolve(fileReader.result);
                     };
                     fileReader.onerror = () => {
-                        reject(new Error("blobToBase64 error"));
+                        reject(new Error("file reader error"));
                     };
                 });
             },
@@ -115,4 +118,25 @@ export function getChapter(novelUrl, currPage) {
 
 export function requestOCR(options) {
     return axios(options);
+}
+
+export function getChanelList() {
+    return axios({
+        method: "get",
+        url: "/pythonApi/getChanelList",
+        // transformResponse: [
+        //     function (data) {
+        //         return new Promise((resolve, reject) => {
+        //             const fileReader = new FileReader();
+        //             fileReader.readAsText(data, "UTF-8");
+        //             fileReader.onload = function () {
+        //                 resolve(fileReader.result);
+        //             };
+        //             fileReader.onerror = () => {
+        //                 reject(new Error("file reader error"));
+        //             };
+        //         });
+        //     },
+        // ],
+    });
 }

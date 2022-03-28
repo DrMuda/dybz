@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-11 15:10:27
- * @LastEditTime: 2022-03-25 16:07:44
+ * @LastEditTime: 2022-03-28 17:20:59
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\ConfigSet.vue
@@ -11,10 +11,10 @@
     <div id="setting-contain">
         <div :class="iconIsShow ? 'main btn-mode' : 'main card-mode'">
             <el-icon v-show="iconIsShow" :size="30" color="#575757" @click="openCardMode"><setting /></el-icon>
-            <div v-show="!iconIsShow">
-                <div class="close-btn-contain">
-                    <el-icon @click="closeCardMode" :size="40" color="#575757"><close /></el-icon>
-                </div>
+            <div v-show="!iconIsShow" class="close-btn-contain">
+                <el-icon @click="closeCardMode" :size="40" color="#575757"><close /></el-icon>
+            </div>
+            <div v-show="!iconIsShow" class="item-list">
                 <div class="set-item">
                     <div class="label"></div>
                     <el-button type="primary" class="btn" @click="toSetChar">管理字符</el-button>
@@ -42,6 +42,7 @@
                             >路线{{ index + 1 }}</el-button
                         >
                         <br />
+                        <el-button class="btn" @click="getChanelList">更新路线</el-button>
                         <el-input v-model="currChanel" @change="onInputChange" />
                     </div>
                 </div>
@@ -75,6 +76,9 @@ import moment from "moment";
 import md5 from "md5";
 import { ElMessage } from "element-plus/lib/components";
 import VConsole from "vconsole";
+import { getChanelList as serviceGetChanelList } from "../service/index";
+import strToDom from "../utils/strToDom";
+import { throwError } from "element-plus/lib/utils";
 
 export default {
     components: {
@@ -89,7 +93,12 @@ export default {
     data() {
         return {
             iconIsShow: true,
-            chanelList: ["www.banzhu222.xyz", "www.5diyibanzhu.xyz", "www.diyibanzhuvip6.xyz", "www.diyibanzhu111.xyz"],
+            chanelList: JSON.parse(localStorage.getItem("chanelList")) || [
+                "www.banzhu222.xyz",
+                "www.5diyibanzhu.xyz",
+                "www.diyibanzhuvip6.xyz",
+                "www.diyibanzhu111.xyz",
+            ],
             currChanel: localStorage.getItem("chanel") || "www.banzhu222.xyz",
             ocr: localStorage.getItem("ocr") || "no",
             ocrToken: localStorage.getItem("ocrToken") || "",
@@ -107,7 +116,7 @@ export default {
             if (this.openVConsole) {
                 this.vConsole = new VConsole();
             } else {
-                this.vConsole.destroy()
+                this.vConsole.destroy();
                 this.vConsole = null;
             }
         },
@@ -164,6 +173,76 @@ export default {
                 localStorage.setItem("password", md5(this.password));
             }
         },
+        getChanelList() {
+            serviceGetChanelList().then(async (res) => {
+                // const html = await res;
+                // console.log(res);
+                if (res.status === 200) {
+                    try {
+                        let htmlStr = res.data;
+                        htmlStr = htmlStr.replace(/(\n)|(\r)/g, "");
+                        // 转成dom元素，方便分析
+                        const tempEle = document.createElement("div");
+                        let bodyStr = new RegExp("<body.*/body>").exec(htmlStr)?.[0];
+                        bodyStr = bodyStr?.replace("body", "div");
+                        const body = strToDom(bodyStr)[0];
+                        if (body) {
+                            tempEle?.appendChild(body);
+                        } else {
+                            console.error("body null");
+                            throw "body null";
+                        }
+                        const lineEle = tempEle.getElementsByClassName("line")[0];
+
+                        const chanelList = [];
+                        if (lineEle) {
+                            const linkEleList = lineEle.getElementsByTagName("a");
+                            for (let i = 0; i < linkEleList.length; i += 1) {
+                                const linkEle = linkEleList[i];
+                                if (new RegExp("最新线路", "g").test(linkEle.innerText)) {
+                                    chanelList.push(linkEle.getAttribute("href").replace("http://", ""));
+                                }
+                            }
+                        } else {
+                            console.error("lineEle null");
+                            throw "lineEle null";
+                        }
+                        if (chanelList.length > 0) {
+                            localStorage.setItem("chanelList", JSON.stringify(chanelList));
+                            this.chanelList = chanelList;
+                            ElMessage({
+                                message: "已更新",
+                                type: "info",
+                                duration: 1000,
+                                showClose: true,
+                            });
+                        } else {
+                            ElMessage({
+                                message: "无可更新",
+                                type: "warning",
+                                duration: 1000,
+                                showClose: true,
+                            });
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        ElMessage({
+                            message: error,
+                            type: "error",
+                            duration: 1000,
+                            showClose: true,
+                        });
+                    }
+                } else {
+                    ElMessage({
+                        message: "更新失败",
+                        type: "error",
+                        duration: 1000,
+                        showClose: true,
+                    });
+                }
+            });
+        },
     },
 };
 </script>
@@ -213,9 +292,13 @@ export default {
     background-color: #fff;
     box-shadow: 0 0 5px #575757;
 }
+.item-list {
+    overflow-y: auto;
+}
 .close-btn-contain {
     display: flex;
     justify-content: flex-end;
+    width: 100%;
 }
 
 .set-item {

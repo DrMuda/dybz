@@ -1,10 +1,10 @@
 '''
 Author: LXX
 Date: 2022-02-24 16:24:48
-LastEditTime: 2022-03-11 18:20:46
+LastEditTime: 2022-03-28 11:28:18
 LastEditors: LXX
 Description: 
-FilePath: \dybz\01bzServer\HelloWorld\api.py
+FilePath: \dybz\01bzServerPython\HelloWorld\api.py
 '''
 from django.http import HttpResponse
 import cfscrape
@@ -32,4 +32,9 @@ def getChapter(request, chanel, id1, id2):
     content = scraper.get(url).content
     scraper.close()
     return HttpResponse(content)
-    
+
+def getChanelList(request):
+    print("getChanelList")
+    content = scraper.get("https://accacc.xyz/").content
+    scraper.close()
+    return HttpResponse(content)
