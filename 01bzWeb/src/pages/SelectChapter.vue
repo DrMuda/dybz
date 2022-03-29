@@ -1,16 +1,25 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 14:02:18
- * @LastEditTime: 2022-03-23 16:05:40
+ * @LastEditTime: 2022-03-29 16:59:19
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SelectChapter.vue
 -->
 <template>
     <div class="select-chapter">
+        <div class="header">
+            <h3>{{ novel.name }}</h3>
+            <div style="display: flex; align-items: center; font-size: 14px">
+                <span>锁定路线:</span>
+                <el-select v-model="novel.chanel" class="m-2" placeholder="Select" size="small" @change="changeChanel(value)">
+                    <el-option v-for="(item, index) in chanelList" :key="item" :label="'路线' + (index + 1)" :value="item" />
+                </el-select>
+            </div>
+        </div>
         <div v-loading="loading" class="list">
-            <el-table :data="chapterList" style="width: 100%" @row-click="toReadNovel">
-                <el-table-column prop="title" :label="novelName" />
+            <el-table :data="chapterList" style="width: 100%" @row-click="toReadNovel" :showHeader="false" :stripe="true">
+                <el-table-column prop="title" :label="novel.name" />
             </el-table>
         </div>
         <div class="page-nav-contain">
@@ -28,7 +37,7 @@
 </template>
 
 <script>
-import { ElButton, ElInputNumber, ElMessage, ElTable } from "element-plus";
+import { ElButton, ElInputNumber, ElMessage, ElTable, ElSelect, ElOption } from "element-plus";
 import strToDom from "@/utils/strToDom";
 import moment from "moment";
 import * as services from "@/service/index.js";
@@ -38,13 +47,20 @@ export default {
         ElTable,
         ElButton,
         ElInputNumber,
+        ElSelect,
+        ElOption,
     },
     data() {
         return {
-            novelName: this.$route.query.name,
+            novel: {},
             novelId: this.$route.query.id,
-            novelUrl: this.$route.query.url,
             chapterList: [],
+            chanelList: JSON.parse(localStorage.getItem("chanelList")) || [
+                "www.banzhu222.xyz",
+                "www.5diyibanzhu.xyz",
+                "www.diyibanzhuvip6.xyz",
+                "www.diyibanzhu111.xyz",
+            ],
             currPage: 1,
             inputPage: 1,
             loading: false,
@@ -53,6 +69,22 @@ export default {
         };
     },
     mounted() {
+        let novelList = [];
+        try {
+            novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
+        } catch (error) {
+            novelList = [];
+        }
+        let novel = {};
+        novelList.forEach((item) => {
+            if (item.id.toString() === this.novelId.toString()) {
+                novel = item;
+            }
+        });
+        if(!novel.chanel){
+            novel.chanel = localStorage.getItem("chanel")
+        }
+        this.novel = novel;
         this.load();
     },
     methods: {
@@ -66,11 +98,30 @@ export default {
                     showClose: true,
                     message: "出错了",
                     type: "error",
-                    duration: 1000
+                    duration: 1000,
                 });
             }
             this.loading = false;
         },
+
+        changeChanel() {
+            let novelList = [];
+            try {
+                novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
+            } catch (error) {
+                novelList = [];
+            }
+            novelList = novelList.map((item) => {
+                if (item.id.toString() === this.novelId.toString()) {
+                    return this.novel;
+                }
+                return item;
+            });
+            localStorage.setItem("novelList", JSON.stringify(novelList));
+            localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
+            this.load();
+        },
+
         toPrev() {
             if (this.currPage > 1) {
                 this.currPage -= 1;
@@ -90,12 +141,20 @@ export default {
             this.load();
         },
         toReadNovel(row) {
-            this.$router.push(`/ReadNovel?id=${this.novelId}&url=${row.url}`);
+            this.$router.push({
+                name: `ReadNovel`,
+                path: "/ReadNovel",
+                query: {
+                    id: this.novelId,
+                    url: row.url,
+                },
+                params: { chanel: this.novel.chanel },
+            });
         },
         getWebData() {
             return new Promise((resolve) => {
                 services
-                    .getChapter(this.novelUrl, this.currPage)
+                    .getChapter(this.novel.url, this.currPage, this.novel.chanel)
                     .then(
                         async function (res) {
                             const content = await res.data;
@@ -108,7 +167,7 @@ export default {
                                 showClose: true,
                                 message: "加载失败",
                                 type: "error",
-                                duration: 1000
+                                duration: 1000,
                             });
                             this.loading = false;
                             console.error("failed", err);
@@ -186,12 +245,22 @@ export default {
     max-height: 100%;
     box-sizing: border-box;
 }
+.header {
+    width: 100%;
+    height: 50px;
+    box-sizing: border-box;
+    padding: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 .list {
     flex-grow: 1;
     flex-shrink: 1;
     overflow: auto;
     padding: 16px;
-    margin-top: 4px;
+    padding-top: 0;
+    /* margin-top: 4px; */
     width: 100%;
     box-sizing: border-box;
 }

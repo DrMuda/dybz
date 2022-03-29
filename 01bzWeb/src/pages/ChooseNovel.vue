@@ -1,14 +1,13 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-25 16:12:33
+ * @LastEditTime: 2022-03-29 16:46:08
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
 -->
 <template>
     <div class="choose-novel">
-        <!-- <config-set /> -->
         <div class="novel-list">
             <template v-for="item in novelList">
                 <novel-list-item v-if="item.id" :key="item.key" :item="item" :onChange="onChange" :onDel="onDel" />
@@ -27,7 +26,7 @@ import NovelListItem from "@/components/NovelListItem.vue";
 import syncCache from "../utils/syncCache";
 import { ElIcon } from "element-plus";
 import { Upload, Download } from "@element-plus/icons-vue";
-import moment, { locale } from "moment";
+import moment from "moment";
 import * as services from "@/service/index.js";
 
 export default {
@@ -77,17 +76,9 @@ export default {
                         name,
                     });
                 }
-            } else {
-                this.novelList.push({
-                    id: new Date().getTime(),
-                    url,
-                    name,
-                    history: { title: "无历史记录", url: null },
-                    firstChapter: { title: "查找章节", url: null },
-                });
+                localStorage.setItem("novelList", JSON.stringify(this.novelList));
+                localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
             }
-            localStorage.setItem("novelList", JSON.stringify(this.novelList));
-            localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
         },
         onAdd() {
             this.novelList || (this.novelList = []);
@@ -97,6 +88,7 @@ export default {
                 name: "书籍名称",
                 history: { title: "无历史记录", url: null },
                 firstChapter: { title: "查找章节", url: null },
+                chanel: localStorage.getItem("chanel") || "www.banzhu222.xyz",
             });
             localStorage.setItem("novelList", JSON.stringify(this.novelList));
             localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));

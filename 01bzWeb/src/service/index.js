@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-28 11:33:45
+ * @LastEditTime: 2022-03-29 16:54:27
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -49,9 +49,10 @@ export function pullCache() {
     });
 }
 
-export function getNovelHtml(novelUrl, cancelTokenList) {
+export function getNovelHtml(novelUrl, cancelTokenList, chanel) {
+    console.log(chanel)
     novelUrl = novelUrl.replace(".html", "");
-    return axios.get(`/pythonApi/getNovelHtml/${localStorage.getItem("chanel")}${novelUrl}`, {
+    return axios.get(`/pythonApi/getNovelHtml/${chanel || localStorage.getItem("chanel")}${novelUrl}`, {
         responseType: "blob",
         transformResponse: [
             async function (data) {
@@ -73,8 +74,8 @@ export function getNovelHtml(novelUrl, cancelTokenList) {
     });
 }
 
-export function getImg(key) {
-    return axios.get(`/pythonApi/getImg/${localStorage.getItem("chanel")}${key}`, {
+export function getImg(key, chanel) {
+    return axios.get(`/pythonApi/getImg/${chanel || localStorage.getItem("chanel")}${key}`, {
         responseType: "blob",
         transformResponse: [
             async function (data) {
@@ -95,9 +96,9 @@ export function getImg(key) {
     });
 }
 
-export function getChapter(novelUrl, currPage) {
+export function getChapter(novelUrl, currPage, chanel) {
     novelUrl = novelUrl.replace(".html", "");
-    return axios.get(`/pythonApi/getChapter/${localStorage.getItem("chanel")}${novelUrl}${currPage > 0 ? `_${currPage}` : ""}`, {
+    return axios.get(`/pythonApi/getChapter/${chanel || localStorage.getItem("chanel")}${novelUrl}${currPage > 0 ? `_${currPage}` : ""}`, {
         responseType: "blob",
         transformResponse: [
             function (data) {

@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-02 10:05:02
- * @LastEditTime: 2022-03-22 16:06:07
+ * @LastEditTime: 2022-03-29 16:29:38
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\routes\index.js
@@ -26,10 +26,10 @@ const router = createRouter({
     history: createWebHistory("/dybz/"),
     routes: [
         { path: "/", redirect: "/ChooseNovel" },
-        { path: "/ChooseNovel", component: ChooseNovel },
-        { path: "/ReadNovel", component: ReadNovel },
-        { path: "/SelectChapter", component: SelectChapter },
-        { path: "/SetChar", component: SetChar },
+        { name: "ChooseNovel", path: "/ChooseNovel", component: ChooseNovel },
+        { name: "ReadNovel", path: "/ReadNovel", component: ReadNovel },
+        { name: "SelectChapter", path: "/SelectChapter", component: SelectChapter },
+        { name: "SetChar", path: "/SetChar", component: SetChar },
     ],
 });
 

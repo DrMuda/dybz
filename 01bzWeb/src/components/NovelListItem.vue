@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 09:44:33
- * @LastEditTime: 2022-03-25 14:55:38
+ * @LastEditTime: 2022-03-29 16:57:56
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\NovelListItem.vue
@@ -23,14 +23,8 @@
             </div>
         </div>
         <div class="link-list">
-            <router-link :to="{ path: history.url ? '/ReadNovel' : '/SelectChapter', query: { url: history.url ? history.url : url, id: id } }" class="link"
-                >上次读到：{{ history.title }}</router-link
-            >
-            <router-link
-                :to="{ path: firstChapter.url ? '/ReadNovel' : '/SelectChapter', query: { url: firstChapter.url ? firstChapter.url : url, id: id } }"
-                class="link"
-                >重头开始读：{{ firstChapter.title }}</router-link
-            >
+            <router-link :to="toHistory()" class="link">上次读到：{{ history.title }}</router-link>
+            <router-link :to="toFirst()" class="link">重头开始读：{{ firstChapter.title }}</router-link>
         </div>
     </div>
 </template>
@@ -57,12 +51,45 @@ export default {
         onChange: Function,
         onDel: Function,
     },
+    mounted() {
+        if (!this.item.chanel) {
+            this.item.chanel = localStorage.getItem("chanel");
+        }
+    },
     methods: {
         onDelBtnClick() {
             this.onDel(this.id);
         },
         onNameOrUrlChange() {
             this.onChange(this.url, this.name, this.id);
+        },
+        toHistory() {
+            if (this.history.url) {
+                return {
+                    path: "/ReadNovel",
+                    name: "ReadNovel",
+                    query: { url: this.history.url, id: this.id },
+                    params: { chanel: this.item.chanel },
+                };
+            }
+            return {
+                path: "/SelectChapter",
+                query: { id: this.id },
+            };
+        },
+        toFirst() {
+            if (this.firstChapter.url) {
+                return {
+                    path: "/ReadNovel",
+                    name: "ReadNovel",
+                    query: { url: this.firstChapter.url, id: this.id },
+                    params: { chanel: this.item.chanel },
+                };
+            }
+            return {
+                path: "/SelectChapter",
+                query: { id: this.id },
+            };
         },
     },
 };

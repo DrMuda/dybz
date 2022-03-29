@@ -429,9 +429,10 @@ export default {
         },
 
         getWebData: function (novelUrl = this.novelUrl, cancelTokenList = this.cancelTokenList) {
+            console.log(this.$route)
             return new Promise((resolve, reject) => {
                 services
-                    .getNovelHtml(novelUrl, cancelTokenList)
+                    .getNovelHtml(novelUrl, cancelTokenList, this.$route.params.chanel)
                     .then(
                         async function (res) {
                             const content = await res.data;
@@ -578,18 +579,18 @@ export default {
     flex-grow: 0;
     display: flex;
     width: 80px;
+    min-height: 100%;
     height: 100%;
-    margin-bottom: 0;
     padding-bottom: 50px;
     flex-direction: column;
-    justify-content: space-around;
     align-items: center;
     box-shadow: 1px 0px 5px #666666;
     z-index: 2;
     box-sizing: border-box;
+    overflow: auto;
 }
 .nav-btn {
-    margin: 0 !important;
+    margin: 8px !important;
     width: 60px;
 }
 .curr {
