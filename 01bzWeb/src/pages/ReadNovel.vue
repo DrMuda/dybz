@@ -66,8 +66,9 @@ export default {
             maxTryPreloadNum: 3, // 最多重试预加载几次
             autoRefreshChar: null,
             cancelTokenList: [],
+            reloadSetTimeout: null,
             reloadTimeInterval: () => {
-                return Math.random() * 1000 + 1000;
+                return Math.random() * 1000 + 3000;
             }, // 预加载与重新加载间隔时间
         };
     },
@@ -96,7 +97,11 @@ export default {
         } else {
             await this.load();
             this.toTop();
-            setTimeout(() => {
+            if (this.reloadSetTimeout) {
+                clearTimeout(this.reloadSetTimeout);
+                this.reloadSetTimeout = null;
+            }
+            this.reloadSetTimeout = setTimeout(() => {
                 this.nextPageNovel = null;
                 this.isPreLoad = true;
                 this.tryPreLoadNum = 1;
@@ -223,7 +228,11 @@ export default {
                                 console.error(err);
                                 this.cancelTokenList = [];
                                 if (err !== "中断请求") {
-                                    setTimeout(
+                                    if (this.reloadSetTimeout) {
+                                        clearTimeout(this.reloadSetTimeout);
+                                        this.reloadSetTimeout = null;
+                                    }
+                                    this.reloadSetTimeout = setTimeout(
                                         function () {
                                             // 如果是预加载， 且加载次数小于最大加载次数， 且本次加载失败， 进行下一次预加载
                                             if (this.isPreLoad && this.tryPreLoadNum < this.maxTryPreloadNum && !loadSuccess) {
@@ -265,6 +274,10 @@ export default {
                 if (this.isPreLoad) {
                     // 如果现在有在加载中， 使当前请求中断
                     await new Promise((resolve) => {
+                        if (this.reloadSetTimeout) {
+                            clearTimeout(this.reloadSetTimeout);
+                            this.reloadSetTimeout = null;
+                        }
                         this.cancelTokenList.forEach((c) => {
                             c("中断请求");
                         });
@@ -275,7 +288,11 @@ export default {
                 this.isPreLoad = false;
                 await this.load();
                 this.toTop();
-                setTimeout(() => {
+                if (this.reloadSetTimeout) {
+                    clearTimeout(this.reloadSetTimeout);
+                    this.reloadSetTimeout = null;
+                }
+                this.reloadSetTimeout = setTimeout(() => {
                     this.nextPageNovel = null;
                     this.isPreLoad = true;
                     this.tryPreLoadNum = 1;
@@ -328,6 +345,10 @@ export default {
                         // console.log("5");
                         // 如果现在有在加载中， 使当前请求中断
                         await new Promise((resolve) => {
+                            if (this.reloadSetTimeout) {
+                                clearTimeout(this.reloadSetTimeout);
+                                this.reloadSetTimeout = null;
+                            }
                             this.cancelTokenList.forEach((c) => {
                                 c("中断请求");
                             });
@@ -339,7 +360,11 @@ export default {
                     await this.load();
                     this.toTop();
                 }
-                setTimeout(() => {
+                if (this.reloadSetTimeout) {
+                    clearTimeout(this.reloadSetTimeout);
+                    this.reloadSetTimeout = null;
+                }
+                this.reloadSetTimeout = setTimeout(() => {
                     this.nextPageNovel = null;
                     this.isPreLoad = true;
                     this.tryPreLoadNum = 1;
@@ -391,6 +416,10 @@ export default {
                         // console.log("5");
                         // 如果现在有在加载中， 使当前请求中断
                         await new Promise((resolve) => {
+                            if (this.reloadSetTimeout) {
+                                clearTimeout(this.reloadSetTimeout);
+                                this.reloadSetTimeout = null;
+                            }
                             this.cancelTokenList.forEach((c) => {
                                 c("中断请求");
                             });
@@ -402,7 +431,11 @@ export default {
                     await this.load();
                     this.toTop();
                 }
-                setTimeout(() => {
+                if (this.reloadSetTimeout) {
+                    clearTimeout(this.reloadSetTimeout);
+                    this.reloadSetTimeout = null;
+                }
+                this.reloadSetTimeout = setTimeout(() => {
                     this.nextPageNovel = null;
                     this.isPreLoad = true;
                     this.tryPreLoadNum = 1;
@@ -429,7 +462,6 @@ export default {
         },
 
         getWebData: function (novelUrl = this.novelUrl, cancelTokenList = this.cancelTokenList) {
-            console.log(this.$route)
             return new Promise((resolve, reject) => {
                 services
                     .getNovelHtml(novelUrl, cancelTokenList, this.$route.params.chanel)
@@ -501,7 +533,7 @@ export default {
             const nextLink = tempEle.getElementsByClassName("mod page-control")?.[1]?.getElementsByClassName("next")?.[0];
             novel.prev = prevLink?.getAttribute("href");
             novel.next = nextLink?.getAttribute("href");
-            const test = /.html$/g;
+            const test = /.html$/;
             if (!test.test(novel.prev)) {
                 novel.prev = null;
             }
