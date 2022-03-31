@@ -97,17 +97,7 @@ export default {
         } else {
             await this.load();
             this.toTop();
-            if (this.reloadSetTimeout) {
-                clearTimeout(this.reloadSetTimeout);
-                this.reloadSetTimeout = null;
-            }
-            this.reloadSetTimeout = setTimeout(() => {
-                this.nextPageNovel = null;
-                this.isPreLoad = true;
-                this.tryPreLoadNum = 1;
-                this.maxTryPreloadNum = 3;
-                this.load();
-            }, this.reloadTimeInterval());
+            this.startReload();
         }
 
         this.autoRefreshChar = setInterval(() => {
@@ -269,6 +259,20 @@ export default {
             });
         },
 
+        startReload() {
+            if (this.reloadSetTimeout) {
+                clearTimeout(this.reloadSetTimeout);
+                this.reloadSetTimeout = null;
+            }
+            this.nextPageNovel = null;
+            this.isPreLoad = true;
+            this.tryPreLoadNum = 1;
+            this.maxTryPreloadNum = 3;
+            this.reloadSetTimeout = setTimeout(() => {
+                this.load();
+            }, this.reloadTimeInterval());
+        },
+
         toPrev: async function () {
             if (this.novel.prev) {
                 this.novelUrl = this.novel.prev.replace(".html", "");
@@ -295,17 +299,7 @@ export default {
                 this.isPreLoad = false;
                 await this.load();
                 this.toTop();
-                if (this.reloadSetTimeout) {
-                    clearTimeout(this.reloadSetTimeout);
-                    this.reloadSetTimeout = null;
-                }
-                this.reloadSetTimeout = setTimeout(() => {
-                    this.nextPageNovel = null;
-                    this.isPreLoad = true;
-                    this.tryPreLoadNum = 1;
-                    this.maxTryPreloadNum = 3;
-                    this.load();
-                }, this.reloadTimeInterval());
+                this.startReload();
             } else {
                 ElMessage({
                     message: "已是第一章",
@@ -372,17 +366,7 @@ export default {
                     await this.load();
                     this.toTop();
                 }
-                if (this.reloadSetTimeout) {
-                    clearTimeout(this.reloadSetTimeout);
-                    this.reloadSetTimeout = null;
-                }
-                this.reloadSetTimeout = setTimeout(() => {
-                    this.nextPageNovel = null;
-                    this.isPreLoad = true;
-                    this.tryPreLoadNum = 1;
-                    this.maxTryPreloadNum = 3;
-                    this.load();
-                }, this.reloadTimeInterval());
+                this.startReload();
             } else {
                 ElMessage({
                     message: "已是最后一章",
@@ -448,17 +432,7 @@ export default {
                     await this.load();
                     this.toTop();
                 }
-                if (this.reloadSetTimeout) {
-                    clearTimeout(this.reloadSetTimeout);
-                    this.reloadSetTimeout = null;
-                }
-                this.reloadSetTimeout = setTimeout(() => {
-                    this.nextPageNovel = null;
-                    this.isPreLoad = true;
-                    this.tryPreLoadNum = 1;
-                    this.maxTryPreloadNum = 3;
-                    this.load();
-                }, this.reloadTimeInterval());
+                this.startReload();
             }
         },
 
