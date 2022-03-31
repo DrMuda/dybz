@@ -138,13 +138,15 @@ export default {
     },
     methods: {
         cachePage: function () {
-            const data = {
-                novelId: this.novelId,
-                novelUrl: this.novelUrl,
-                novel: this.novel,
-                nextPageNovel: this.nextPageNovel,
-            };
-            sessionStorage.setItem("cachePage", JSON.stringify(data));
+            if (this.novel.mainContext?.length > 0) {
+                const data = {
+                    novelId: this.novelId,
+                    novelUrl: this.novelUrl,
+                    novel: this.novel,
+                    nextPageNovel: this.nextPageNovel,
+                };
+                sessionStorage.setItem("cachePage", JSON.stringify(data));
+            }
         },
         setHistory: function () {
             if (this.novel.mainContext?.length > 0) {
@@ -270,7 +272,12 @@ export default {
         toPrev: async function () {
             if (this.novel.prev) {
                 this.novelUrl = this.novel.prev.replace(".html", "");
-                this.$router.replace(`ReadNovel?id=${this.novelId}&url=${this.novelUrl}`);
+                this.$router.replace({
+                    query: {
+                        ...this.$route.query,
+                        url: this.novelUrl,
+                    },
+                });
                 if (this.isPreLoad) {
                     // 如果现在有在加载中， 使当前请求中断
                     await new Promise((resolve) => {
@@ -312,7 +319,12 @@ export default {
         toNext: async function () {
             if (this.novel.next) {
                 this.novelUrl = this.novel.next.replace(".html", "");
-                this.$router.replace(`ReadNovel?id=${this.novelId}&url=${this.novelUrl}`);
+                this.$router.replace({
+                    query: {
+                        ...this.$route.query,
+                        url: this.novelUrl,
+                    },
+                });
                 // 如果当前是最后一页， 那么下一章就是预加载的内容， 直接使用预加载的内容
                 if (this.novel.currPage === undefined || this.novel.currPage === this.novel.pages.length - 1) {
                     if (this.nextPageNovel) {
@@ -386,7 +398,12 @@ export default {
             if (this.novel.currPage !== pageNumber) {
                 const novelUrlSplit = this.novelUrl.split("/");
                 this.novelUrl = `/${novelUrlSplit[1]}/${novelUrlSplit[2]}/${this.novel.pages[pageNumber].replace(".html", "")}`;
-                this.$router.replace(`ReadNovel?id=${this.novelId}&url=${this.novelUrl}`);
+                this.$router.replace({
+                    query: {
+                        ...this.$route.query,
+                        url: this.novelUrl,
+                    },
+                });
                 // 如果刚好点击的是下一页， 使用预加载的内容
                 if (this.novel.currPage + 1 === pageNumber) {
                     if (this.nextPageNovel) {
@@ -464,7 +481,7 @@ export default {
         getWebData: function (novelUrl = this.novelUrl, cancelTokenList = this.cancelTokenList) {
             return new Promise((resolve, reject) => {
                 services
-                    .getNovelHtml(novelUrl, cancelTokenList, this.$route.params.chanel)
+                    .getNovelHtml(novelUrl, cancelTokenList, this.$store.state.currNovelChanel)
                     .then(
                         async function (res) {
                             const content = await res.data;

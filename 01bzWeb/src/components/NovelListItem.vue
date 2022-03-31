@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 09:44:33
- * @LastEditTime: 2022-03-29 16:57:56
+ * @LastEditTime: 2022-03-31 16:56:20
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\NovelListItem.vue
@@ -64,12 +64,12 @@ export default {
             this.onChange(this.url, this.name, this.id);
         },
         toHistory() {
+            this.$store.commit("setCurrNovelChanel", this.item.chanel);
             if (this.history.url) {
                 return {
                     path: "/ReadNovel",
                     name: "ReadNovel",
                     query: { url: this.history.url, id: this.id },
-                    params: { chanel: this.item.chanel },
                 };
             }
             return {
@@ -78,12 +78,12 @@ export default {
             };
         },
         toFirst() {
+            this.$store.commit("setCurrNovelChanel", this.item.chanel);
             if (this.firstChapter.url) {
                 return {
                     path: "/ReadNovel",
                     name: "ReadNovel",
                     query: { url: this.firstChapter.url, id: this.id },
-                    params: { chanel: this.item.chanel },
                 };
             }
             return {

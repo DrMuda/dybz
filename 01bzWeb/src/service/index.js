@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-29 16:54:27
+ * @LastEditTime: 2022-03-31 16:16:55
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -50,7 +50,6 @@ export function pullCache() {
 }
 
 export function getNovelHtml(novelUrl, cancelTokenList, chanel) {
-    console.log(chanel)
     novelUrl = novelUrl.replace(".html", "");
     return axios.get(`/pythonApi/getNovelHtml/${chanel || localStorage.getItem("chanel")}${novelUrl}`, {
         responseType: "blob",

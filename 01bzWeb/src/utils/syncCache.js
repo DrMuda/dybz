@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-22 11:21:46
- * @LastEditTime: 2022-03-25 15:17:45
+ * @LastEditTime: 2022-03-31 16:16:01
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\syncCache.js
@@ -28,7 +28,7 @@ function unZip(input) {
         return result;
         // ... continue processing
     } catch (err) {
-        console.log(err);
+        console.error(err);
         return null;
     }
 }

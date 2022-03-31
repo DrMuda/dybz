@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 14:02:18
- * @LastEditTime: 2022-03-29 16:59:19
+ * @LastEditTime: 2022-03-31 16:58:16
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SelectChapter.vue
@@ -81,8 +81,8 @@ export default {
                 novel = item;
             }
         });
-        if(!novel.chanel){
-            novel.chanel = localStorage.getItem("chanel")
+        if (!novel.chanel) {
+            novel.chanel = localStorage.getItem("chanel");
         }
         this.novel = novel;
         this.load();
@@ -141,6 +141,7 @@ export default {
             this.load();
         },
         toReadNovel(row) {
+            this.$store.commit("setCurrNovelChanel", this.novel.chanel);
             this.$router.push({
                 name: `ReadNovel`,
                 path: "/ReadNovel",
@@ -148,7 +149,6 @@ export default {
                     id: this.novelId,
                     url: row.url,
                 },
-                params: { chanel: this.novel.chanel },
             });
         },
         getWebData() {
