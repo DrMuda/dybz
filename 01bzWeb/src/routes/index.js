@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-02 10:05:02
- * @LastEditTime: 2022-03-29 16:29:38
+ * @LastEditTime: 2022-04-12 11:45:04
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\routes\index.js
@@ -21,6 +21,9 @@ const SelectChapter = () => {
 const SetChar = () => {
     return import("../pages/SetChar.vue");
 };
+const Test = ()=>{
+    return import("../pages/Test.vue")
+}
 
 const router = createRouter({
     history: createWebHistory("/dybz/"),
@@ -30,6 +33,7 @@ const router = createRouter({
         { name: "ReadNovel", path: "/ReadNovel", component: ReadNovel },
         { name: "SelectChapter", path: "/SelectChapter", component: SelectChapter },
         { name: "SetChar", path: "/SetChar", component: SetChar },
+        { name: "Test", path: "/Test", component: Test },
     ],
 });
 

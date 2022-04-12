@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-02-24 14:37:21
- * @LastEditTime: 2022-03-22 17:29:53
+ * @LastEditTime: 2022-03-31 17:45:13
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\vue.config.js
@@ -9,6 +9,7 @@
 
 module.exports = {
     publicPath: "/dybz",
+    productionSourceMap: false,
     devServer: {
         proxy: {
             "/nodeApi": {
