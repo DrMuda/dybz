@@ -483,7 +483,6 @@ export default {
         },
 
         initContent: function (content) {
-            debugger;
             const novel = {};
             this.imgAndChar = ImgAndChar.get();
             // 清除空格，防止扰乱正则匹配
@@ -532,10 +531,16 @@ export default {
             if (!test.test(novel.next)) {
                 novel.next = null;
             }
+            let mainContextEleList = null;
+            // mainContextEleList = tempEle.getElementsByClassName("neirong")?.[0]?.childNodes;
+            // mainContextEleList = tempEle.getElementsByClassName("neirong")?.[0]?.getElementsByClassName("chapterinfo")?.[0]?.childNodes;
+            mainContextEleList ||
+                (mainContextEleList = tempEle.getElementsByClassName("neirong")?.[0].getElementsByTagName("br")?.[0]?.parentElement.childNodes);
+            mainContextEleList ||
+                (mainContextEleList = tempEle.getElementsByClassName("neirong")?.[0].getElementsByTagName("img")?.[0]?.parentElement.childNodes);
+            // console.log(tempEle.getElementsByClassName("neirong")[0]);
 
             // 提取正文，正文是由文本、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
-            const mainContextEleList = tempEle.getElementsByClassName("neirong")?.[0]?.getElementsByClassName("chapterinfo")?.[0]?.childNodes;
-            console.log(tempEle.getElementsByClassName("neirong")[0]);
             if (mainContextEleList?.length > 0) {
                 for (let i = 0; i < mainContextEleList.length; i += 1) {
                     novel.mainContext || (novel.mainContext = []);
@@ -568,7 +573,6 @@ export default {
                 novel.mainContext = [];
             }
             ImgAndChar.set(this.imgAndChar);
-            debugger;
             return novel;
         },
     },
