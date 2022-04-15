@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 14:02:18
- * @LastEditTime: 2022-03-31 16:58:16
+ * @LastEditTime: 2022-04-15 18:02:13
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\pages\SelectChapter.vue
@@ -180,6 +180,8 @@ export default {
             content = content.replace(/\r\n/g, "");
             content = content.replace(/\n/g, "");
             content = content.replace(/\/images\/jipin-default.jpg/g, "");
+            // 防止转成dom时加载资源
+            content = content.replace(/src=/g, "my-src=");
 
             this.amountPage = new RegExp(/(第[0-9]+\/[0-9]+页)/, "g").exec(content)?.[0];
             this.amountPage = this.amountPage.split("/")[1];
