@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-23 11:22:36
- * @LastEditTime: 2022-03-24 15:51:51
+ * @LastEditTime: 2022-04-15 17:46:36
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\OldNewKey.js
@@ -14,6 +14,7 @@ const Log = require("./Log");
 
 class OldNewKey {
     oldNewKey = {};
+    keys = [];
     hasNewData = false;
 
     constructor() {
@@ -37,6 +38,7 @@ class OldNewKey {
                             Log.error(`文件读取有误：${fileName}`);
                         } else {
                             this.oldNewKey = JSON.parse(data);
+                            this.keys = Object.keys(this.oldNewKey);
                         }
                     });
                 }
@@ -104,18 +106,31 @@ class OldNewKey {
         return this.oldNewKey[oldKey];
     }
 
+    getTotalPage(size){
+        return Math.ceil(this.keys.length / size)
+    }
+
+    getByPage(page, size) {
+        const keys = this.keys.slice((page - 1) * size, page * size);
+        const oldNewKey = {};
+        keys.forEach((key) => {
+            oldNewKey[key] = this.oldNewKey[key];
+        });
+        return oldNewKey;
+    }
+
     async set(oldNewKey) {
         this.oldNewKey = oldNewKey;
         this.hasNewData = true;
+        this.keys = Object.keys(this.oldNewKey);
         return true;
-        // return await this._updateFile();
     }
 
     async setByOldKey(oldKey, newKey) {
         this.oldNewKey[oldKey] = newKey;
         this.hasNewData = true;
+        this.keys = Object.keys(this.oldNewKey);
         return true;
-        // return await this._updateFile();
     }
 }
 

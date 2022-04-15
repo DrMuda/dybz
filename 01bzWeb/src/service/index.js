@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-03-31 16:16:55
+ * @LastEditTime: 2022-04-15 17:34:28
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -30,7 +30,7 @@ export function pushCache({ data }) {
     });
 }
 
-export function pullCache() {
+export function pullUser() {
     const userName = localStorage.getItem("userName");
     const password = localStorage.getItem("password");
     if (!userName || !password) {
@@ -41,11 +41,20 @@ export function pullCache() {
             showClose: true,
         });
     }
-    return axios.get("/nodeApi/sync/pullCache", {
-        params: {
-            userName,
-            password,
-        },
+    return axios.get("/nodeApi/sync/pullUser", {
+        params: { userName, password },
+    });
+}
+
+export function pullImgAndChar(page, size) {
+    return axios.get("/nodeApi/sync/pullImgAndChar", {
+        params: { page, size },
+    });
+}
+
+export function pullOldNewKey(page, size) {
+    return axios.get("/nodeApi/sync/pullOldNewKey", {
+        params: { page, size },
     });
 }
 
@@ -124,19 +133,5 @@ export function getChanelList() {
     return axios({
         method: "get",
         url: "/pythonApi/getChanelList",
-        // transformResponse: [
-        //     function (data) {
-        //         return new Promise((resolve, reject) => {
-        //             const fileReader = new FileReader();
-        //             fileReader.readAsText(data, "UTF-8");
-        //             fileReader.onload = function () {
-        //                 resolve(fileReader.result);
-        //             };
-        //             fileReader.onerror = () => {
-        //                 reject(new Error("file reader error"));
-        //             };
-        //         });
-        //     },
-        // ],
     });
 }

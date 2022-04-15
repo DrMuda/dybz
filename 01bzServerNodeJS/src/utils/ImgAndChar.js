@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-23 11:22:36
- * @LastEditTime: 2022-03-25 15:14:24
+ * @LastEditTime: 2022-04-15 17:46:18
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\ImgAndChar.js
@@ -22,6 +22,7 @@ const Log = require("./Log");
 class ImgAndChar {
     imgAndChar = {};
     hasNewData = false;
+    keys = [];
 
     constructor() {
         this._init();
@@ -44,6 +45,7 @@ class ImgAndChar {
                             Log.error(`文件读取有误：${fileName}`);
                         } else {
                             this.imgAndChar = JSON.parse(data);
+                            this.keys = Object.keys(this.imgAndChar);
                         }
                     });
                 }
@@ -114,18 +116,31 @@ class ImgAndChar {
         return "not exist";
     }
 
+    getTotalPage(size){
+        return Math.ceil(this.keys.length / size)
+    }
+
+    getByPage(page, size) {
+        const keys = this.keys.slice((page - 1) * size, page * size);
+        const imgAndChar = {};
+        keys.forEach((key) => {
+            imgAndChar[key] = this.imgAndChar[key];
+        });
+        return imgAndChar;
+    }
+
     async set(imgAndChar) {
         this.imgAndChar = imgAndChar;
         this.hasNewData = true;
+        this.keys = Object.keys(this.imgAndChar);
         return true;
-        // return await this._updateFile();
     }
 
     async setItem(key, item) {
         this.imgAndChar[key] = item;
         this.hasNewData = true;
+        this.keys = Object.keys(this.imgAndChar);
         return true;
-        // return await this._updateFile();
     }
 }
 

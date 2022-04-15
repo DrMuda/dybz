@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-22 11:21:46
- * @LastEditTime: 2022-03-31 16:16:01
+ * @LastEditTime: 2022-04-15 17:50:57
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\utils\syncCache.js
@@ -11,26 +11,69 @@ import ImgAndChar from "./ImgAndChar";
 import { ElMessage, ElMessageBox } from "element-plus";
 import moment from "moment";
 import * as services from "@/service/index.js";
-import pako from "pako";
 
-function zip(input) {
-    const output = pako.deflate(input, {
-        to: "string",
-        level: 6,
-    });
-    return output;
-}
-function unZip(input) {
-    try {
-        const result = pako.inflate(input, {
-            to: "string",
-        });
-        return result;
-        // ... continue processing
-    } catch (err) {
-        console.error(err);
-        return null;
+// 分块上传ImgAndChar
+async function blockPushImgAndChar(imgAndChar) {
+    let block = {};
+    const keys = Object.keys(imgAndChar);
+    for (let index = 1; index <= keys.length; index += 1) {
+        const key = keys[index];
+        block[key] = imgAndChar[key];
+        if (index % 100 === 0) {
+            await services.pushCache({ data: { imgAndChar: block } });
+            block = {};
+        }
     }
+    services.pushCache({ data: { imgAndChar: block } });
+}
+
+// 分块上传OldNewKey
+async function blockPushOldNewKey(oldNewKey) {
+    let block = {};
+    const keys = Object.keys(oldNewKey);
+    for (let index = 0; index < keys.length; index += 1) {
+        const key = keys[index];
+        block[key] = oldNewKey[key];
+        if ((index + 1) % 300 === 0) {
+            await services.pushCache({ data: { oldNewKey: block } });
+            block = {};
+        }
+    }
+    services.pushCache({ data: { oldNewKey: block } });
+}
+
+function pullImgAndChar(page = 1, size = 100) {
+    services.pullImgAndChar(page, size).then((res) => {
+        const { status, imgAndChar, page, totalPage } = res.data || {};
+        if (status === "success") {
+            ImgAndChar.set({ ...ImgAndChar.get(), ...imgAndChar });
+            if (page < totalPage) {
+                pullImgAndChar(page + 1, size);
+            }
+        }
+    });
+}
+
+function pullOldNewKey(page = 1, size = 300) {
+    services.pullOldNewKey(page, size).then((res) => {
+        const { status, oldNewKey, page, totalPage } = res.data || {};
+        if (status === "success") {
+            let tempOldNewKey = null;
+            try {
+                tempOldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || {});
+            } catch (e) {
+                tempOldNewKey = {};
+            }
+            tempOldNewKey = {
+                ...tempOldNewKey,
+                ...oldNewKey,
+            };
+            localStorage.setItem("oldNewKey", JSON.stringify(tempOldNewKey));
+            if (page < totalPage) {
+                pullOldNewKey(page + 1, size);
+            }
+        }
+    });
 }
 
 export default {
@@ -64,8 +107,7 @@ export default {
             } catch (e) {
                 oldNewKey = "{}";
             }
-            imgAndChar = zip(JSON.stringify(imgAndChar));
-            oldNewKey = zip(oldNewKey);
+            oldNewKey = JSON.parse(oldNewKey);
 
             try {
                 ocrToken = localStorage.getItem("ocrToken") || "";
@@ -75,8 +117,6 @@ export default {
             services
                 .pushCache({
                     data: {
-                        imgAndChar,
-                        oldNewKey,
                         user: {
                             novelList,
                             ocrToken,
@@ -100,6 +140,9 @@ export default {
                                 showClose: true,
                             });
                         }
+
+                        blockPushImgAndChar(imgAndChar);
+                        blockPushOldNewKey(oldNewKey);
                         resolve();
                     },
                     (res) => {
@@ -110,6 +153,9 @@ export default {
                             showClose: true,
                         });
                         console.error(res);
+
+                        blockPushImgAndChar(imgAndChar);
+                        blockPushOldNewKey(oldNewKey);
                         resolve();
                     }
                 );
@@ -117,9 +163,8 @@ export default {
     },
     pullCache() {
         return new Promise((resolve1) => {
-            services.pullCache().then(async (res) => {
-                const unZipData = JSON.parse(unZip(res.data) || "{}");
-                const { imgAndChar, oldNewKey, status, user } = unZipData || {};
+            services.pullUser().then(async (res) => {
+                const { status, user } = res.data || {};
                 if (status === "success") {
                     const localLastUpdate = moment(localStorage.getItem("lastUpdate"));
                     const cloudLastUpdate = moment(user.lastUpdate);
@@ -181,18 +226,8 @@ export default {
                         showClose: true,
                     });
                 }
-                let tempOldNewKey = null;
-                try {
-                    tempOldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || {});
-                } catch (e) {
-                    tempOldNewKey = {};
-                }
-                tempOldNewKey = {
-                    ...tempOldNewKey,
-                    ...oldNewKey,
-                };
-                localStorage.setItem("oldNewKey", JSON.stringify(tempOldNewKey));
-                ImgAndChar.set({ ...ImgAndChar.get(), ...imgAndChar });
+                pullImgAndChar(1, 100);
+                pullOldNewKey(1, 300);
                 resolve1();
             });
         });
