@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-04-15 17:34:28
+ * @LastEditTime: 2022-04-18 17:30:34
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -10,6 +10,8 @@
 /* eslint-disable */
 import axios from "axios";
 import { ElMessage } from "element-plus";
+
+const pythonUrl = "/pythonApi/proxyRequest";
 
 export function pushCache({ data }) {
     const userName = localStorage.getItem("userName");
@@ -58,9 +60,18 @@ export function pullOldNewKey(page, size) {
     });
 }
 
-export function getNovelHtml(novelUrl, cancelTokenList, chanel) {
+export function getNovelHtml(novelUrl, cancelTokenList, chanel, isErr = false) {
     novelUrl = novelUrl.replace(".html", "");
-    return axios.get(`/pythonApi/getNovelHtml/${chanel || localStorage.getItem("chanel")}${novelUrl}`, {
+    return axios({
+        method: "post",
+        url: pythonUrl,
+        data: {
+            method: isErr ? "post" : "get",
+            url: `https://${chanel || localStorage.getItem("chanel")}${novelUrl}.html`,
+            params: {
+                err: 1,
+            },
+        },
         responseType: "blob",
         transformResponse: [
             async function (data) {
@@ -83,7 +94,13 @@ export function getNovelHtml(novelUrl, cancelTokenList, chanel) {
 }
 
 export function getImg(key, chanel) {
-    return axios.get(`/pythonApi/getImg/${chanel || localStorage.getItem("chanel")}${key}`, {
+    return axios({
+        method: "post",
+        url: pythonUrl,
+        data: {
+            method: "get",
+            url: `https://${chanel || localStorage.getItem("chanel")}${key}`,
+        },
         responseType: "blob",
         transformResponse: [
             async function (data) {
@@ -106,7 +123,13 @@ export function getImg(key, chanel) {
 
 export function getChapter(novelUrl, currPage, chanel) {
     novelUrl = novelUrl.replace(".html", "");
-    return axios.get(`/pythonApi/getChapter/${chanel || localStorage.getItem("chanel")}${novelUrl}${currPage > 0 ? `_${currPage}` : ""}`, {
+    return axios({
+        method: "post",
+        url: pythonUrl,
+        data: {
+            url: `https://${chanel || localStorage.getItem("chanel")}${novelUrl}${currPage > 0 ? `_${currPage}` : ""}/`,
+            method: "get",
+        },
         responseType: "blob",
         transformResponse: [
             function (data) {
@@ -125,13 +148,17 @@ export function getChapter(novelUrl, currPage, chanel) {
     });
 }
 
-export function requestOCR(options) {
-    return axios(options);
-}
-
 export function getChanelList() {
     return axios({
-        method: "get",
-        url: "/pythonApi/getChanelList",
+        method: "post",
+        url: pythonUrl,
+        data: {
+            method: "get",
+            url: "https://accacc.xyz/",
+        },
     });
+}
+
+export function requestOCR(options) {
+    return axios(options);
 }

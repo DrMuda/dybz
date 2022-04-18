@@ -1,40 +1,41 @@
 '''
 Author: LXX
 Date: 2022-02-24 16:24:48
-LastEditTime: 2022-03-28 11:28:18
+LastEditTime: 2022-04-18 17:34:11
 LastEditors: LXX
 Description: 
 FilePath: \dybz\01bzServerPython\HelloWorld\api.py
 '''
 from django.http import HttpResponse
 import cfscrape
+import json
 
 scraper = cfscrape.create_scraper()
-def getNovelHtml(request, chanel, id1, id2, id3):
-    url = "http://"+chanel+"/" + id1 + "/" + id2 + "/" + id3 + ".html"
-    print("get html:", url)
-    content = scraper.get(url).content
-    scraper.close()
-    return HttpResponse(content)
 
+def proxyRequest(request):
+    print("proxyRequest")
+    data = {}
+    if request.body:
+        data = json.loads(request.body.decode())
+    print(data)
+    content = ""
+    targetMethod = "get"
+    if data["method"]:
+        targetMethod = data["method"]
+    targetUrl = data["url"]
+    params = None
+    try:
+        params = data["params"]
+    except KeyError:
+        None
 
-def getImg(request, chanel, id1, id2, id3):
-    url = "http://"+chanel + "/" + id1 + "/" + id2 + "/" + id3
-    print("get img:", url)
-    content = scraper.get(url).content
-    scraper.close()
-    return HttpResponse(content)
+    if targetMethod == "get":
+        print(targetMethod)
+        content = scraper.get(targetUrl, data=params).content
 
+    if targetMethod == "post":
+        print(targetMethod)
+        content = scraper.post(targetUrl, data=params).content
 
-def getChapter(request, chanel, id1, id2):
-    url = "http://"+chanel + "/" + id1 + "/" + id2 + "/"
-    print("get chapter:", url)
-    content = scraper.get(url).content
-    scraper.close()
-    return HttpResponse(content)
-
-def getChanelList(request):
-    print("getChanelList")
-    content = scraper.get("https://accacc.xyz/").content
     scraper.close()
     return HttpResponse(content)

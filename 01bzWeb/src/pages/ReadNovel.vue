@@ -538,7 +538,7 @@ export default {
                 (mainContextEleList = tempEle.getElementsByClassName("neirong")?.[0].getElementsByTagName("br")?.[0]?.parentElement.childNodes);
             mainContextEleList ||
                 (mainContextEleList = tempEle.getElementsByClassName("neirong")?.[0].getElementsByTagName("img")?.[0]?.parentElement.childNodes);
-            // console.log(tempEle.getElementsByClassName("neirong")[0]);
+            console.log(tempEle.getElementsByClassName("neirong")[0]);
 
             // 提取正文，正文是由文本、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
             if (mainContextEleList?.length > 0) {
