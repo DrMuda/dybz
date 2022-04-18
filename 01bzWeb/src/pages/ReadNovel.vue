@@ -185,9 +185,20 @@ export default {
                     if (novelUrl) {
                         const webData = this.getWebData(novelUrl, this.cancelTokenList);
                         webData.then(
-                            function (data) {
+                            async function (data) {
                                 this.cancelTokenList = [];
-                                const novel = this.initContent(data) || {};
+                                let novel = this.initContent(data) || {};
+                                console.log(novel)
+                                if (novel.mainContext?.includes("Notice")) {
+                                    console.log("isErr");
+                                    await new Promise((resolve) => {
+                                        const webData2 = this.getWebData(novelUrl, this.cancelTokenList, true);
+                                        webData2.then(() => {
+                                            novel = this.initContent(`<div class='neirong'>${data}</div>`) || {};
+                                            resolve();
+                                        });
+                                    });
+                                }
                                 const oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
                                 let canSetNewKey = false;
                                 cacheImg(
@@ -452,10 +463,10 @@ export default {
             ImgAndChar.setCharByKey(id, input);
         },
 
-        getWebData: function (novelUrl = this.novelUrl, cancelTokenList = this.cancelTokenList) {
+        getWebData: function (novelUrl = this.novelUrl, cancelTokenList = this.cancelTokenList, isErr = false) {
             return new Promise((resolve, reject) => {
                 services
-                    .getNovelHtml(novelUrl, cancelTokenList, this.$store.state.currNovelChanel)
+                    .getNovelHtml(novelUrl, cancelTokenList, this.$store.state.currNovelChanel, isErr)
                     .then(
                         async function (res) {
                             const content = await res.data;
@@ -551,8 +562,7 @@ export default {
                         if (text) {
                             novel.mainContext.push(text);
                         }
-                    }
-                    if (itemEle instanceof HTMLImageElement) {
+                    } else if (itemEle instanceof HTMLImageElement) {
                         let imgId = itemEle.getAttribute("my-src");
                         novel.mainContext.push(`img:${imgId}`);
                         // 如果没有图片id的映射， 则生成新的
@@ -564,9 +574,10 @@ export default {
                                 this.imgAndChar[imgId] = { char: null, img: null };
                             }
                         }
-                    }
-                    if (itemEle instanceof HTMLBRElement) {
+                    } else if (itemEle instanceof HTMLBRElement) {
                         novel.mainContext.push("<br />");
+                    } else {
+                        novel.mainContext.push(itemEle.innerText || "");
                     }
                 }
             } else {
