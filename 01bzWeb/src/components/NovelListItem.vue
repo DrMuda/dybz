@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-02 09:44:33
- * @LastEditTime: 2022-03-31 16:56:20
+ * @LastEditTime: 2022-04-18 17:42:08
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\NovelListItem.vue
@@ -23,8 +23,8 @@
             </div>
         </div>
         <div class="link-list">
-            <router-link :to="toHistory()" class="link">上次读到：{{ history.title }}</router-link>
-            <router-link :to="toFirst()" class="link">重头开始读：{{ firstChapter.title }}</router-link>
+            <router-link :to="toHistory()" class="link" @click="setChanel">上次读到：{{ history.title }}</router-link>
+            <router-link :to="toFirst()" class="link" @click="setChanel">重头开始读：{{ firstChapter.title }}</router-link>
         </div>
     </div>
 </template>
@@ -64,7 +64,6 @@ export default {
             this.onChange(this.url, this.name, this.id);
         },
         toHistory() {
-            this.$store.commit("setCurrNovelChanel", this.item.chanel);
             if (this.history.url) {
                 return {
                     path: "/ReadNovel",
@@ -78,7 +77,6 @@ export default {
             };
         },
         toFirst() {
-            this.$store.commit("setCurrNovelChanel", this.item.chanel);
             if (this.firstChapter.url) {
                 return {
                     path: "/ReadNovel",
@@ -91,6 +89,9 @@ export default {
                 query: { id: this.id },
             };
         },
+        setChanel(){
+            this.$store.commit("setCurrNovelChanel", this.item.chanel);
+        }
     },
 };
 </script>
