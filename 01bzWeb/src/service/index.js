@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-04-18 17:30:34
+ * @LastEditTime: 2022-04-19 09:51:13
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -67,10 +67,12 @@ export function getNovelHtml(novelUrl, cancelTokenList, chanel, isErr = false) {
         url: pythonUrl,
         data: {
             method: isErr ? "post" : "get",
-            url: `https://${chanel || localStorage.getItem("chanel")}${novelUrl}.html`,
-            params: {
-                err: 1,
-            },
+            url: `http://${chanel || localStorage.getItem("chanel")}${novelUrl}.html`,
+            params: isErr
+                ? {
+                      err: 1,
+                  }
+                : undefined,
         },
         responseType: "blob",
         transformResponse: [
@@ -99,7 +101,7 @@ export function getImg(key, chanel) {
         url: pythonUrl,
         data: {
             method: "get",
-            url: `https://${chanel || localStorage.getItem("chanel")}${key}`,
+            url: `http://${chanel || localStorage.getItem("chanel")}${key}`,
         },
         responseType: "blob",
         transformResponse: [
@@ -127,7 +129,7 @@ export function getChapter(novelUrl, currPage, chanel) {
         method: "post",
         url: pythonUrl,
         data: {
-            url: `https://${chanel || localStorage.getItem("chanel")}${novelUrl}${currPage > 0 ? `_${currPage}` : ""}/`,
+            url: `http://${chanel || localStorage.getItem("chanel")}${novelUrl}${currPage > 0 ? `_${currPage}` : ""}/`,
             method: "get",
         },
         responseType: "blob",
@@ -154,7 +156,7 @@ export function getChanelList() {
         url: pythonUrl,
         data: {
             method: "get",
-            url: "https://accacc.xyz/",
+            url: "http://accacc.xyz/",
         },
     });
 }

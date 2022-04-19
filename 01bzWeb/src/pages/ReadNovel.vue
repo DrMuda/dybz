@@ -187,14 +187,13 @@ export default {
                         webData.then(
                             async function (data) {
                                 this.cancelTokenList = [];
-                                let novel = this.initContent(data) || {};
-                                console.log(novel)
+                                const novel = this.initContent(data) || {};
                                 if (novel.mainContext?.includes("Notice")) {
-                                    console.log("isErr");
                                     await new Promise((resolve) => {
                                         const webData2 = this.getWebData(novelUrl, this.cancelTokenList, true);
-                                        webData2.then(() => {
-                                            novel = this.initContent(`<div class='neirong'>${data}</div>`) || {};
+                                        webData2.then((data2) => {
+                                            const tempNovel = this.initContent(`<body><div class='neirong'>${data2}</div></body>`) || {};
+                                            novel.mainContext = tempNovel.mainContext;
                                             resolve();
                                         });
                                     });
