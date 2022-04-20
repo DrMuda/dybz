@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 09:33:39
- * @LastEditTime: 2022-03-25 11:04:28
+ * @LastEditTime: 2022-04-19 16:58:06
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\app.js
@@ -29,8 +29,8 @@ Object.keys(urls).forEach((path) => {
     }
 });
 
-const server = app.listen(8010, function () {
-    const host = server.address().address;
+const server = app.listen(8010, "0.0.0.0", function () {
+    const host = "0.0.0.0";
     const port = server.address().port;
 
     console.log("应用实例，访问地址为 http://%s:%s", host, port);
