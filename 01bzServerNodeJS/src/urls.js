@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-16 11:37:42
- * @LastEditTime: 2022-04-15 17:50:10
+ * @LastEditTime: 2022-04-27 11:02:26
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\urls.js
@@ -11,6 +11,7 @@ const Users = require("./utils/Users.js");
 const OldNewKey = require("./utils/OldNewKey.js");
 const ImgAndChar = require("./utils/ImgAndChar.js");
 const Log = require("./utils/Log");
+const getDHTML = require("./utils/getDHTML.js");
 
 async function pushCache(req, res) {
     let { oldNewKey, imgAndChar, user } = req.body.data || {};
@@ -81,6 +82,13 @@ async function pullImgAndChar(req, res) {
     res.send(data);
 }
 
+async function reptileDHTML(req, res) {
+    const { url } = req.body;
+    Log.info(`reptileDHTML: ${url}`);
+    const content = await getDHTML(url);
+    res.send({ status: "success", content });
+}
+
 module.exports = {
     "/sync/pushCache": {
         method: "post",
@@ -97,5 +105,9 @@ module.exports = {
     "/sync/pullOldNewKey": {
         method: "get",
         message: pullOldNewKey,
+    },
+    "/reptileDHTML": {
+        method: "post",
+        message: reptileDHTML,
     },
 };

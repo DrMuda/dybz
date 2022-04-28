@@ -188,16 +188,6 @@ export default {
                             async function (data) {
                                 this.cancelTokenList = [];
                                 const novel = this.initContent(data) || {};
-                                if (novel.mainContext?.includes("Notice")) {
-                                    await new Promise((resolve) => {
-                                        const webData2 = this.getWebData(novelUrl, this.cancelTokenList, true);
-                                        webData2.then((data2) => {
-                                            const tempNovel = this.initContent(`<body><div class='neirong'>${data2}</div></body>`) || {};
-                                            novel.mainContext = tempNovel.mainContext;
-                                            resolve();
-                                        });
-                                    });
-                                }
                                 const oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
                                 let canSetNewKey = false;
                                 cacheImg(
@@ -467,8 +457,8 @@ export default {
                 services
                     .getNovelHtml(novelUrl, cancelTokenList, this.$store.state.currNovelChanel, isErr)
                     .then(
-                        async function (res) {
-                            const content = await res.data;
+                        function (res) {
+                            const content = res.data.content;
                             resolve(content);
                         }.bind(this)
                     )
@@ -542,14 +532,7 @@ export default {
                 novel.next = null;
             }
             let mainContextEleList = null;
-            // mainContextEleList = tempEle.getElementsByClassName("neirong")?.[0]?.childNodes;
-            // mainContextEleList = tempEle.getElementsByClassName("neirong")?.[0]?.getElementsByClassName("chapterinfo")?.[0]?.childNodes;
-            mainContextEleList ||
-                (mainContextEleList = tempEle.getElementsByClassName("neirong")?.[0].getElementsByTagName("br")?.[0]?.parentElement.childNodes);
-            mainContextEleList ||
-                (mainContextEleList = tempEle.getElementsByClassName("neirong")?.[0].getElementsByTagName("img")?.[0]?.parentElement.childNodes);
-            // console.log(tempEle.getElementsByClassName("neirong")[0]);
-
+            mainContextEleList = this.tileEle(tempEle.getElementsByClassName("neirong")[0]);
             // 提取正文，正文是由文本、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
             if (mainContextEleList?.length > 0) {
                 for (let i = 0; i < mainContextEleList.length; i += 1) {
@@ -584,6 +567,25 @@ export default {
             }
             ImgAndChar.set(this.imgAndChar);
             return novel;
+        },
+
+        // 平铺内容， 深度遍历， 将叶子节点返回
+        tileEle(rootEle) {
+            const childNodes = rootEle.childNodes;
+            if (childNodes && childNodes?.length > 0) {
+                let nodes = [];
+                for (let i = 0; i < childNodes?.length; i++) {
+                    const item = childNodes[i];
+                    const style = item?.style;
+                    // 剔除高度只有5px的用来混淆的文本
+                    if (style?.height !== "5px") {
+                        nodes = [...nodes, ...this.tileEle(childNodes[i])];
+                    }
+                }
+                return nodes;
+            } else {
+                return [rootEle];
+            }
         },
     },
 };

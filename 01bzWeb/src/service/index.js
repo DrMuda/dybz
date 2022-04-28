@@ -1,7 +1,7 @@
 /*
  * @Author: LXX
  * @Date: 2022-03-14 17:24:41
- * @LastEditTime: 2022-04-19 09:51:13
+ * @LastEditTime: 2022-04-27 10:50:07
  * @LastEditors: LXX
  * @Description:
  * @FilePath: \dybz\01bzWeb\src\service\index.js
@@ -25,10 +25,14 @@ export function pushCache({ data }) {
             showClose: true,
         });
     }
-    return axios.post("/nodeApi/sync/pushCache", {
-        data,
-        userName,
-        password,
+    return axios({
+        url: "/nodeApi/sync/pushCache",
+        method: "POST",
+        data: {
+            data,
+            userName,
+            password,
+        },
     });
 }
 
@@ -64,31 +68,25 @@ export function getNovelHtml(novelUrl, cancelTokenList, chanel, isErr = false) {
     novelUrl = novelUrl.replace(".html", "");
     return axios({
         method: "post",
-        url: pythonUrl,
+        url: "/nodeApi/reptileDHTML",
         data: {
-            method: isErr ? "post" : "get",
             url: `http://${chanel || localStorage.getItem("chanel")}${novelUrl}.html`,
-            params: isErr
-                ? {
-                      err: 1,
-                  }
-                : undefined,
         },
-        responseType: "blob",
-        transformResponse: [
-            async function (data) {
-                return new Promise((resolve) => {
-                    const fileReader = new FileReader();
-                    fileReader.readAsText(data, "GBK");
-                    fileReader.onload = function () {
-                        resolve(fileReader.result);
-                    };
-                    fileReader.onerror = () => {
-                        reject2(new Error("blobToBase64 error"));
-                    };
-                });
-            },
-        ],
+        // responseType: "blob",
+        // transformResponse: [
+        //     async function (data) {
+        //         return new Promise((resolve) => {
+        //             const fileReader = new FileReader();
+        //             fileReader.readAsText(data, "GBK");
+        //             fileReader.onload = function () {
+        //                 resolve(fileReader.result);
+        //             };
+        //             fileReader.onerror = () => {
+        //                 reject2(new Error("blobToBase64 error"));
+        //             };
+        //         });
+        //     },
+        // ],
         cancelToken: new axios.CancelToken((c) => {
             cancelTokenList.push(c);
         }),
