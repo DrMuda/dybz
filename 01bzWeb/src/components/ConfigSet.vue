@@ -1,7 +1,7 @@
 <!--
  * @Author: LXX
  * @Date: 2022-03-11 15:10:27
- * @LastEditTime: 2022-03-28 17:20:59
+ * @LastEditTime: 2022-06-09 11:39:23
  * @LastEditors: LXX
  * @Description: 
  * @FilePath: \dybz\01bzWeb\src\components\ConfigSet.vue
@@ -199,9 +199,7 @@ export default {
                             const linkEleList = lineEle.getElementsByTagName("a");
                             for (let i = 0; i < linkEleList.length; i += 1) {
                                 const linkEle = linkEleList[i];
-                                if (new RegExp("最新线路", "g").test(linkEle.innerText)) {
-                                    chanelList.push(linkEle.getAttribute("href").replace("http://", ""));
-                                }
+                                chanelList.push(linkEle.getAttribute("href").replace("http://", ""));
                             }
                         } else {
                             console.error("lineEle null");
