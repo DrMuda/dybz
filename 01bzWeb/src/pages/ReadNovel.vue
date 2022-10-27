@@ -4,26 +4,47 @@
             <el-button class="nav-btn" @click="load">刷新</el-button>
             <el-button class="nav-btn" @click="toPrev">上一章</el-button>
             <el-button class="nav-btn" @click="toNext">下一章</el-button>
-            <el-button class="nav-btn" v-for="(item, index) in novel.pages" :key="item" @click="toPages(index)" :type="setPageBtnType(index)"
+            <el-button
+                class="nav-btn"
+                v-for="(item, index) in novel.pages"
+                :key="item"
+                @click="toPages(index)"
+                :type="setPageBtnType(index)"
                 >[{{ index + 1 }}]
             </el-button>
         </div>
         <div id="main-context">
             <template v-for="(item, index) in novel.mainContext">
-                <br v-if="new RegExp(/^<br \/>/).test(item) === true" :key="item + index" />
-                <editable-img
-                    v-else-if="new RegExp(/^img:/).test(item) === true && !imgAndChar[oldNewKey[item.replace('img:', '')]]?.char"
+                <br
+                    v-if="new RegExp(/^<br \/>/).test(item) === true"
                     :key="item + index"
-                    :imgSrc="imgAndChar[oldNewKey[item.replace('img:', '')]]?.img || '#'"
+                />
+                <editable-img
+                    v-else-if="
+                        new RegExp(/^img:/).test(item) === true &&
+                        !imgAndChar[oldNewKey[item.replace('img:', '')]]?.char
+                    "
+                    :key="item + index + 'editable-img'"
+                    :imgSrc="
+                        imgAndChar[oldNewKey[item.replace('img:', '')]]?.img ||
+                        '#'
+                    "
                     :id="item.replace('img:', '')"
                     :updateCache="updateCache"
                     :item="item"
                     :newKey="oldNewKey[item.replace('img:', '')]"
                 />
-                <span v-else-if="new RegExp(/^img:/).test(item) === true && imgAndChar[oldNewKey[item.replace('img:', '')]]?.char" :key="item + index">{{
-                    imgAndChar[oldNewKey[item.replace("img:", "")]]?.char
-                }}</span>
-                <span v-else :key="item + index">{{ item }}</span>
+                <span
+                    v-else-if="
+                        new RegExp(/^img:/).test(item) === true &&
+                        imgAndChar[oldNewKey[item.replace('img:', '')]]?.char
+                    "
+                    :key="item + index + 'replace'"
+                    >{{
+                        imgAndChar[oldNewKey[item.replace("img:", "")]]?.char
+                    }}</span
+                >
+                <span v-else :key="item + index + 'origin'">{{ item }}</span>
             </template>
         </div>
         <div id="loading" v-loading="loading" v-show="loading"></div>
@@ -85,13 +106,18 @@ export default {
         }
 
         try {
-            this.oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
+            this.oldNewKey = JSON.parse(
+                localStorage.getItem("oldNewKey") || "{}"
+            );
         } catch (error) {
             console.error(error);
             this.oldNewKey = {};
         }
 
-        if (cachePage.novelUrl === this.novelUrl && cachePage.novelId === this.novelId) {
+        if (
+            cachePage.novelUrl === this.novelUrl &&
+            cachePage.novelId === this.novelId
+        ) {
             this.novel = cachePage.novel;
             this.nextPageNovel = cachePage.nextPageNovel;
         } else {
@@ -101,12 +127,20 @@ export default {
         }
 
         this.autoRefreshChar = setInterval(() => {
-            if (JSON.stringify(ImgAndChar.get()) !== JSON.stringify(this.imgAndChar)) {
+            if (
+                JSON.stringify(ImgAndChar.get()) !==
+                JSON.stringify(this.imgAndChar)
+            ) {
                 this.imgAndChar = ImgAndChar.get();
             }
-            if (localStorage.getItem("oldNewKey") !== JSON.stringify(this.oldNewKey)) {
+            if (
+                localStorage.getItem("oldNewKey") !==
+                JSON.stringify(this.oldNewKey)
+            ) {
                 try {
-                    this.oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
+                    this.oldNewKey = JSON.parse(
+                        localStorage.getItem("oldNewKey") || "{}"
+                    );
                 } catch (error) {
                     console.error(error);
                     this.oldNewKey = {};
@@ -141,8 +175,13 @@ export default {
         setHistory: function () {
             if (this.novel.mainContext?.length > 0) {
                 const urlList = this.novelUrl.split("/");
-                const currPage = this.novel.pages[currPage]?.replace?.(".html", "");
-                const nextNovelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
+                const currPage = this.novel.pages[currPage]?.replace?.(
+                    ".html",
+                    ""
+                );
+                const nextNovelList =
+                    JSON.parse(`{"data":${localStorage.getItem("novelList")}}`)
+                        .data || [];
                 const index = nextNovelList.findIndex((item) => {
                     return item.id.toString() === this.novelId.toString();
                 });
@@ -151,12 +190,20 @@ export default {
                         ...nextNovelList[index],
                         history: {
                             title: this.novel.title,
-                            url: `/${urlList[1]}/${urlList[2]}/${currPage || urlList[3]}`,
+                            url: `/${urlList[1]}/${urlList[2]}/${
+                                currPage || urlList[3]
+                            }`,
                         },
                     };
                 }
-                localStorage.setItem("novelList", JSON.stringify(nextNovelList));
-                localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
+                localStorage.setItem(
+                    "novelList",
+                    JSON.stringify(nextNovelList)
+                );
+                localStorage.setItem(
+                    "lastUpdate",
+                    moment().format("YYYY-MM-DD HH:mm:ss")
+                );
             }
         },
 
@@ -175,7 +222,9 @@ export default {
                                 "/" +
                                 this.novelUrl.split("/")[2] +
                                 "/" +
-                                this.novel.pages[this.novel.currPage + 1].replace(".html", "");
+                                this.novel.pages[
+                                    this.novel.currPage + 1
+                                ].replace(".html", "");
                         } else if (this.novel.next) {
                             novelUrl = this.novel.next.replace(".html", "");
                         } else {
@@ -183,12 +232,17 @@ export default {
                         }
                     }
                     if (novelUrl) {
-                        const webData = this.getWebData(novelUrl, this.cancelTokenList);
+                        const webData = this.getWebData(
+                            novelUrl,
+                            this.cancelTokenList
+                        );
                         webData.then(
                             async function (data) {
                                 this.cancelTokenList = [];
                                 const novel = this.initContent(data) || {};
-                                const oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
+                                const oldNewKey = JSON.parse(
+                                    localStorage.getItem("oldNewKey") || "{}"
+                                );
                                 let canSetNewKey = false;
                                 cacheImg(
                                     function (oldKey, newKey) {
@@ -199,12 +253,21 @@ export default {
                                     function () {
                                         let nextContext = novel.mainContext;
                                         if (canSetNewKey) {
-                                            localStorage.setItem("oldNewKey", JSON.stringify(oldNewKey));
+                                            localStorage.setItem(
+                                                "oldNewKey",
+                                                JSON.stringify(oldNewKey)
+                                            );
                                         }
                                         if (this.isPreLoad) {
-                                            this.nextPageNovel = { ...novel, mainContext: nextContext };
+                                            this.nextPageNovel = {
+                                                ...novel,
+                                                mainContext: nextContext,
+                                            };
                                         } else {
-                                            this.novel = { ...novel, mainContext: nextContext };
+                                            this.novel = {
+                                                ...novel,
+                                                mainContext: nextContext,
+                                            };
                                         }
 
                                         this.loading = false;
@@ -227,7 +290,12 @@ export default {
                                     this.reloadSetTimeout = setTimeout(
                                         function () {
                                             // 如果是预加载， 且加载次数小于最大加载次数， 且本次加载失败， 进行下一次预加载
-                                            if (this.isPreLoad && this.tryPreLoadNum < this.maxTryPreloadNum && !loadSuccess) {
+                                            if (
+                                                this.isPreLoad &&
+                                                this.tryPreLoadNum <
+                                                    this.maxTryPreloadNum &&
+                                                !loadSuccess
+                                            ) {
                                                 this.tryPreLoadNum += 1;
                                                 this.load();
                                             } else {
@@ -320,10 +388,15 @@ export default {
                     },
                 });
                 // 如果当前是最后一页， 那么下一章就是预加载的内容， 直接使用预加载的内容
-                if (this.novel.currPage === undefined || this.novel.currPage === this.novel.pages.length - 1) {
+                if (
+                    this.novel.currPage === undefined ||
+                    this.novel.currPage === this.novel.pages.length - 1
+                ) {
                     if (this.nextPageNovel) {
                         // console.log("1");
-                        this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
+                        this.novel = JSON.parse(
+                            JSON.stringify(this.nextPageNovel)
+                        );
                         this.toTop();
                     } else {
                         if (this.isPreLoad) {
@@ -334,7 +407,9 @@ export default {
                                     resolve();
                                 });
                             });
-                            this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
+                            this.novel = JSON.parse(
+                                JSON.stringify(this.nextPageNovel)
+                            );
                             this.nextPageNovel = null;
                             this.isPreLoad = false;
                             this.loading = false;
@@ -381,7 +456,9 @@ export default {
             // 点击同一页的话， 不做处理
             if (this.novel.currPage !== pageNumber) {
                 const novelUrlSplit = this.novelUrl.split("/");
-                this.novelUrl = `/${novelUrlSplit[1]}/${novelUrlSplit[2]}/${this.novel.pages[pageNumber].replace(".html", "")}`;
+                this.novelUrl = `/${novelUrlSplit[1]}/${
+                    novelUrlSplit[2]
+                }/${this.novel.pages[pageNumber].replace(".html", "")}`;
                 this.$router.replace({
                     query: {
                         ...this.$route.query,
@@ -392,7 +469,9 @@ export default {
                 if (this.novel.currPage + 1 === pageNumber) {
                     if (this.nextPageNovel) {
                         // console.log("1");
-                        this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
+                        this.novel = JSON.parse(
+                            JSON.stringify(this.nextPageNovel)
+                        );
                         this.toTop();
                     } else {
                         if (this.isPreLoad) {
@@ -403,7 +482,9 @@ export default {
                                     resolve();
                                 });
                             });
-                            this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
+                            this.novel = JSON.parse(
+                                JSON.stringify(this.nextPageNovel)
+                            );
                             this.toTop();
                         } else {
                             // console.log("4");
@@ -437,7 +518,9 @@ export default {
         },
 
         toTop() {
-            document.getElementById("main-context").scrollTo({ top: 0, behavior: "smooth" });
+            document
+                .getElementById("main-context")
+                .scrollTo({ top: 0, behavior: "smooth" });
         },
 
         setPageBtnType: function (page) {
@@ -452,10 +535,19 @@ export default {
             ImgAndChar.setCharByKey(id, input);
         },
 
-        getWebData: function (novelUrl = this.novelUrl, cancelTokenList = this.cancelTokenList, isErr = false) {
+        getWebData: function (
+            novelUrl = this.novelUrl,
+            cancelTokenList = this.cancelTokenList,
+            isErr = false
+        ) {
             return new Promise((resolve, reject) => {
                 services
-                    .getNovelHtml(novelUrl, cancelTokenList, this.$store.state.currNovelChanel, isErr)
+                    .getNovelHtml(
+                        novelUrl,
+                        cancelTokenList,
+                        this.$store.state.currNovelChanel,
+                        isErr
+                    )
                     .then(
                         function (res) {
                             const content = res.data.content;
@@ -501,10 +593,12 @@ export default {
             }
 
             // 提取title
-            novel.title = tempEle.getElementsByClassName("page-title")?.[0]?.innerHTML;
+            novel.title =
+                tempEle.getElementsByClassName("page-title")?.[0]?.innerHTML;
 
             // 提取章小节
-            const aList = tempEle.getElementsByClassName("chapterPages")?.[0]?.childNodes;
+            const aList =
+                tempEle.getElementsByClassName("chapterPages")?.[0]?.childNodes;
             if (aList?.length > 0) {
                 for (let i = 0; i < aList.length; i += 1) {
                     const link = aList[i];
@@ -520,8 +614,12 @@ export default {
             }
 
             // 提取上一章、下一章
-            const prevLink = tempEle.getElementsByClassName("mod page-control")?.[1]?.getElementsByClassName("prev")?.[0];
-            const nextLink = tempEle.getElementsByClassName("mod page-control")?.[1]?.getElementsByClassName("next")?.[0];
+            const prevLink = tempEle
+                .getElementsByClassName("mod page-control")?.[1]
+                ?.getElementsByClassName("prev")?.[0];
+            const nextLink = tempEle
+                .getElementsByClassName("mod page-control")?.[1]
+                ?.getElementsByClassName("next")?.[0];
             novel.prev = prevLink?.getAttribute("href");
             novel.next = nextLink?.getAttribute("href");
             const test = /.html$/;
@@ -532,7 +630,9 @@ export default {
                 novel.next = null;
             }
             let mainContextEleList = null;
-            mainContextEleList = this.tileEle(tempEle.getElementsByClassName("neirong")[0]);
+            mainContextEleList = this.tileEle(
+                tempEle.getElementsByClassName("neirong")[0]
+            );
             // 提取正文，正文是由文本、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
             if (mainContextEleList?.length > 0) {
                 for (let i = 0; i < mainContextEleList.length; i += 1) {
@@ -553,7 +653,10 @@ export default {
                         } else {
                             // 有映射关系， 但实际没有图片也生成新的
                             if (!this.imgAndChar[this.oldNewKey[imgId]]?.img) {
-                                this.imgAndChar[imgId] = { char: null, img: null };
+                                this.imgAndChar[imgId] = {
+                                    char: null,
+                                    img: null,
+                                };
                             }
                         }
                     } else if (itemEle instanceof HTMLBRElement) {
@@ -587,6 +690,11 @@ export default {
                 return [rootEle];
             }
         },
+
+        replaceHref(href) {
+            const regExp = /.*javascript:RunChapter(.*);.*/
+            regExp
+        },
     },
 };
 </script>
@@ -600,6 +708,7 @@ export default {
     height: 100%;
     max-height: 100%;
 }
+
 #main-context {
     flex-shrink: 1;
     flex-grow: 1;
@@ -609,6 +718,7 @@ export default {
     padding: 0 8px;
     margin-bottom: 0;
 }
+
 #loading {
     position: fixed;
     height: 100%;
@@ -616,6 +726,7 @@ export default {
     pointer-events: none;
     z-index: 1;
 }
+
 .nav {
     flex-shrink: 0;
     flex-grow: 0;
@@ -631,10 +742,12 @@ export default {
     box-sizing: border-box;
     overflow: auto;
 }
+
 .nav-btn {
     margin: 8px !important;
     width: 60px;
 }
+
 .curr {
     border-color: aqua;
     color: aqua;

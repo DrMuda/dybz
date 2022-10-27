@@ -14,7 +14,9 @@ module.exports = function (path_way, defaultData = "") {
             if (err) {
                 fs.appendFile(path_way, defaultData, "utf-8", (err) => {
                     if (err) {
-                        console.log("该文件不存在，重新创建失败！");
+                        console.log(
+                            `${path_way}; 该文件不存在，重新创建失败！`
+                        );
                         reject(false);
                     } else {
                         console.log("文件不存在，已重新创建");

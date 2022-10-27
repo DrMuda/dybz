@@ -2,11 +2,20 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 Vue.use(Vuex);
-
-export default new Vuex.Store({
-  state: {},
+interface State {
+  currNovelChanel: string | null;
+}
+export default new Vuex.Store<State>({
+  state: {
+    currNovelChanel: sessionStorage.getItem("currNovelChanel"),
+  },
+  mutations: {
+    setCurrNovelChanel(state, chanel) {
+      state.currNovelChanel = chanel;
+      sessionStorage.setItem("currNovelChanel", chanel);
+    },
+  },
   getters: {},
-  mutations: {},
   actions: {},
   modules: {},
 });
