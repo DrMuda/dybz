@@ -1,5 +1,6 @@
 /* eslint-disable */
 import {
+  GetNovelHtmlRes,
   ImgAndCharValue,
   OldNewKey,
   PullImgAndCharRes,
@@ -81,7 +82,7 @@ export function getNovelHtml(
   novelUrl: string,
   cancelTokenList: Array<Canceler>,
   chanel: string
-): Promise<AxiosResponse<string, any>> {
+): Promise<AxiosResponse<GetNovelHtmlRes, any>> {
   novelUrl = novelUrl.replace(".html", "");
   return axios({
     method: "post",

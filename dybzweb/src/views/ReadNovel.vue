@@ -54,11 +54,40 @@ import EditableImg from "@/components/EditableImg.vue";
 import { Message } from "element-ui";
 import moment from "moment";
 import * as services from "@/service/index.js";
+import { GetNovelHtmlRes, ImgAndCharValue, OldNewKey } from "@/utils/type";
+import { AxiosResponse, Canceler } from "axios";
+import { Novel as CacheNovel } from "@/utils/type";
+import { ElButton } from "element-ui/types/button";
+
+interface Novel {
+  title: string;
+  pages: string[];
+  currPage: number;
+  prev: string | null;
+  next: string | null;
+  mainContext: string[];
+}
+interface Data {
+  novel: Novel;
+  nextPageNovel: Novel | null;
+  imgAndChar: ImgAndCharValue;
+  oldNewKey: OldNewKey;
+  novelId: string;
+  novelUrl: string;
+  loading: boolean;
+  isPreLoad: boolean;
+  tryPreLoadNum: number;
+  maxTryPreloadNum: number;
+  autoRefreshChar: null | number;
+  cancelTokenList: Canceler[];
+  reloadSetTimeout: null | number;
+  reloadTimeInterval(): number;
+}
 export default {
   components: {
     EditableImg,
   },
-  data() {
+  data(): Data {
     return {
       novel: {
         title: "",
@@ -72,8 +101,8 @@ export default {
       nextPageNovel: null,
       imgAndChar: ImgAndChar.get(),
       oldNewKey: {},
-      novelId: this.$route.query.id,
-      novelUrl: this.$route.query.url,
+      novelId: this.$route.query.id as string,
+      novelUrl: this.$route.query.url as string,
       loading: false,
       isPreLoad: false, // 是否预加载
       tryPreLoadNum: 1, // 预加载第几次
@@ -90,7 +119,12 @@ export default {
     msg: String,
   },
   mounted: async function () {
-    let cachePage = {};
+    let cachePage: {
+      novelUrl?: string;
+      novelId?: string;
+      novel?: Novel;
+      nextPageNovel?: Novel;
+    } = {};
     try {
       cachePage = JSON.parse(sessionStorage.getItem("cachePage") || "{}");
     } catch (error) {
@@ -109,8 +143,15 @@ export default {
       cachePage.novelUrl === this.novelUrl &&
       cachePage.novelId === this.novelId
     ) {
-      this.novel = cachePage.novel;
-      this.nextPageNovel = cachePage.nextPageNovel;
+      this.novel = cachePage.novel || {
+        currPage: 0,
+        mainContext: [],
+        next: "",
+        pages: [],
+        prev: "",
+        title: "",
+      };
+      this.nextPageNovel = cachePage.nextPageNovel || null;
     } else {
       await this.load();
       this.toTop();
@@ -145,8 +186,8 @@ export default {
     this.cachePage();
   },
   beforeRouteLeave(_, __, next) {
-    this.novelId = this.$route.query.id;
-    this.novelUrl = this.$route.query.url;
+    this.novelId = this.$route.query.id as string;
+    this.novelUrl = this.$route.query.url as string;
     next();
   },
   methods: {
@@ -161,11 +202,15 @@ export default {
         sessionStorage.setItem("cachePage", JSON.stringify(data));
       }
     },
+
     setHistory: function () {
       if (this.novel.mainContext?.length > 0) {
         const urlList = this.novelUrl.split("/");
-        const currPage = this.novel.pages[currPage]?.replace?.(".html", "");
-        const nextNovelList =
+        const currPage = this.novel.pages[this.novel.currPage]?.replace?.(
+          ".html",
+          ""
+        );
+        const nextNovelList: CacheNovel[] =
           JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data ||
           [];
         const index = nextNovelList.findIndex((item) => {
@@ -189,7 +234,7 @@ export default {
     },
 
     load: function () {
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
         let loadSuccess = false;
         !this.isPreLoad && (this.loading = true);
         try {
@@ -213,49 +258,45 @@ export default {
           if (novelUrl) {
             const webData = this.getWebData(novelUrl, this.cancelTokenList);
             webData.then(
-              async function (data) {
+              async (data: string) => {
                 this.cancelTokenList = [];
                 const novel = this.initContent(data) || {};
                 const oldNewKey = JSON.parse(
                   localStorage.getItem("oldNewKey") || "{}"
                 );
                 let canSetNewKey = false;
-                cacheImg(
-                  function (oldKey, newKey) {
-                    oldNewKey[oldKey] = newKey;
-                    canSetNewKey = true;
-                  }.bind(this)
-                ).then(
-                  function () {
-                    let nextContext = novel.mainContext;
-                    if (canSetNewKey) {
-                      localStorage.setItem(
-                        "oldNewKey",
-                        JSON.stringify(oldNewKey)
-                      );
-                    }
-                    if (this.isPreLoad) {
-                      this.nextPageNovel = {
-                        ...novel,
-                        mainContext: nextContext,
-                      };
-                    } else {
-                      this.novel = {
-                        ...novel,
-                        mainContext: nextContext,
-                      };
-                    }
+                cacheImg((oldKey, newKey) => {
+                  oldNewKey[oldKey] = newKey;
+                  canSetNewKey = true;
+                }).then(() => {
+                  let nextContext = novel.mainContext;
+                  if (canSetNewKey) {
+                    localStorage.setItem(
+                      "oldNewKey",
+                      JSON.stringify(oldNewKey)
+                    );
+                  }
+                  if (this.isPreLoad) {
+                    this.nextPageNovel = {
+                      ...novel,
+                      mainContext: nextContext,
+                    };
+                  } else {
+                    this.novel = {
+                      ...novel,
+                      mainContext: nextContext,
+                    };
+                  }
 
-                    this.loading = false;
-                    this.imgAndChar = ImgAndChar.get();
-                    loadSuccess = true;
-                    this.isPreLoad = false;
+                  this.loading = false;
+                  this.imgAndChar = ImgAndChar.get();
+                  loadSuccess = true;
+                  this.isPreLoad = false;
 
-                    resolve();
-                  }.bind(this)
-                );
-              }.bind(this),
-              function (err) {
+                  resolve();
+                });
+              },
+              (err) => {
                 console.error(err);
                 this.cancelTokenList = [];
                 if (err !== "中断请求") {
@@ -263,32 +304,29 @@ export default {
                     clearTimeout(this.reloadSetTimeout);
                     this.reloadSetTimeout = null;
                   }
-                  this.reloadSetTimeout = setTimeout(
-                    function () {
-                      // 如果是预加载， 且加载次数小于最大加载次数， 且本次加载失败， 进行下一次预加载
-                      if (
-                        this.isPreLoad &&
-                        this.tryPreLoadNum < this.maxTryPreloadNum &&
-                        !loadSuccess
-                      ) {
-                        this.tryPreLoadNum += 1;
-                        this.load();
-                      } else {
-                        this.isPreLoad = false;
-                        resolve();
-                      }
-                    }.bind(this),
-                    this.reloadTimeInterval()
-                  );
+                  this.reloadSetTimeout = setTimeout(() => {
+                    // 如果是预加载， 且加载次数小于最大加载次数， 且本次加载失败， 进行下一次预加载
+                    if (
+                      this.isPreLoad &&
+                      this.tryPreLoadNum < this.maxTryPreloadNum &&
+                      !loadSuccess
+                    ) {
+                      this.tryPreLoadNum += 1;
+                      this.load();
+                    } else {
+                      this.isPreLoad = false;
+                      resolve();
+                    }
+                  }, this.reloadTimeInterval());
                 }
                 resolve();
-              }.bind(this)
+              }
             );
           }
         } catch (error) {
           console.error(error);
           if (!this.isPreLoad) {
-            ElMessage({
+            Message({
               showClose: true,
               message: "出错了",
               type: "error",
@@ -344,7 +382,7 @@ export default {
         this.toTop();
         this.startReload();
       } else {
-        ElMessage({
+        Message({
           message: "已是第一章",
           type: "info",
           showClose: true,
@@ -375,7 +413,7 @@ export default {
             if (this.isPreLoad) {
               // console.log("2");
               this.loading = true;
-              await new Promise((resolve) => {
+              await new Promise<void>((resolve) => {
                 this.$watch("loading", () => {
                   resolve();
                 });
@@ -414,7 +452,7 @@ export default {
         }
         this.startReload();
       } else {
-        ElMessage({
+        Message({
           message: "已是最后一章",
           type: "info",
           showClose: true,
@@ -423,7 +461,7 @@ export default {
       }
     },
 
-    toPages: async function (pageNumber) {
+    async toPages(pageNumber: number) {
       // 点击同一页的话， 不做处理
       if (this.novel.currPage !== pageNumber) {
         const novelUrlSplit = this.novelUrl.split("/");
@@ -446,7 +484,7 @@ export default {
             if (this.isPreLoad) {
               // console.log("2");
               this.loading = true;
-              await new Promise((resolve) => {
+              await new Promise<void>((resolve) => {
                 this.$watch("loading", () => {
                   resolve();
                 });
@@ -486,63 +524,65 @@ export default {
 
     toTop() {
       document
-        .getElementById("main-context")
-        .scrollTo({ top: 0, behavior: "smooth" });
+        ?.getElementById("main-context")
+        ?.scrollTo({ top: 0, behavior: "smooth" });
     },
 
-    setPageBtnType: function (page) {
+    setPageBtnType(page: number) {
       if (page === this.novel.currPage) {
         return "primary";
       }
       return undefined;
     },
 
-    updateCache(id, input) {
+    updateCache(id: string, input: string) {
       this.imgAndChar[id].char = input;
       ImgAndChar.setCharByKey(id, input);
     },
 
-    getWebData: function (
-      novelUrl = this.novelUrl,
-      cancelTokenList = this.cancelTokenList,
-      isErr = false
-    ) {
+    getWebData(novelUrl: string, cancelTokenList: Canceler[]): Promise<string> {
+      novelUrl = novelUrl || this.novelUrl;
+      cancelTokenList = cancelTokenList || this.cancelTokenList;
       return new Promise((resolve, reject) => {
         services
           .getNovelHtml(
             novelUrl,
             cancelTokenList,
-            this.$store.state.currNovelChanel,
-            isErr
+            this.$store.state.currNovelChanel
           )
           .then(
-            function (res) {
+            function (res: AxiosResponse<GetNovelHtmlRes, any>) {
               const content = res.data.content;
               resolve(content);
             }.bind(this)
           )
-          .catch(
-            function (err) {
-              !this.isPreLoad &&
-                ElMessage({
-                  showClose: true,
-                  message: "加载失败",
-                  type: "error",
-                  duration: 1000,
-                });
-              this.loading = false;
-              if (err.message === "中断请求") {
-                reject("中断请求");
-              } else {
-                reject(err.message);
-              }
-            }.bind(this)
-          );
+          .catch((err) => {
+            !this.isPreLoad &&
+              Message({
+                showClose: true,
+                message: "加载失败",
+                type: "error",
+                duration: 1000,
+              });
+            this.loading = false;
+            if (err.message === "中断请求") {
+              reject("中断请求");
+            } else {
+              reject(err.message);
+            }
+          });
       });
     },
 
-    initContent: function (content) {
-      const novel = {};
+    initContent(content: string): Novel {
+      const novel: Novel = {
+        currPage: 0,
+        mainContext: [],
+        next: "",
+        pages: [],
+        prev: "",
+        title: "",
+      };
       this.imgAndChar = ImgAndChar.get();
       // 清除空格，防止扰乱正则匹配
       content = content.replace(/\n/g, "");
@@ -568,8 +608,8 @@ export default {
         tempEle.getElementsByClassName("chapterPages")?.[0]?.childNodes;
       if (aList?.length > 0) {
         for (let i = 0; i < aList.length; i += 1) {
-          const link = aList[i];
-          const href = link.getAttribute("href");
+          const link = aList[i] as HTMLLinkElement;
+          const href = link.getAttribute("href") || "";
           novel.pages || (novel.pages = []);
           novel.pages = [...novel.pages, href];
           if (link.getAttribute("class") === "curr") {
@@ -583,12 +623,12 @@ export default {
       // 提取上一章、下一章
       const prevLink = tempEle
         .getElementsByClassName("mod page-control")?.[1]
-        ?.getElementsByClassName("prev")?.[0];
+        ?.getElementsByClassName("prev")?.[0] as HTMLLinkElement;
       const nextLink = tempEle
         .getElementsByClassName("mod page-control")?.[1]
-        ?.getElementsByClassName("next")?.[0];
-      novel.prev = prevLink?.getAttribute("href");
-      novel.next = nextLink?.getAttribute("href");
+        ?.getElementsByClassName("next")?.[0] as HTMLLinkElement;
+      novel.prev = prevLink?.getAttribute("href") || "";
+      novel.next = nextLink?.getAttribute("href") || "";
       const test = /.html$/;
       if (!test.test(novel.prev)) {
         novel.prev = null;
@@ -612,7 +652,7 @@ export default {
               novel.mainContext.push(text);
             }
           } else if (itemEle instanceof HTMLImageElement) {
-            let imgId = itemEle.getAttribute("my-src");
+            let imgId = itemEle.getAttribute("my-src") || "";
             novel.mainContext.push(`img:${imgId}`);
             // 如果没有图片id的映射， 则生成新的
             if (!this.oldNewKey[imgId]) {
@@ -629,7 +669,9 @@ export default {
           } else if (itemEle instanceof HTMLBRElement) {
             novel.mainContext.push("<br />");
           } else {
-            novel.mainContext.push(itemEle.innerText || "");
+            novel.mainContext.push(
+              (itemEle as HTMLBaseElement).innerText || ""
+            );
           }
         }
       } else {
@@ -640,12 +682,12 @@ export default {
     },
 
     // 平铺内容， 深度遍历， 将叶子节点返回
-    tileEle(rootEle) {
+    tileEle(rootEle: ChildNode) {
       const childNodes = rootEle.childNodes;
       if (childNodes && childNodes?.length > 0) {
-        let nodes = [];
+        let nodes: ChildNode[] = [];
         for (let i = 0; i < childNodes?.length; i++) {
-          const item = childNodes[i];
+          const item = childNodes[i] as HTMLBaseElement;
           const style = item?.style;
           // 剔除高度只有5px的用来混淆的文本
           if (style?.height !== "5px") {
@@ -658,10 +700,10 @@ export default {
       }
     },
 
-    replaceHref(href) {
-      const regExp = /.*javascript:RunChapter(.*);.*/;
-      regExp;
-    },
+    // replaceHref(href) {
+    //   const regExp = /.*javascript:RunChapter(.*);.*/;
+    //   regExp;
+    // },
   },
 };
 </script>

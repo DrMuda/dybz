@@ -4,10 +4,10 @@ import md5 from "md5";
 import baiduOcr from "@/utils/baiduOcr";
 import * as services from "@/service/index.js";
 
-export default (onCacheSuccess:Function) => {
+export default (onCacheSuccess: (key: string, md5Key: string) => void) => {
   return new Promise<void>((resolve, reject) => {
     let imgAndChar = ImgAndChar.get();
-    const pList:Array<Promise<string>> = [];
+    const pList: Array<Promise<string>> = [];
     Object.keys(imgAndChar).forEach((key) => {
       if (key.includes(".png")) {
         pList.push(

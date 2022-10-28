@@ -6,6 +6,7 @@ export type ImgAndCharItem = {
   img: string | undefined | null;
 };
 export type ImgAndCharValue = Record<string, ImgAndCharItem>;
+export type ResponseStatus = "success" | "fail";
 export interface Novel {
   id: string;
   url: string;
@@ -28,17 +29,17 @@ export interface User {
   lastUpdate: string;
 }
 export interface PullUserRes {
-  status: "success" | "fail";
+  status: ResponseStatus;
   user: User;
 }
 export interface PullImgAndCharRes {
-  status: "success" | "fail";
+  status: ResponseStatus;
   imgAndChar: ImgAndCharValue;
   totalPage: number;
   page: number;
 }
 export interface PullOldNewKeyRes {
-  status: "success" | "fail";
+  status: ResponseStatus;
   oldNewKey: OldNewKey;
   totalPage: number;
   page: number;
@@ -48,4 +49,8 @@ export interface RequestOCROption extends AxiosRequestConfig<null> {
     access_token: string;
     image: string;
   };
+}
+export interface GetNovelHtmlRes {
+  status: ResponseStatus;
+  content: string;
 }
