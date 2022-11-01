@@ -22,4 +22,7 @@ export default Vue.extend({
   margin: 0;
   border: 0;
 }
+.el-message-box {
+  width: 90vw !important;
+}
 </style>
