@@ -611,7 +611,10 @@ export default Vue.extend({
       if (aList?.length > 0) {
         for (let i = 0; i < aList.length; i += 1) {
           const link = aList[i] as HTMLLinkElement;
-          const href = link.getAttribute("href") || "";
+          let tempHref = this.replaceHref(
+            link.getAttribute("href") || ""
+          ).split("/");
+          const href = tempHref[tempHref.length - 1] || "";
           novel.pages || (novel.pages = []);
           novel.pages = [...novel.pages, href];
           if (link.getAttribute("class") === "curr") {
@@ -629,8 +632,8 @@ export default Vue.extend({
       const nextLink = tempEle
         .getElementsByClassName("mod page-control")?.[1]
         ?.getElementsByClassName("next")?.[0] as HTMLLinkElement;
-      novel.prev = prevLink?.getAttribute("href") || "";
-      novel.next = nextLink?.getAttribute("href") || "";
+      novel.prev = this.replaceHref(prevLink?.getAttribute("href") || "");
+      novel.next = this.replaceHref(nextLink?.getAttribute("href") || "");
       const test = /.html$/;
       if (!test.test(novel.prev)) {
         novel.prev = null;
@@ -702,10 +705,24 @@ export default Vue.extend({
       }
     },
 
-    // replaceHref(href) {
-    //   const regExp = /.*javascript:RunChapter(.*);.*/;
-    //   regExp;
-    // },
+    replaceHref(href: string): string {
+      // "javascript:RunChapter('6','6321','83611','6');"
+      console.log(href);
+      if (href.includes("javascript:")) {
+        const temp: string | null | undefined = /('.*','.*','.*','.*')/.exec(
+          href
+        )?.[0];
+        if (temp) {
+          const tempSplit = temp.replace(/'/g, "").split(",");
+          return `${tempSplit[0]}/${tempSplit[1]}/${tempSplit[2]}_${tempSplit[3]}`;
+        } else {
+          Message.error("error href: " + href);
+          return href;
+        }
+      } else {
+        return href;
+      }
+    },
   },
 });
 </script>
