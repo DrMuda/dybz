@@ -1,2 +1,2 @@
-cd ./01bzServerNodeJS
+cd ServerNode
 node ./app.js

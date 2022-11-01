@@ -1,2 +1,2 @@
-cd 01bzWeb
+cd web
 npm run serve
