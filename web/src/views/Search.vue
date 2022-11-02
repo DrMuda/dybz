@@ -8,12 +8,10 @@
       <template v-if="novelList.length < 1"><el-empty /></template>
       <template v-else>
         <div class="row" v-for="item of novelList">
-          <router-link :to="toSelectChapter(item)" class="name">{{
-            item.name
-          }}</router-link>
-          <router-link :to="toSelectChapter(item)" class="new-chapter-name">{{
+          <a @click="toSelectChapter(item)" class="name">{{ item.name }}</a>
+          <a @click="toSelectChapter(item)" class="new-chapter-name">{{
             item.newChapterName
-          }}</router-link>
+          }}</a>
           <span>{{ item.author }}</span>
         </div>
       </template>
@@ -129,21 +127,25 @@ export default Vue.extend({
         );
     },
     toSelectChapter(row: Novel) {
-      return {
+      this.addNovelToCache(row);
+      this.$router.push({
         path: "/SelectChapter",
         query: { id: row.id },
-      };
+      });
     },
     toReadNovel(row: Novel) {
-      return {
+      this.addNovelToCache(row);
+      this.$router.push({
         path: "/ReadNovel",
         query: { url: row.url, id: row.id },
-      };
+      });
     },
     addNovelToCache(row: Novel) {
+      debugger;
       const cacheNovelList: CacheNovel[] = JSON.parse(
-        JSON.stringify(localStorage.getItem("novelList") || "[]")
-      );
+        `{data:${JSON.stringify(localStorage.getItem("novelList") || "[]")}}`
+      ).data;
+      console.log(cacheNovelList);
       const index = cacheNovelList.findIndex((novel) => novel.id === row.id);
       if (index < 0) {
         cacheNovelList.push({
@@ -155,6 +157,7 @@ export default Vue.extend({
           url: row.url,
           key: `${Math.random()}`,
         });
+        localStorage.setItem("novelList", JSON.stringify(cacheNovelList));
       }
     },
   },

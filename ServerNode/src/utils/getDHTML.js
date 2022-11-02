@@ -9,12 +9,11 @@
 
 const puppeteer = require("puppeteer");
 const Log = require("./Log");
+const { getPuppeteerConfig } = require("./utils");
 
 module.exports = async (url) => {
   try {
-    const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
+    const browser = await puppeteer.launch(getPuppeteerConfig());
     const page = await browser.newPage();
     //开启拦截器
     await page.setRequestInterception(true);
