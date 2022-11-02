@@ -1,14 +1,10 @@
-<!--
- * @Author: LXX
- * @Date: 2022-03-01 15:55:18
- * @LastEditTime: 2022-03-29 16:46:08
- * @LastEditors: LXX
- * @Description: 
- * @FilePath: \dybz\01bzWeb\src\pages\ChooseNovel.vue
--->
 <template>
   <div class="choose-novel">
     <div class="novel-list">
+      <div class="search-bar">
+        <el-input v-model="searchValue" placeholder="搜索词" />
+        <el-button type="primary" @click="onSearch">搜索</el-button>
+      </div>
       <template v-for="item in novelList">
         <novel-list-item
           v-if="item.id"
@@ -45,6 +41,7 @@ import moment from "moment";
 interface Data {
   novelList: Array<any>;
   updateTag: boolean;
+  searchValue: string;
 }
 export default Vue.extend({
   components: {
@@ -54,6 +51,7 @@ export default Vue.extend({
     return {
       novelList: [],
       updateTag: true,
+      searchValue: "",
     };
   },
   mounted() {
@@ -147,6 +145,12 @@ export default Vue.extend({
         }
       });
     },
+    onSearch() {
+      this.$router.push({
+        path: "/search",
+        query: { searchValue: this.searchValue },
+      });
+    },
   },
 });
 </script>
@@ -215,5 +219,12 @@ export default Vue.extend({
 }
 .el-message-box {
   max-width: 100% !important;
+}
+.search-bar {
+  display: flex;
+  gap: 4px;
+  > * {
+    height: 100%;
+  }
 }
 </style>

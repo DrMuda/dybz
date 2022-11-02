@@ -14,7 +14,7 @@
         <el-input v-model="url" @change="onNameOrUrlChange" size="small" />
       </div>
       <div class="operation">
-        <el-popconfirm title="确定？" @cancel="null" @confirm="onDelBtnClick">
+        <el-popconfirm title="确定？" @confirm="onDelBtnClick">
           <template #reference>
             <a class="link" style="color: red">删除书籍</a>
           </template>

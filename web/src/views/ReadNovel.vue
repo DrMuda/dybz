@@ -610,7 +610,7 @@ export default Vue.extend({
         tempEle.getElementsByClassName("chapterPages")?.[0]?.childNodes;
       if (aList?.length > 0) {
         for (let i = 0; i < aList.length; i += 1) {
-          const link = aList[i] as HTMLLinkElement;
+          const link = aList[i] as HTMLAnchorElement;
           let tempHref = this.replaceHref(
             link.getAttribute("href") || ""
           ).split("/");
@@ -628,10 +628,10 @@ export default Vue.extend({
       // 提取上一章、下一章
       const prevLink = tempEle
         .getElementsByClassName("mod page-control")?.[1]
-        ?.getElementsByClassName("prev")?.[0] as HTMLLinkElement;
+        ?.getElementsByClassName("prev")?.[0] as HTMLAnchorElement;
       const nextLink = tempEle
         .getElementsByClassName("mod page-control")?.[1]
-        ?.getElementsByClassName("next")?.[0] as HTMLLinkElement;
+        ?.getElementsByClassName("next")?.[0] as HTMLAnchorElement;
       novel.prev = this.replaceHref(prevLink?.getAttribute("href") || "");
       novel.next = this.replaceHref(nextLink?.getAttribute("href") || "");
       const test = /.html$/;

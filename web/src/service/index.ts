@@ -127,7 +127,11 @@ export function getImg(
   });
 }
 
-export function getChapter(novelUrl: string, currPage: number, chanel: string):Promise<AxiosResponse<Promise<string | ArrayBuffer | null> ,any>> {
+export function getChapter(
+  novelUrl: string,
+  currPage: number,
+  chanel: string
+): Promise<AxiosResponse<Promise<string | ArrayBuffer | null>, any>> {
   novelUrl = novelUrl.replace(".html", "");
   return axios({
     method: "post",
@@ -169,4 +173,18 @@ export function getChanelList(): Promise<AxiosResponse<string, any>> {
 
 export function requestOCR(options: RequestOCROption) {
   return axios(options);
+}
+
+export function search(
+  url: string,
+  searchValue: string
+): Promise<AxiosResponse<GetNovelHtmlRes, any>> {
+  return axios({
+    method: "post",
+    url: "/nodeApi/search",
+    data: {
+      url: "http://" + url + "/s.php",
+      searchValue,
+    },
+  });
 }
