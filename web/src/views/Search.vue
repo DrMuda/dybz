@@ -85,6 +85,12 @@ export default Vue.extend({
               if (body) {
                 tempEle?.appendChild(body);
               }
+              if (content.includes("server error")) {
+                Message.error(
+                  (tempEle.querySelector(".neirong") as HTMLDivElement)
+                    .innerText
+                );
+              }
               const eleList =
                 tempEle
                   .querySelector(".mod.block.book-all-list")

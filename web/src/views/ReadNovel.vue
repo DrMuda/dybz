@@ -600,6 +600,11 @@ export default Vue.extend({
       if (body) {
         tempEle?.appendChild(body);
       }
+      if (content.includes("server error")) {
+        Message.error(
+          (tempEle.querySelector(".neirong") as HTMLDivElement).innerText
+        );
+      }
 
       // 提取title
       novel.title =
