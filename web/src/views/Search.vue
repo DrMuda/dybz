@@ -9,7 +9,7 @@
       <template v-else>
         <div class="row" v-for="item of novelList">
           <a @click="toSelectChapter(item)" class="name">{{ item.name }}</a>
-          <a @click="toSelectChapter(item)" class="new-chapter-name">{{
+          <a @click="toReadNovel(item)" class="new-chapter-name">{{
             item.newChapterName
           }}</a>
           <span>{{ item.author }}</span>
@@ -25,6 +25,7 @@ import Vue from "vue";
 import * as services from "@/service";
 import strToDom from "@/utils/strToDom";
 import { Novel as CacheNovel } from "@/utils/type";
+import moment from "moment";
 Vue.use(Input);
 Vue.use(Button);
 Vue.use(Empty);
@@ -104,13 +105,18 @@ export default Vue.extend({
                 const authorEle = row.querySelector(
                   ".info"
                 ) as HTMLParagraphElement;
+                const url = Array.from(nameEle.getAttribute("href") || "/");
+                url.splice(-1, 1);
                 novelList.push({
                   author: authorEle.innerText,
                   id: `${new Date().getTime() + i}`,
                   name: nameEle.innerText,
-                  url: nameEle.href,
+                  url: url.join("") || "",
                   newChapterName: newChapterNameEle.innerText,
-                  newChapterUrl: newChapterUrlEle.href,
+                  newChapterUrl:
+                    newChapterUrlEle
+                      .getAttribute("href")
+                      ?.replace(".html", "") || "",
                 });
               }
               this.novelList = novelList;
@@ -137,15 +143,12 @@ export default Vue.extend({
       this.addNovelToCache(row);
       this.$router.push({
         path: "/ReadNovel",
-        query: { url: row.url, id: row.id },
+        query: { url: row.newChapterUrl, id: row.id },
       });
     },
     addNovelToCache(row: Novel) {
-      debugger;
-      const cacheNovelList: CacheNovel[] = JSON.parse(
-        `{data:${JSON.stringify(localStorage.getItem("novelList") || "[]")}}`
-      ).data;
-      console.log(cacheNovelList);
+      const cacheNovelList: CacheNovel[] =
+        JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
       const index = cacheNovelList.findIndex((novel) => novel.id === row.id);
       if (index < 0) {
         cacheNovelList.push({
@@ -158,6 +161,10 @@ export default Vue.extend({
           key: `${Math.random()}`,
         });
         localStorage.setItem("novelList", JSON.stringify(cacheNovelList));
+        localStorage.setItem(
+          "lastUpdate",
+          moment().format("YYYY-MM-DD HH:mm:ss")
+        );
       }
     },
   },
