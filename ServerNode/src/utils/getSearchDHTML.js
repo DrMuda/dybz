@@ -25,7 +25,7 @@ module.exports = async (url, searchValue) => {
       document.querySelector(".text-border.vm").value = searchValue + "";
       document.querySelector(".btn").click();
     }, searchValue);
-    await page.waitForSelector(".mod.block.book-all-list");
+    await page.waitForSelector(".pagelistbox");
     const content = await page.content();
     page.close();
     browser.close();
