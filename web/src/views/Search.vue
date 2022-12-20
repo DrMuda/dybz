@@ -165,6 +165,7 @@ export default Vue.extend({
           name: row.name,
           url: row.url,
           key: `${Math.random()}`,
+          lastTime: moment().format("YYYY-MM-DD HH:mm:ss")
         });
         localStorage.setItem("novelList", JSON.stringify(cacheNovelList));
         localStorage.setItem(

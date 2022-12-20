@@ -21,6 +21,7 @@ export interface Novel {
   };
   key: string;
   chanel: string;
+  lastTime: string;
 }
 export interface User {
   novelList: Novel[];

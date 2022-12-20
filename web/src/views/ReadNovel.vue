@@ -235,6 +235,7 @@ export default Vue.extend({
               title: this.novel.title,
               url: `/${urlList[1]}/${urlList[2]}/${currPage || urlList[3]}`,
             },
+            lastTime: moment().format("YYYY-MM-DD HH:mm:ss"),
           };
         }
         localStorage.setItem("novelList", JSON.stringify(nextNovelList));

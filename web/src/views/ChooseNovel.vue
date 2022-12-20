@@ -58,9 +58,21 @@ export default Vue.extend({
     try {
       this.novelList =
         JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
-      this.novelList = this.novelList.map((item) => {
-        return { ...item, key: Math.random() };
-      });
+      this.novelList = this.novelList
+        .map((item) => {
+          return { ...item, key: Math.random() };
+        })
+        .sort(
+          (a, b) =>{
+            if(!a.lastTime){
+              return 1
+            }
+            if(!b.lastTime){
+              return -1
+            }
+            return new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime()
+          }
+        );
     } catch (error) {
       this.novelList = [];
     }
