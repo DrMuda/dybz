@@ -64,7 +64,20 @@
               >路线{{ index + 1 }}</el-button
             >
             <br />
-            <el-button class="btn" @click="getChanelList">更新路线</el-button>
+            <el-row>
+              <el-col :span="6">
+                <el-button class="btn" @click="getChanelList"
+                  >更新路线</el-button
+                >
+              </el-col>
+              <el-col :span="18">
+                <el-input
+                  v-model="outOfContactUrl"
+                  size="small"
+                  placeholder="失联页地址http://accacc.xyz/"
+                />
+              </el-col>
+            </el-row>
             <el-input
               v-model="currChanel"
               @change="onInputChange"
@@ -118,6 +131,8 @@ import {
   Switch as TempSwitch,
   Message,
   Input,
+  Row,
+  Col,
 } from "element-ui";
 import moment from "moment";
 import md5 from "md5";
@@ -136,6 +151,7 @@ interface Data {
   password: string;
   openVConsole: boolean;
   vConsole: VConsole | null;
+  outOfContactUrl: string;
 }
 Vue.use(Icon);
 Vue.use(Button);
@@ -143,6 +159,8 @@ Vue.use(RadioGroup);
 Vue.use(Radio);
 Vue.use(TempSwitch);
 Vue.use(Input);
+Vue.use(Row);
+Vue.use(Col);
 export default Vue.extend({
   components: {
     Icon,
@@ -151,6 +169,8 @@ export default Vue.extend({
     Radio,
     TempSwitch,
     Input,
+    Row,
+    Col,
   },
   data(): Data {
     const chanelList = localStorage.getItem("chanelList");
@@ -171,6 +191,7 @@ export default Vue.extend({
       password: "",
       openVConsole: false,
       vConsole: null,
+      outOfContactUrl: localStorage.getItem("outOfContactUrl") || "",
     };
   },
   beforeDestroy() {
@@ -184,6 +205,9 @@ export default Vue.extend({
         this.vConsole?.destroy();
         this.vConsole = null;
       }
+    },
+    outOfContactUrl(val) {
+      localStorage.setItem("outOfContactUrl", val);
     },
   },
   methods: {

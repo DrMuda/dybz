@@ -166,7 +166,7 @@ export function getChanelList(): Promise<AxiosResponse<string, any>> {
     url: pythonUrl,
     data: {
       method: "get",
-      url: "http://accacc.xyz/",
+      url: localStorage.getItem("outOfContactUrl") || "http://accacc.xyz/",
     },
   });
 }
