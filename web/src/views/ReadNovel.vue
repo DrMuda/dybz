@@ -1,5 +1,5 @@
 <template>
-  <div id="main">
+  <div id="main" :style="`flex-direction: ${mainLayout};`">
     <div class="nav">
       <el-button class="nav-btn" @click="load" size="small">刷新</el-button>
       <el-button class="nav-btn" @click="toPrev" size="small">上一章</el-button>
@@ -83,6 +83,9 @@ interface Data {
   cancelTokenList: Canceler[];
   reloadSetTimeout: null | number;
   reloadTimeInterval(): number;
+  mainLayout: "row" | "row-reverse";
+  timer: number | null;
+  clickCount: number;
 }
 Vue.use(Loading.directive);
 export default Vue.extend({
@@ -115,6 +118,9 @@ export default Vue.extend({
       reloadTimeInterval: () => {
         return Math.random() * 1000 + 3000;
       }, // 预加载与重新加载间隔时间
+      mainLayout: "row",
+      timer: null,
+      clickCount: 0,
     };
   },
   props: {
@@ -179,6 +185,9 @@ export default Vue.extend({
         }
       }
     }, 500);
+
+    window.removeEventListener("click", this.linstenDoubleClick);
+    window.addEventListener("click", this.linstenDoubleClick);
   },
   beforeDestroy() {
     // eslint-disable-next-line no-debugger
@@ -186,6 +195,7 @@ export default Vue.extend({
     this.autoRefreshChar && clearInterval(this.autoRefreshChar);
     this.setHistory();
     this.cachePage();
+    window.removeEventListener("click", this.linstenDoubleClick);
   },
   beforeRouteLeave(_, __, next) {
     this.novelId = this.$route.query.id as string;
@@ -728,6 +738,25 @@ export default Vue.extend({
         return href;
       }
     },
+
+    linstenDoubleClick() {
+      this.timer && clearTimeout(this.timer);
+      this.timer = setTimeout(() => {
+        if (this.clickCount > 0) {
+          this.clickCount--;
+        }
+      }, 200);
+      this.clickCount++;
+      if (this.clickCount >= 2) {
+        this.timer && clearTimeout(this.timer);
+        this.clickCount = 0;
+        if (this.mainLayout === "row") {
+          this.mainLayout = "row-reverse";
+        } else {
+          this.mainLayout = "row";
+        }
+      }
+    },
   },
 });
 </script>
@@ -737,7 +766,6 @@ export default Vue.extend({
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: row;
   height: 100%;
   max-height: 100%;
 }
