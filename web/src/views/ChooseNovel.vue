@@ -5,7 +5,7 @@
         <el-input v-model="searchValue" placeholder="搜索词" />
         <el-button type="primary" @click="onSearch">搜索</el-button>
       </div>
-      <template v-for="item in novelList">
+      <template v-for="item in sortedNovelList">
         <novel-list-item
           v-if="item.id"
           :key="item.key"
@@ -54,25 +54,31 @@ export default Vue.extend({
       searchValue: "",
     };
   },
+  computed: {
+    sortedNovelList(): Array<any> {
+      if (this.novelList instanceof Array) {
+        return this.novelList.sort((a, b) => {
+          if (!a.lastTime) {
+            return 1;
+          }
+          if (!b.lastTime) {
+            return -1;
+          }
+          return (
+            new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime()
+          );
+        });
+      }
+      return [];
+    },
+  },
   mounted() {
     try {
       this.novelList =
         JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
-      this.novelList = this.novelList
-        .map((item) => {
-          return { ...item, key: Math.random() };
-        })
-        .sort(
-          (a, b) =>{
-            if(!a.lastTime){
-              return 1
-            }
-            if(!b.lastTime){
-              return -1
-            }
-            return new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime()
-          }
-        );
+      this.novelList = this.novelList.map((item) => {
+        return { ...item, key: Math.random() };
+      });
     } catch (error) {
       this.novelList = [];
     }
