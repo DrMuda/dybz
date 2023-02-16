@@ -1,29 +1,19 @@
-const puppeteer = require("puppeteer");
 const Log = require("./Log");
-const { getPuppeteerConfig } = require("./utils");
+const initPuppeteer = require("./initPuppeteer")
+
 
 module.exports = async (url, searchValue) => {
   try {
-    const browser = await puppeteer.launch(getPuppeteerConfig());
-    const page = await browser.newPage();
-    //开启拦截器
-    await page.setRequestInterception(true);
-    await page.on("request", (interceptedRequest) => {
-      //判断加载的url是否以jpg或png结尾，符合条件将不再加载
-      if (
-        interceptedRequest.url().endsWith(".jpg") ||
-        interceptedRequest.url().endsWith(".png")
-      ) {
-        interceptedRequest.abort();
-      } else {
-        interceptedRequest.continue();
-      }
-    });
+    const {page, browser} = await initPuppeteer()
     await page.goto(url);
     await page.waitForSelector(".search-form");
     await page.evaluate((searchValue) => {
-      document.querySelector(".text-border.vm").value = searchValue + "";
-      document.querySelector(".btn").click();
+      const searchValueInput = document.querySelector(".text-border.vm");
+      const searchValueBtn = document.querySelector(".btn");
+      if (searchValueInput && searchValueBtn) {
+        searchValueInput.value = searchValue + "";
+        searchValueBtn.click();
+      }
     }, searchValue);
     await page.waitForSelector(".pagelistbox");
     const content = await page.content();

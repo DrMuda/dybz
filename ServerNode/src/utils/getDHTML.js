@@ -6,28 +6,12 @@
  * @Description:
  * @FilePath: \dybz\01bzServerNodeJS\src\utils\getDHTML.js
  */
-
-const puppeteer = require("puppeteer");
 const Log = require("./Log");
-const { getPuppeteerConfig } = require("./utils");
+const initPuppeteer = require("./initPuppeteer")
 
 module.exports = async (url) => {
   try {
-    const browser = await puppeteer.launch(getPuppeteerConfig());
-    const page = await browser.newPage();
-    //开启拦截器
-    await page.setRequestInterception(true);
-    await page.on("request", (interceptedRequest) => {
-      //判断加载的url是否以jpg或png结尾，符合条件将不再加载
-      if (
-        interceptedRequest.url().endsWith(".jpg") ||
-        interceptedRequest.url().endsWith(".png")
-      ) {
-        interceptedRequest.abort();
-      } else {
-        interceptedRequest.continue();
-      }
-    });
+    const {page, browser} = await initPuppeteer()
     await page.goto(url);
 
     await page.waitForTimeout(1000);
