@@ -3,13 +3,12 @@ module.exports = {
     if (process.env.NODE_ENV === "production") {
       return {
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        executablePath:
-          "/home/software/chromium/linux-982053/chrome-linux/chrome",
-      };
+        executablePath: "/home/software/chromium/linux-982053/chrome-linux/chrome"
+      }
     } else {
       return {
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      };
+        args: ["--no-sandbox", "--disable-setuid-sandbox"]
+      }
     }
-  },
-};
+  }
+}
