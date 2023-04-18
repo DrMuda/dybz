@@ -42,12 +42,8 @@
     </div>
     <div class="page-nav-contain">
       <div class="page-nav">
-        <el-button @click="toPrev" class="page-btn" size="small"
-          >上一页</el-button
-        >
-        <el-button @click="toNext" class="page-btn" size="small"
-          >下一页</el-button
-        >
+        <el-button @click="toPrev" class="page-btn" size="small">上一页</el-button>
+        <el-button @click="toNext" class="page-btn" size="small">下一页</el-button>
       </div>
       <div class="page-nav">
         <el-input-number
@@ -57,9 +53,7 @@
           :max="amountPage"
           size="small"
         />
-        <el-button @click="toPage" class="page-btn" size="small"
-          >跳转</el-button
-        >
+        <el-button @click="toPage" class="page-btn" size="small">跳转</el-button>
       </div>
       <div style="text-align: center; width: 100%">共{{ amountPage }}页</div>
     </div>
@@ -146,8 +140,7 @@ export default Vue.extend({
   mounted() {
     let novelList: Novel[] = [];
     try {
-      novelList =
-        JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
+      novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
     } catch (error) {
       novelList = [];
     }
@@ -184,9 +177,7 @@ export default Vue.extend({
     changeChanel() {
       let novelList: Novel[] = [];
       try {
-        novelList =
-          JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data ||
-          [];
+        novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
       } catch (error) {
         novelList = [];
       }
@@ -197,10 +188,7 @@ export default Vue.extend({
         return item;
       });
       localStorage.setItem("novelList", JSON.stringify(novelList));
-      localStorage.setItem(
-        "lastUpdate",
-        moment().format("YYYY-MM-DD HH:mm:ss")
-      );
+      localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
       this.load();
     },
 
@@ -238,11 +226,10 @@ export default Vue.extend({
         services
           .getChapter(this.novel.url, this.currPage, this.novel.chanel)
           .then(
-            async function (res: {
-              data: Promise<string | ArrayBuffer | null>;
-            }) {
+            async function (res: { data: any; }) {
               const content = await res.data;
-              resolve(content);
+              console.log(content?.content as string);
+              resolve(content?.content as string);
             }.bind(this)
           )
           .catch((err: any) => {
@@ -265,26 +252,21 @@ export default Vue.extend({
       // 防止转成dom时加载资源
       content = content.replace(/src=/g, "my-src=");
 
-      let amountPage: string =
-        new RegExp(/(第[0-9]+\/[0-9]+页)/, "g").exec(content)?.[0] || "";
+      let amountPage: string = new RegExp(/(第[0-9]+\/[0-9]+页)/, "g").exec(content)?.[0] || "";
       amountPage = amountPage.split("/")?.[1] || "";
       amountPage = amountPage.replace("页", "");
       this.amountPage = parseInt(amountPage || "0");
 
       // 转成dom元素，方便分析
       const tempEle = document.createElement("div");
-      let bodyStr = new RegExp('<body class="cover".*</body>').exec(
-        content
-      )?.[0];
+      let bodyStr = new RegExp('<body class="cover".*</body>').exec(content)?.[0];
       bodyStr = bodyStr?.replace("body", "div");
       const body = strToDom(bodyStr)[0];
       if (body) {
         tempEle?.appendChild(body);
       }
       if (content.includes("server error")) {
-        Message.error(
-          (tempEle.querySelector(".neirong") as HTMLDivElement).innerText
-        );
+        Message.error((tempEle.querySelector(".neirong") as HTMLDivElement).innerText);
       }
 
       // 提取章节列表
@@ -303,31 +285,24 @@ export default Vue.extend({
         this.isFirt = true;
         let novelList = [];
         try {
-          novelList =
-            JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data ||
-            [];
+          novelList = JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
         } catch (error) {
           novelList = [];
         }
-        novelList = novelList.map(
-          (item: { id: { toString: () => string } }) => {
-            if (item.id.toString() === this.novelId.toString()) {
-              return {
-                ...item,
-                firstChapter: {
-                  title: this.chapterList[0].title,
-                  url: this.chapterList[0].url.replace(".html", ""),
-                },
-              };
-            }
-            return item;
+        novelList = novelList.map((item: { id: { toString: () => string } }) => {
+          if (item.id.toString() === this.novelId.toString()) {
+            return {
+              ...item,
+              firstChapter: {
+                title: this.chapterList[0].title,
+                url: this.chapterList[0].url.replace(".html", ""),
+              },
+            };
           }
-        );
+          return item;
+        });
         localStorage.setItem("novelList", JSON.stringify(novelList));
-        localStorage.setItem(
-          "lastUpdate",
-          moment().format("YYYY-MM-DD HH:mm:ss")
-        );
+        localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
       }
       tempEle.remove();
     },

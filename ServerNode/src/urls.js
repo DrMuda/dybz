@@ -75,9 +75,9 @@ async function pullImgAndChar(req, res) {
 }
 
 async function reptileDHTML(req, res) {
-  const { url } = req.body
-  Log.info(`reptileDHTML: ${url}`)
-  const content = await getDHTML(url)
+  const { url, waitForSelector } = req.body
+  Log.info(`reptileDHTML: ${JSON.stringify({ url, waitForSelector })}`)
+  const content = await getDHTML(url, waitForSelector)
   res.send({ status: "success", content })
 }
 async function search(req, res) {

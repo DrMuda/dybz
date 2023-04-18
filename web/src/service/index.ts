@@ -84,11 +84,16 @@ export function getNovelHtml(
   chanel: string
 ): Promise<AxiosResponse<GetNovelHtmlRes, any>> {
   novelUrl = novelUrl.replace(".html", "");
+  const hasHttp = chanel.includes("http://");
+  const hasHttps = chanel.includes("https://");
   return axios({
     method: "post",
     url: "/nodeApi/reptileDHTML",
     data: {
-      url: `http://${chanel || localStorage.getItem("chanel")}${novelUrl}.html`,
+      url: `${hasHttp || hasHttps ? "" : "http://"}${
+        chanel || localStorage.getItem("chanel")
+      }${novelUrl}.html`,
+      waitForSelector: ".neirong",
     },
     cancelToken: new axios.CancelToken((c) => {
       cancelTokenList.push(c);
@@ -131,32 +136,20 @@ export function getChapter(
   novelUrl: string,
   currPage: number,
   chanel: string
-): Promise<AxiosResponse<Promise<string | ArrayBuffer | null>, any>> {
+): Promise<AxiosResponse<Promise<{ status: string; content: string }>, any>> {
   novelUrl = novelUrl.replace(".html", "");
+  chanel = chanel || localStorage.getItem("chanel") || "";
+  const hasHttp = chanel.includes("http://");
+  const hasHttps = chanel.includes("https://");
   return axios({
     method: "post",
-    url: pythonUrl,
+    url: "/nodeApi/reptileDHTML",
     data: {
-      url: `http://${chanel || localStorage.getItem("chanel")}${novelUrl}${
-        currPage > 0 ? `_${currPage}` : ""
-      }/`,
-      method: "get",
+      url: `${hasHttp || hasHttps ? "" : "http://"}${
+        chanel || localStorage.getItem("chanel")
+      }${novelUrl}${currPage > 0 ? `_${currPage}` : ""}/`,
+      waitForSelector: ".list",
     },
-    responseType: "blob",
-    transformResponse: [
-      function (data) {
-        return new Promise((resolve, reject) => {
-          const fileReader = new FileReader();
-          fileReader.readAsText(data, "GBK");
-          fileReader.onload = function () {
-            resolve(fileReader.result);
-          };
-          fileReader.onerror = () => {
-            reject(new Error("file reader error"));
-          };
-        });
-      },
-    ],
   });
 }
 

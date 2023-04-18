@@ -16,10 +16,7 @@
     </div>
     <div id="main-context">
       <template v-for="(item, index) in novel.mainContext">
-        <br
-          v-if="new RegExp(/^<br \/>/).test(item) === true"
-          :key="item + index"
-        />
+        <br v-if="new RegExp(/^<br \/>/).test(item) === true" :key="item + index" />
         <editable-img
           v-else-if="
             new RegExp(/^img:/).test(item) === true &&
@@ -147,10 +144,7 @@ export default Vue.extend({
       this.oldNewKey = {};
     }
 
-    if (
-      cachePage.novelUrl === this.novelUrl &&
-      cachePage.novelId === this.novelId
-    ) {
+    if (cachePage.novelUrl === this.novelUrl && cachePage.novelId === this.novelId) {
       this.novel = cachePage.novel || {
         currPage: 0,
         mainContext: [],
@@ -167,18 +161,12 @@ export default Vue.extend({
     }
 
     this.autoRefreshChar = setInterval(() => {
-      if (
-        JSON.stringify(ImgAndChar.get()) !== JSON.stringify(this.imgAndChar)
-      ) {
+      if (JSON.stringify(ImgAndChar.get()) !== JSON.stringify(this.imgAndChar)) {
         this.imgAndChar = ImgAndChar.get();
       }
-      if (
-        localStorage.getItem("oldNewKey") !== JSON.stringify(this.oldNewKey)
-      ) {
+      if (localStorage.getItem("oldNewKey") !== JSON.stringify(this.oldNewKey)) {
         try {
-          this.oldNewKey = JSON.parse(
-            localStorage.getItem("oldNewKey") || "{}"
-          );
+          this.oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
         } catch (error) {
           console.error(error);
           this.oldNewKey = {};
@@ -218,13 +206,9 @@ export default Vue.extend({
     setHistory: function () {
       if (this.novel.mainContext?.length > 0) {
         const urlList = this.novelUrl.split("/");
-        const currPage = this.novel.pages[this.novel.currPage]?.replace?.(
-          ".html",
-          ""
-        );
+        const currPage = this.novel.pages[this.novel.currPage]?.replace?.(".html", "");
         const nextNovelList: CacheNovel[] =
-          JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data ||
-          [];
+          JSON.parse(`{"data":${localStorage.getItem("novelList")}}`).data || [];
         const index = nextNovelList.findIndex((item) => {
           return item.id.toString() === this.novelId.toString();
         });
@@ -239,10 +223,7 @@ export default Vue.extend({
           };
         }
         localStorage.setItem("novelList", JSON.stringify(nextNovelList));
-        localStorage.setItem(
-          "lastUpdate",
-          moment().format("YYYY-MM-DD HH:mm:ss")
-        );
+        localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
       }
     },
 
@@ -274,9 +255,7 @@ export default Vue.extend({
               async (data: string) => {
                 this.cancelTokenList = [];
                 const novel = this.initContent(data) || {};
-                const oldNewKey = JSON.parse(
-                  localStorage.getItem("oldNewKey") || "{}"
-                );
+                const oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
                 let canSetNewKey = false;
                 cacheImg((oldKey, newKey) => {
                   oldNewKey[oldKey] = newKey;
@@ -284,10 +263,7 @@ export default Vue.extend({
                 }).then(() => {
                   let nextContext = novel.mainContext;
                   if (canSetNewKey) {
-                    localStorage.setItem(
-                      "oldNewKey",
-                      JSON.stringify(oldNewKey)
-                    );
+                    localStorage.setItem("oldNewKey", JSON.stringify(oldNewKey));
                   }
                   if (this.isPreLoad) {
                     this.nextPageNovel = {
@@ -478,9 +454,9 @@ export default Vue.extend({
       // 点击同一页的话， 不做处理
       if (this.novel.currPage !== pageNumber) {
         const novelUrlSplit = this.novelUrl.split("/");
-        this.novelUrl = `/${novelUrlSplit[1]}/${
-          novelUrlSplit[2]
-        }/${this.novel.pages[pageNumber].replace(".html", "")}`;
+        this.novelUrl = `/${novelUrlSplit[1]}/${novelUrlSplit[2]}/${this.novel.pages[
+          pageNumber
+        ].replace(".html", "")}`;
         this.$router.replace({
           query: {
             ...this.$route.query,
@@ -536,9 +512,7 @@ export default Vue.extend({
     },
 
     toTop() {
-      document
-        ?.getElementById("main-context")
-        ?.scrollTo({ top: 0, behavior: "smooth" });
+      document?.getElementById("main-context")?.scrollTo({ top: 0, behavior: "smooth" });
     },
 
     setPageBtnType(page: number) {
@@ -558,11 +532,7 @@ export default Vue.extend({
       cancelTokenList = cancelTokenList || this.cancelTokenList;
       return new Promise((resolve, reject) => {
         services
-          .getNovelHtml(
-            novelUrl,
-            cancelTokenList,
-            this.$store.state.currNovelChanel
-          )
+          .getNovelHtml(novelUrl, cancelTokenList, this.$store.state.currNovelChanel)
           .then(
             function (res: AxiosResponse<GetNovelHtmlRes, any>) {
               const content = res.data.content;
@@ -577,12 +547,14 @@ export default Vue.extend({
                 type: "error",
                 duration: 1000,
               });
-            this.loading = false;
             if (err.message === "中断请求") {
               reject("中断请求");
             } else {
               reject(err.message);
             }
+          })
+          .finally(() => {
+            this.loading = false;
           });
       });
     },
@@ -612,24 +584,18 @@ export default Vue.extend({
         tempEle?.appendChild(body);
       }
       if (content.includes("server error")) {
-        Message.error(
-          (tempEle.querySelector(".neirong") as HTMLDivElement).innerText
-        );
+        Message.error((tempEle.querySelector(".neirong") as HTMLDivElement).innerText);
       }
 
       // 提取title
-      novel.title =
-        tempEle.getElementsByClassName("page-title")?.[0]?.innerHTML;
+      novel.title = tempEle.getElementsByClassName("page-title")?.[0]?.innerHTML;
 
       // 提取章小节
-      const aList =
-        tempEle.getElementsByClassName("chapterPages")?.[0]?.childNodes;
+      const aList = tempEle.getElementsByClassName("chapterPages")?.[0]?.childNodes;
       if (aList?.length > 0) {
         for (let i = 0; i < aList.length; i += 1) {
           const link = aList[i] as HTMLAnchorElement;
-          let tempHref = this.replaceHref(
-            link.getAttribute("href") || ""
-          ).split("/");
+          let tempHref = this.replaceHref(link.getAttribute("href") || "").split("/");
           const href = tempHref[tempHref.length - 1] || "";
           novel.pages || (novel.pages = []);
           novel.pages = [...novel.pages, href];
@@ -658,9 +624,7 @@ export default Vue.extend({
         novel.next = null;
       }
       let mainContextEleList = null;
-      mainContextEleList = this.tileEle(
-        tempEle.getElementsByClassName("neirong")[0]
-      );
+      mainContextEleList = this.tileEle(tempEle.getElementsByClassName("neirong")[0]);
       // 提取正文，正文是由文本、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
       if (mainContextEleList?.length > 0) {
         for (let i = 0; i < mainContextEleList.length; i += 1) {
@@ -690,9 +654,7 @@ export default Vue.extend({
           } else if (itemEle instanceof HTMLBRElement) {
             novel.mainContext.push("<br />");
           } else {
-            novel.mainContext.push(
-              (itemEle as HTMLBaseElement).innerText || ""
-            );
+            novel.mainContext.push((itemEle as HTMLBaseElement).innerText || "");
           }
         }
       } else {
@@ -725,9 +687,7 @@ export default Vue.extend({
       // "javascript:RunChapter('6','6321','83611','6');"
       console.log(href);
       if (href.includes("javascript:")) {
-        const temp: string | null | undefined = /('.*','.*','.*','.*')/.exec(
-          href
-        )?.[0];
+        const temp: string | null | undefined = /('.*','.*','.*','.*')/.exec(href)?.[0];
         if (temp) {
           const tempSplit = temp.replace(/'/g, "").split(",");
           return `${tempSplit[0]}/${tempSplit[1]}/${tempSplit[2]}_${tempSplit[3]}`;
