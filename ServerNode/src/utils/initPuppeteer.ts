@@ -1,7 +1,7 @@
-const puppeteer = require("puppeteer")
-const { getPuppeteerConfig } = require("./utils")
+import puppeteer from "puppeteer"
+import { getPuppeteerConfig } from "./utils"
 
-module.exports = async () => {
+export default async () => {
   const browser = await puppeteer.launch(getPuppeteerConfig())
   const page = await browser.newPage()
   page.setUserAgent(

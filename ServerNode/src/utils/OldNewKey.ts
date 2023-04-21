@@ -1,11 +1,12 @@
-const isFileExistedAndCreate = require("./isFileExistedAndCreate")
-const fs = require("fs")
-const fileName = "../data/oldNewKey.json"
-const Log = require("./Log")
+import isFileExistedAndCreate from "./isFileExistedAndCreate"
+import fs from "fs"
+import Log from "./Log"
+import { OldNewKey as IOldNewKey } from "../type"
 
+const fileName = "../data/oldNewKey.json"
 class OldNewKey {
-  oldNewKey = {}
-  keys = []
+  oldNewKey: IOldNewKey = {}
+  keys: string[] = []
   hasNewData = false
 
   constructor() {
@@ -28,7 +29,7 @@ class OldNewKey {
             if (e) {
               Log.error(`文件读取有误：${fileName}`)
             } else {
-              this.oldNewKey = JSON.parse(data)
+              this.oldNewKey = JSON.parse(data.toString("utf-8"))
               this.keys = Object.keys(this.oldNewKey)
             }
           })
@@ -73,7 +74,7 @@ class OldNewKey {
                     Log.error(`文件读取有误：${fileName}`)
                     reject(false)
                   } else {
-                    this.oldNewKey = JSON.parse(data)
+                    this.oldNewKey = JSON.parse(data.toString("utf-8"))
                     Log.info(`已更新内存数据：${fileName}`)
                     resolve(true)
                   }
@@ -93,31 +94,31 @@ class OldNewKey {
     return this.oldNewKey
   }
 
-  getByOldKey(oldKey) {
+  getByOldKey(oldKey:string) {
     return this.oldNewKey[oldKey]
   }
 
-  getTotalPage(size) {
+  getTotalPage(size:number) {
     return Math.ceil(this.keys.length / size)
   }
 
-  getByPage(page, size) {
+  getByPage(page:number, size:number) {
     const keys = this.keys.slice((page - 1) * size, page * size)
-    const oldNewKey = {}
+    const oldNewKey:IOldNewKey = {}
     keys.forEach((key) => {
       oldNewKey[key] = this.oldNewKey[key]
     })
     return oldNewKey
   }
 
-  async set(oldNewKey) {
+  async set(oldNewKey:IOldNewKey) {
     this.oldNewKey = oldNewKey
     this.hasNewData = true
     this.keys = Object.keys(this.oldNewKey)
     return true
   }
 
-  async setByOldKey(oldKey, newKey) {
+  async setByOldKey(oldKey:string, newKey:string) {
     this.oldNewKey[oldKey] = newKey
     this.hasNewData = true
     this.keys = Object.keys(this.oldNewKey)
@@ -125,4 +126,4 @@ class OldNewKey {
   }
 }
 
-module.exports = new OldNewKey()
+export default new OldNewKey()

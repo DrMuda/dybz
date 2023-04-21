@@ -1,12 +1,13 @@
-const isFileExistedAndCreate = require("./isFileExistedAndCreate")
-const fs = require("fs")
-const fileName = "../data/imgAndChar.json"
-const Log = require("./Log")
+import isFileExistedAndCreate from "./isFileExistedAndCreate"
+import fs from "fs"
+import Log from "./Log"
+import { ImgAndChar as IImgAndChar, ImgAndCharItem } from "../type"
 
+const fileName = "../data/imgAndChar.json"
 class ImgAndChar {
-  imgAndChar = {}
-  hasNewData = false
-  keys = []
+  imgAndChar: IImgAndChar = {}
+  hasNewData: boolean = false
+  keys: string[] = []
 
   constructor() {
     this._init()
@@ -28,7 +29,7 @@ class ImgAndChar {
             if (e) {
               Log.error(`文件读取有误：${fileName}`)
             } else {
-              this.imgAndChar = JSON.parse(data)
+              this.imgAndChar = JSON.parse(data.toString())
               this.keys = Object.keys(this.imgAndChar)
             }
           })
@@ -73,7 +74,7 @@ class ImgAndChar {
                     Log.error(`文件读取有误：${fileName}`)
                     reject(false)
                   } else {
-                    this.imgAndChar = JSON.parse(data)
+                    this.imgAndChar = JSON.parse(data.toString())
                     Log.info(`已更新内存数据：${fileName}`)
                     resolve(true)
                   }
@@ -93,34 +94,34 @@ class ImgAndChar {
     return this.imgAndChar
   }
 
-  getByKey(key) {
+  getByKey(key: string) {
     if (this.imgAndChar[key]) {
       return this.imgAndChar[key]
     }
     return "not exist"
   }
 
-  getTotalPage(size) {
+  getTotalPage(size: number) {
     return Math.ceil(this.keys.length / size)
   }
 
-  getByPage(page, size) {
+  getByPage(page: number, size: number) {
     const keys = this.keys.slice((page - 1) * size, page * size)
-    const imgAndChar = {}
+    const imgAndChar: IImgAndChar = {}
     keys.forEach((key) => {
       imgAndChar[key] = this.imgAndChar[key]
     })
     return imgAndChar
   }
 
-  async set(imgAndChar) {
+  async set(imgAndChar: IImgAndChar) {
     this.imgAndChar = imgAndChar
     this.hasNewData = true
     this.keys = Object.keys(this.imgAndChar)
     return true
   }
 
-  async setItem(key, item) {
+  async setItem(key: string, item: ImgAndCharItem) {
     this.imgAndChar[key] = item
     this.hasNewData = true
     this.keys = Object.keys(this.imgAndChar)
@@ -128,4 +129,4 @@ class ImgAndChar {
   }
 }
 
-module.exports = new ImgAndChar()
+export default new ImgAndChar()

@@ -1,11 +1,12 @@
-const isFileExistedAndCreate = require("./isFileExistedAndCreate")
-const fs = require("fs")
+import isFileExistedAndCreate from "./isFileExistedAndCreate"
+import fs from "fs"
+import moment from "moment"
+
 const fileName = "../nodeServerLog.txt"
-const moment = require("moment")
 const timeFomat = "YYYY-MM-DD HH:mm:ss x"
 
 class Log {
-  list = []
+  list: string[] = []
   constructor() {
     setInterval(async () => {
       if (this.list.length > 0) {
@@ -22,7 +23,7 @@ class Log {
       }
     }, 5000)
   }
-  append(message) {
+  append(message: string | NodeJS.ErrnoException) {
     return new Promise((resolve) => {
       isFileExistedAndCreate(fileName, `创建日志文件${moment().format(timeFomat)}`).then(
         (isExist) => {
@@ -65,23 +66,23 @@ class Log {
     })
   }
 
-  error(message) {
+  error(message: string | NodeJS.ErrnoException) {
     let _message = `error(${moment().format(timeFomat)}): ${message}`
     console.error(_message)
     this.list.push(_message)
   }
 
-  info(message) {
+  info(message: string | NodeJS.ErrnoException) {
     let _message = `info(${moment().format(timeFomat)}): ${message}`
     console.log(_message)
     this.list.push(_message)
   }
 
-  warn(message) {
+  warn(message: string | NodeJS.ErrnoException) {
     let _message = `warn(${moment().format(timeFomat)}): ${message}`
     console.warn(_message)
     this.list.push(_message)
   }
 }
 
-module.exports = new Log()
+export default new Log()

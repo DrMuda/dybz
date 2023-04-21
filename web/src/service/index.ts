@@ -84,15 +84,13 @@ export function getNovelHtml(
   chanel: string
 ): Promise<AxiosResponse<GetNovelHtmlRes, any>> {
   novelUrl = novelUrl.replace(".html", "");
-  const hasHttp = chanel.includes("http://");
-  const hasHttps = chanel.includes("https://");
+  chanel = chanel || localStorage.getItem("chanel") || "";
+  chanel = dealWithUrl(chanel);
   return axios({
     method: "post",
     url: "/nodeApi/reptileDHTML",
     data: {
-      url: `${hasHttp || hasHttps ? "" : "http://"}${
-        chanel || localStorage.getItem("chanel")
-      }${novelUrl}.html`,
+      url: `${chanel}${novelUrl}.html`,
       waitForSelector: ".neirong",
     },
     cancelToken: new axios.CancelToken((c) => {
@@ -105,12 +103,14 @@ export function getImg(
   key: string,
   chanel?: string
 ): Promise<AxiosResponse<string | ArrayBuffer | null | undefined, any>> {
+  chanel = chanel || localStorage.getItem("chanel") || "";
+  chanel = dealWithUrl(chanel);
   return axios({
     method: "post",
     url: pythonUrl,
     data: {
       method: "get",
-      url: `http://${chanel || localStorage.getItem("chanel")}${key}`,
+      url: `http://${chanel}${key}`,
     },
     responseType: "blob",
     transformResponse: [
@@ -139,15 +139,12 @@ export function getChapter(
 ): Promise<AxiosResponse<Promise<{ status: string; content: string }>, any>> {
   novelUrl = novelUrl.replace(".html", "");
   chanel = chanel || localStorage.getItem("chanel") || "";
-  const hasHttp = chanel.includes("http://");
-  const hasHttps = chanel.includes("https://");
+  chanel = dealWithUrl(chanel);
   return axios({
     method: "post",
     url: "/nodeApi/reptileDHTML",
     data: {
-      url: `${hasHttp || hasHttps ? "" : "http://"}${
-        chanel || localStorage.getItem("chanel")
-      }${novelUrl}${currPage > 0 ? `_${currPage}` : ""}/`,
+      url: `${chanel}${novelUrl}${currPage > 0 ? `_${currPage}` : ""}/`,
       waitForSelector: ".list",
     },
   });
@@ -159,7 +156,7 @@ export function getChanelList(): Promise<AxiosResponse<string, any>> {
     url: pythonUrl,
     data: {
       method: "get",
-      url: localStorage.getItem("outOfContactUrl") || "http://accacc.xyz/",
+      url: localStorage.getItem("outOfContactUrl") || "http://zozozo.xyz/",
     },
   });
 }
@@ -176,8 +173,20 @@ export function search(
     method: "post",
     url: "/nodeApi/search",
     data: {
-      url: "http://" + url + "/s.php",
+      url: dealWithUrl(url) + "/s.php",
       searchValue,
     },
   });
+}
+
+function dealWithUrl(url: string) {
+  if (url) {
+    const hasHttp = url.includes("http://");
+    const hasHttps = url.includes("https://");
+    if (hasHttp || hasHttps) {
+      return url;
+    }
+    return `http://${url}`;
+  }
+  return "";
 }

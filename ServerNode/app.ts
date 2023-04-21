@@ -1,15 +1,13 @@
-const express = require("express")
-const bodyParser = require("body-parser")
-const urls = require("./src/urls.js")
+import express from "express"
+import bodyParser from "body-parser"
+import urls, { ApiPath } from "./src/urls"
 
 const app = express()
 // 解析 application/json
 app.use(bodyParser.json({ limit: "50mb" }))
 // 解析 application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }))
-
-Object.keys(urls).forEach((path) => {
-  const { method, message } = urls[path]
+Object.entries(urls).forEach(([path, { method, message }]) => {
   switch (method) {
     case "post": {
       app.post(path, message)
@@ -22,8 +20,7 @@ Object.keys(urls).forEach((path) => {
 })
 
 const server = app.listen(8010, "0.0.0.0", function () {
-  const host = "0.0.0.0"
-  const port = server.address().port
+  const { address, port } = server.address() as { address: string; family: string; port: number }
 
-  console.log("应用实例，访问地址为 http://%s:%s", host, port)
+  console.log(`应用实例，访问地址为 http://${address}:${port}`)
 })

@@ -1,12 +1,14 @@
-const isFileExistedAndCreate = require("./isFileExistedAndCreate")
-const fs = require("fs")
-const moment = require("moment")
+import isFileExistedAndCreate from "./isFileExistedAndCreate"
+import fs from "fs"
+import moment from "moment"
+import Log from "./Log"
+import { User, Users as IUsers, UserId } from "../type"
+
 const fileName = "../data/users.json"
-const Log = require("./Log")
 const timeFomat = "YYYY-MM-DD HH:mm:ss"
 
 class Users {
-  users = {}
+  users: IUsers = {}
   hasNewData = false
   constructor() {
     this._init()
@@ -29,7 +31,7 @@ class Users {
             if (e) {
               Log.error(`文件读取有误：${fileName}`)
             } else {
-              this.users = JSON.parse(data)
+              this.users = JSON.parse(data.toString("utf-8"))
             }
           })
         }
@@ -74,7 +76,7 @@ class Users {
                     Log.error(`文件读取有误：${fileName}`)
                     reject(false)
                   } else {
-                    this.users = JSON.parse(data)
+                    this.users = JSON.parse(data.toString("utf-8"))
                     Log.info(`已更新内存数据：${fileName}`)
                     resolve(true)
                   }
@@ -94,7 +96,7 @@ class Users {
     return this.users
   }
 
-  getUser(id, password) {
+  getUser(id: UserId, password: User["password"]) {
     if (this.users[id]) {
       if (this.users[id].password === password) {
         return this.users[id]
@@ -104,13 +106,13 @@ class Users {
     return "not exist"
   }
 
-  async set(users) {
+  async set(users: IUsers) {
     this.users = users
     this.hasNewData = true
     return await this._updateFile()
   }
 
-  async setUser(id, password, user) {
+  async setUser(id: UserId, password: User["password"], user: User) {
     if (this.users[id]) {
       if (this.users[id].password === password) {
         this.users[id] = { ...user, password, lastUpdate: moment().format(timeFomat) }
@@ -127,4 +129,4 @@ class Users {
   }
 }
 
-module.exports = new Users()
+export default new Users()

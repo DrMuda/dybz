@@ -9,7 +9,7 @@
 const path = require("path");
 
 module.exports = {
-    entry: "./app.js",
+    entry: "./build/app.js",
     mode: "production",
     target:"node",
     output: {
