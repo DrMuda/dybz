@@ -1,6 +1,6 @@
 import express from "express"
 import bodyParser from "body-parser"
-import urls, { ApiPath } from "./src/urls"
+import urls from "./src/urls"
 
 const app = express()
 // 解析 application/json

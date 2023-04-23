@@ -4,19 +4,13 @@ import ImgAndChar from "./utils/ImgAndChar"
 import Log from "./utils/Log"
 import getDHTML from "./utils/getDHTML"
 import getSearchDHTML from "./utils/getSearchDHTML"
+import getNovelDHTML from "./utils/getNovelDHTML"
 import { Request, Response } from "express"
 import { ImgAndChar as IImgAndChar, OldNewKey as IOldNewKey, ResSendData, User } from "./type"
-
-export type ApiPath =
-  | "/sync/pushCache"
-  | "/sync/pullUser"
-  | "/sync/pullImgAndChar"
-  | "/sync/pullOldNewKey"
-  | "/reptileDHTML"
-  | "/search"
+import axios from "axios"
 
 export type Api = Record<
-  ApiPath,
+  string,
   { method: "get" | "post"; message: (req: Request, res: Response) => Promise<void> }
 >
 function sendError(res: Response, msg: any) {
@@ -142,19 +136,35 @@ async function reptileDHTML(req: Request, res: Response) {
 }
 export interface SearchBody extends ReqDHTMLBody {
   searchValue: string
+  page: number
 }
 async function search(req: Request, res: Response) {
   try {
-    const { url, searchValue } = req.body as SearchBody
-    Log.info(`searchDHTML: ${url} ${searchValue}`)
-    const content = await getSearchDHTML(url, searchValue)
+    const { url, searchValue, page } = req.body as SearchBody
+    Log.info(`searchDHTML: ${JSON.stringify({ url, searchValue, page })}`)
+    const content = await getSearchDHTML(url, searchValue, page || 1)
     res.send({ status: "success", content })
   } catch (error) {
     sendError(res, error)
   }
 }
 
-export default <Api>{
+async function getImg(req: Request, res: Response) {
+  const { url } = req.query as { url: string }
+  const response = await axios.get(url, { responseType: "arraybuffer" })
+  res.set(response.headers)
+  res.end(response.data.toString("binary"), "binary")
+}
+
+async function getNovel(req: Request, res: Response) {
+  const { url } = req.query as { url: string }
+  Log.info(`reptileDHTML: ${JSON.stringify({ url })}`)
+  const content = await getNovelDHTML(url)
+  const data: ResSendData = { status: "error", content }
+  res.send(data)
+}
+
+const route: Api = {
   "/sync/pushCache": {
     method: "post",
     message: pushCache
@@ -178,5 +188,14 @@ export default <Api>{
   "/search": {
     method: "post",
     message: search
+  },
+  "/getImg": {
+    method: "get",
+    message: getImg
+  },
+  "/getNovel": {
+    method: "get",
+    message: getNovel
   }
 }
+export default route

@@ -87,12 +87,9 @@ export function getNovelHtml(
   chanel = chanel || localStorage.getItem("chanel") || "";
   chanel = dealWithUrl(chanel);
   return axios({
-    method: "post",
-    url: "/nodeApi/reptileDHTML",
-    data: {
-      url: `${chanel}${novelUrl}.html`,
-      waitForSelector: ".neirong",
-    },
+    method: "get",
+    url: "/nodeApi/getNovel",
+    params: { url: `${chanel}${novelUrl}.html` },
     cancelToken: new axios.CancelToken((c) => {
       cancelTokenList.push(c);
     }),
@@ -106,12 +103,9 @@ export function getImg(
   chanel = chanel || localStorage.getItem("chanel") || "";
   chanel = dealWithUrl(chanel);
   return axios({
-    method: "post",
-    url: pythonUrl,
-    data: {
-      method: "get",
-      url: `http://${chanel}${key}`,
-    },
+    method: "get",
+    url: `/nodeApi/getImg`,
+    params: { url: dealWithUrl(`${chanel}${key}`) },
     responseType: "blob",
     transformResponse: [
       async function (data) {
@@ -136,7 +130,7 @@ export function getChapter(
   novelUrl: string,
   currPage: number,
   chanel: string
-): Promise<AxiosResponse<Promise<{ status: string; content: string }>, any>> {
+): Promise<AxiosResponse<{ status: string; content: string }, any>> {
   novelUrl = novelUrl.replace(".html", "");
   chanel = chanel || localStorage.getItem("chanel") || "";
   chanel = dealWithUrl(chanel);
@@ -150,12 +144,11 @@ export function getChapter(
   });
 }
 
-export function getChanelList(): Promise<AxiosResponse<string, any>> {
+export function getChanelList(): Promise<AxiosResponse<{ status: string; content: string }, any>> {
   return axios({
     method: "post",
-    url: pythonUrl,
+    url: "/nodeApi/reptileDHTML",
     data: {
-      method: "get",
       url: localStorage.getItem("outOfContactUrl") || "http://zozozo.xyz/",
     },
   });
@@ -167,14 +160,16 @@ export function requestOCR(options: RequestOCROption) {
 
 export function search(
   url: string,
-  searchValue: string
+  searchValue: string,
+  page: number
 ): Promise<AxiosResponse<GetNovelHtmlRes, any>> {
   return axios({
     method: "post",
     url: "/nodeApi/search",
     data: {
-      url: dealWithUrl(url) + "/s.php",
+      url: dealWithUrl(url),
       searchValue,
+      page,
     },
   });
 }

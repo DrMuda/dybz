@@ -9,10 +9,13 @@
       <template v-else>
         <div class="row" v-for="item of novelList">
           <a @click="toSelectChapter(item)" class="name">{{ item.name }}</a>
-          <a @click="toReadNovel(item)" class="new-chapter-name">{{
-            item.newChapterName
-          }}</a>
+          <a @click="toReadNovel(item)" class="new-chapter-name">{{ item.newChapterName }}</a>
           <span>{{ item.author }}</span>
+        </div>
+        <div class="pagination">
+          <span>
+            <el-pagination @current-change="changePage" layout="prev, next, jumper"></el-pagination>
+          </span>
         </div>
       </template>
     </div>
@@ -20,7 +23,7 @@
 </template>
 
 <script lang="ts">
-import { Input, Button, Empty, Message, Loading } from "element-ui";
+import { Input, Button, Empty, Message, Loading, Pagination } from "element-ui";
 import Vue from "vue";
 import * as services from "@/service";
 import strToDom from "@/utils/strToDom";
@@ -29,6 +32,7 @@ import moment from "moment";
 Vue.use(Input);
 Vue.use(Button);
 Vue.use(Empty);
+Vue.use(Pagination);
 Vue.use(Loading.directive);
 
 interface Novel {
@@ -41,6 +45,7 @@ interface Novel {
 }
 interface Data {
   searchValue: string;
+  page: number;
   isEmpty: boolean;
   novelList: Array<Novel>;
   loading: boolean;
@@ -53,90 +58,90 @@ export default Vue.extend({
       isEmpty: true,
       novelList: [],
       loading: false,
+      page: -1,
     };
   },
   mounted() {
     if (this.searchValue) {
       this.onSearch();
     }
+    const page = this.$route.query.page;
+    if (typeof page === "string") {
+      this.page = parseInt(page);
+    } else if (typeof page === "number") {
+      this.page = page;
+    } else {
+      this.page = 1;
+    }
+    if (!this.page) {
+      this.page = 1;
+    }
   },
   methods: {
     onSearch() {
+      if (this.page === -1) {
+        return;
+      }
       this.loading = true;
-      services
-        .search(localStorage.getItem("chanel") || "", this.searchValue)
-        .then(
-          (res) => {
-            if (res.data.status === "success") {
-              const novelList: Novel[] = [];
-              let content = res.data.content;
+      services.search(localStorage.getItem("chanel") || "", this.searchValue, this.page).then(
+        (res) => {
+          if (res.data.status === "success") {
+            const novelList: Novel[] = [];
+            let content = res.data.content;
 
-              // 清除空格，防止扰乱正则匹配
-              content = content.replace(/\n/g, "");
-              content = content.replace(/\r/g, "");
-              // 防止转成dom时加载资源
-              content = content.replace(/src=/g, "my-src=");
+            // 清除空格，防止扰乱正则匹配
+            content = content.replace(/\n/g, "");
+            content = content.replace(/\r/g, "");
+            // 防止转成dom时加载资源
+            content = content.replace(/src=/g, "my-src=");
 
-              // 转成dom元素，方便分析
-              const tempEle = document.createElement("div");
-              let bodyStr = new RegExp("<body.*/body>").exec(content)?.[0];
-              bodyStr = bodyStr?.replace("body", "div");
-              const body = strToDom(bodyStr)[0];
-              if (body) {
-                tempEle?.appendChild(body);
-              }
-              if (content.includes("server error")) {
-                Message.error(
-                  (tempEle.querySelector(".neirong") as HTMLDivElement)
-                    .innerText
-                );
-              }
-              const eleList =
-                tempEle
-                  .querySelector(".mod.block.book-all-list")
-                  ?.querySelector("ul")?.childNodes || [];
-
-              for (let i = 0; i < eleList.length; i++) {
-                const row = eleList[i] as HTMLLIElement | Text;
-                if (!(row instanceof HTMLLIElement)) {
-                  continue;
-                }
-                const nameEle = row.querySelector(".name") as HTMLAnchorElement;
-                const newChapterNameEle = row.querySelector(
-                  ".update"
-                ) as HTMLParagraphElement;
-                const newChapterUrlEle = newChapterNameEle.querySelector(
-                  "a"
-                ) as HTMLAnchorElement;
-                const authorEle = row.querySelector(
-                  ".info"
-                ) as HTMLParagraphElement;
-                const url = Array.from(nameEle.getAttribute("href") || "/");
-                url.splice(-1, 1);
-                novelList.push({
-                  author: authorEle.innerText,
-                  id: `${new Date().getTime() + i}`,
-                  name: nameEle.innerText,
-                  url: url.join("") || "",
-                  newChapterName: newChapterNameEle.innerText,
-                  newChapterUrl:
-                    newChapterUrlEle
-                      .getAttribute("href")
-                      ?.replace(".html", "") || "",
-                });
-              }
-              this.novelList = novelList;
-            } else {
-              Message.error({ message: "request fail" });
-              console.error("request fail");
+            // 转成dom元素，方便分析
+            const tempEle = document.createElement("div");
+            let bodyStr = new RegExp("<body.*/body>").exec(content)?.[0];
+            bodyStr = bodyStr?.replace("body", "div");
+            const body = strToDom(bodyStr)[0];
+            if (body) {
+              tempEle?.appendChild(body);
             }
-            this.loading = false;
-          },
-          (reason) => {
-            Message.error({ message: reason });
-            console.error(reason);
+            if (content.includes("server error")) {
+              Message.error((tempEle.querySelector(".neirong") as HTMLDivElement).innerText);
+            }
+            const eleList =
+              tempEle.querySelector(".mod.block.book-all-list")?.querySelector("ul")?.childNodes ||
+              [];
+
+            for (let i = 0; i < eleList.length; i++) {
+              const row = eleList[i] as HTMLLIElement | Text;
+              if (!(row instanceof HTMLLIElement)) {
+                continue;
+              }
+              const nameEle = row.querySelector(".name") as HTMLAnchorElement;
+              const newChapterNameEle = row.querySelector(".update") as HTMLParagraphElement;
+              const newChapterUrlEle = newChapterNameEle.querySelector("a") as HTMLAnchorElement;
+              const authorEle = row.querySelector(".info") as HTMLParagraphElement;
+              const url = Array.from(nameEle.getAttribute("href") || "/");
+              url.splice(-1, 1);
+              novelList.push({
+                author: authorEle.innerText,
+                id: `${new Date().getTime() + i}`,
+                name: nameEle.innerText,
+                url: url.join("") || "",
+                newChapterName: newChapterNameEle.innerText,
+                newChapterUrl: newChapterUrlEle.getAttribute("href")?.replace(".html", "") || "",
+              });
+            }
+            this.novelList = novelList;
+          } else {
+            Message.error({ message: "request fail" });
+            console.error("request fail");
           }
-        );
+          this.loading = false;
+        },
+        (reason) => {
+          Message.error({ message: reason });
+          console.error(reason);
+        }
+      );
     },
     toSelectChapter(row: Novel) {
       this.addNovelToCache(row);
@@ -165,22 +170,29 @@ export default Vue.extend({
           name: row.name,
           url: row.url,
           key: `${Math.random()}`,
-          lastTime: moment().format("YYYY-MM-DD HH:mm:ss")
+          lastTime: moment().format("YYYY-MM-DD HH:mm:ss"),
         });
         localStorage.setItem("novelList", JSON.stringify(cacheNovelList));
-        localStorage.setItem(
-          "lastUpdate",
-          moment().format("YYYY-MM-DD HH:mm:ss")
-        );
+        localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
       }
+    },
+    changePage(page: number) {
+      this.page = page;
     },
   },
   watch: {
     searchValue() {
       this.$router.replace({
         path: "/search",
-        query: { searchValue: this.searchValue },
+        query: { searchValue: this.searchValue, page: this.page.toString() },
       });
+    },
+    page() {
+      this.$router.replace({
+        path: "/search",
+        query: { searchValue: this.searchValue, page: this.page.toString() },
+      });
+      this.onSearch();
     },
   },
 });
@@ -216,6 +228,10 @@ export default Vue.extend({
         color: #808080;
         font-size: 12px;
       }
+    }
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
     }
   }
 }

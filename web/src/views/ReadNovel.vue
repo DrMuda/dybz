@@ -536,6 +536,7 @@ export default Vue.extend({
           .then(
             function (res: AxiosResponse<GetNovelHtmlRes, any>) {
               const content = res.data.content;
+              console.log(content);
               resolve(content);
             }.bind(this)
           )

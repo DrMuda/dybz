@@ -228,7 +228,6 @@ export default Vue.extend({
           .then(
             async function (res: { data: any; }) {
               const content = await res.data;
-              console.log(content?.content as string);
               resolve(content?.content as string);
             }.bind(this)
           )

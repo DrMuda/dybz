@@ -1,9 +1,17 @@
 import { Page } from "puppeteer"
 import { sleep } from "./utils"
 
-export type WherePages = "isChecking" | "isVerify" | "isTimeout" | "isSearchError" | "isCloudflare"
+export type WherePages =
+  | "isChecking"
+  | "isVerify"
+  | "isTimeout"
+  | "isSearchError"
+  | "isCloudflare"
+  | "isLoading"
+  | "isEmptySearch"
 
 export const timeout = (): Promise<WherePages> => {
+  // 兜底， 防止一直等待
   return new Promise((r) => {
     setTimeout(() => {
       r("isTimeout")
@@ -16,12 +24,20 @@ export const loopWait = async (
   result: WherePages
 ) => {
   while (true) {
-    const content = await page.content()
-    if (check(content)) {
-      return result
+    try {
+      // 一般就是跳转后立即获取content就会报错， 可以表明正在跳转
+      const content = await page.content()
+      if (check(content)) {
+        return result
+      }
+      await sleep(100)
+    } catch (error) {
+      return "isLoading"
     }
-    await sleep(100)
   }
+}
+export const waitEmptySearch = (content: string): boolean => {
+  return !!content.match("搜索无结果")
 }
 export const waitCheckSafe = (content: string): boolean => {
   return !!content.match("检查站点是否安全")
@@ -45,8 +61,8 @@ export const pagesAction = async (wherePages: WherePages, page: Page) => {
     case "isVerify": {
       await page.type("input", "1234")
       await page.click("a")
-      await page.waitForNavigation()
-      return "end"
+      // await Promise.allSettled([page.waitForNavigation(), ])
+      break
     }
     case "isTimeout": {
       throw new Error("isTimeout")
@@ -64,25 +80,42 @@ export async function waitPage(
   // 已等待过的页面
   let waitedPageList: ThatWherePages[] = []
   while (true) {
-    const tempWaitList: Record<ThatWherePages, Promise<ThatWherePages>> = {
+    const tempWaitList: Partial<Record<ThatWherePages, Promise<ThatWherePages>>> = {
       isTimeout: timeout(),
       isChecking: loopWait(page, waitCheckSafe, "isChecking"),
       isVerify: loopWait(page, waitVerify, "isVerify"),
       isSearchError: loopWait(page, waitSearchError, "isSearchError"),
       isCloudflare: loopWait(page, waitCloudflare, "isCloudflare"),
+      isEmptySearch: loopWait(page, waitEmptySearch, "isEmptySearch"),
       ...waitList
     }
+    delete tempWaitList["isLoading"]
     waitedPageList.forEach((waitedPage) => {
       console.log("delete", waitedPage)
       delete tempWaitList[waitedPage]
     })
     const wherePages = await Promise.race(Object.values(tempWaitList))
-    waitedPageList.push(wherePages)
-    console.log(wherePages)
-    if (checkPage.includes(wherePages)) {
-      await pagesAction(wherePages as WherePages, page)
-    } else {
-      return wherePages
+    switch (wherePages) {
+      case "isLoading": {
+      }
+      case undefined: {
+        continue
+      }
+      case "isTimeout": {
+        throw new Error("超时了")
+      }
+      case "isEmptySearch": {
+        throw new Error("搜索无结果")
+      }
+      default: {
+        waitedPageList.push(wherePages)
+        console.log(wherePages)
+        if (checkPage.includes(wherePages)) {
+          await pagesAction(wherePages as WherePages, page)
+        } else {
+          return wherePages
+        }
+      }
     }
   }
 }

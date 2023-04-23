@@ -17,18 +17,12 @@
         style="font-size: 30px; color: #575757"
       ></i>
       <div v-show="!iconIsShow" class="close-btn-contain">
-        <i
-          class="el-icon-close"
-          @click="closeCardMode"
-          style="font-size: 40px; color: #575757"
-        ></i>
+        <i class="el-icon-close" @click="closeCardMode" style="font-size: 40px; color: #575757"></i>
       </div>
       <div v-show="!iconIsShow" class="item-list">
         <div class="set-item">
           <div class="label"></div>
-          <el-button type="primary" class="btn" @click="toSetChar"
-            >管理字符</el-button
-          >
+          <el-button type="primary" class="btn" @click="toSetChar">管理字符</el-button>
         </div>
         <div class="set-item">
           <div class="label">控制台</div>
@@ -66,9 +60,7 @@
             <br />
             <el-row>
               <el-col :span="6">
-                <el-button class="btn" @click="getChanelList"
-                  >更新路线</el-button
-                >
+                <el-button class="btn" @click="getChanelList">更新路线</el-button>
               </el-col>
               <el-col :span="18">
                 <el-input
@@ -78,32 +70,20 @@
                 />
               </el-col>
             </el-row>
-            <el-input
-              v-model="currChanel"
-              @change="onInputChange"
-              size="small"
-            />
+            <el-input v-model="currChanel" @change="onInputChange" size="small" />
           </div>
         </div>
         <div class="set-item">
           <div class="label">启用OCR</div>
           <div>
             <el-radio-group v-model="ocr" @change="onOCRChange">
-              <el-radio label="/baiduocr/general_basic"
-                >百度通用(标准)</el-radio
-              >
+              <el-radio label="/baiduocr/general_basic">百度通用(标准)</el-radio>
               <br />
-              <el-radio label="/baiduocr/general"
-                >百度带位置通用(标准)</el-radio
-              >
+              <el-radio label="/baiduocr/general">百度带位置通用(标准)</el-radio>
               <br />
-              <el-radio label="/baiduocr/accurate_basic"
-                >百度通用(精确)</el-radio
-              >
+              <el-radio label="/baiduocr/accurate_basic">百度通用(精确)</el-radio>
               <br />
-              <el-radio label="/baiduocr/accurate"
-                >百度带位置通用(精确)</el-radio
-              >
+              <el-radio label="/baiduocr/accurate">百度带位置通用(精确)</el-radio>
               <br />
               <el-radio label="no">不启用</el-radio>
               <br />
@@ -233,10 +213,7 @@ export default Vue.extend({
     },
     onTokenChange() {
       localStorage.setItem("ocrToken", this.ocrToken);
-      localStorage.setItem(
-        "lastUpdate",
-        moment().format("YYYY-MM-DD HH:mm:ss")
-      );
+      localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
     },
     onUserNameChange() {
       localStorage.setItem("userName", this.userName);
@@ -274,14 +251,13 @@ export default Vue.extend({
         // console.log(res);
         if (res.status === 200) {
           try {
-            let htmlStr = res.data;
+            let htmlStr = res.data.content;
             htmlStr = htmlStr.replace(/(\n)|(\r)/g, "");
             // 转成dom元素，方便分析
             const tempEle = document.createElement("div");
             let bodyStr = new RegExp("<body.*/body>").exec(htmlStr)?.[0];
             bodyStr = bodyStr?.replace("body", "div");
-            const body =
-              strToDom(bodyStr)?.[0] || document.createElement("div");
+            const body = strToDom(bodyStr)?.[0] || document.createElement("div");
             if (body) {
               tempEle?.appendChild(body);
             } else {
@@ -290,7 +266,7 @@ export default Vue.extend({
             }
             const lineEle = tempEle.getElementsByClassName("line")[0];
 
-            const chanelList = [];
+            let chanelList = [];
             if (lineEle) {
               const linkEleList = lineEle.getElementsByTagName("a");
               for (let i = 0; i < linkEleList.length; i += 1) {
@@ -303,6 +279,7 @@ export default Vue.extend({
               throw "lineEle null";
             }
             if (chanelList.length > 0) {
+              chanelList = Array.from(new Set(chanelList));
               localStorage.setItem("chanelList", JSON.stringify(chanelList));
               this.chanelList = chanelList;
               Message({
