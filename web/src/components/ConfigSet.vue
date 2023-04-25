@@ -66,7 +66,7 @@
                 <el-input
                   v-model="outOfContactUrl"
                   size="small"
-                  placeholder="失联页地址http://accacc.xyz/"
+                  :placeholder="`失联页地址${outOfContactUrl}`"
                 />
               </el-col>
             </el-row>
@@ -118,8 +118,8 @@ import moment from "moment";
 import md5 from "md5";
 import VConsole from "vconsole";
 import { getChanelList as serviceGetChanelList } from "@/service/index";
-import strToDom from "@/utils/strToDom";
 import Vue from "vue";
+import htmlStrToDom from "@/utils/htmlStrToDom";
 
 interface Data {
   iconIsShow: boolean;
@@ -247,24 +247,16 @@ export default Vue.extend({
     },
     getChanelList() {
       serviceGetChanelList().then(async (res) => {
-        // const html = await res;
-        // console.log(res);
         if (res.status === 200) {
           try {
             let htmlStr = res.data.content;
-            htmlStr = htmlStr.replace(/(\n)|(\r)/g, "");
-            // 转成dom元素，方便分析
-            const tempEle = document.createElement("div");
-            let bodyStr = new RegExp("<body.*/body>").exec(htmlStr)?.[0];
-            bodyStr = bodyStr?.replace("body", "div");
-            const body = strToDom(bodyStr)?.[0] || document.createElement("div");
-            if (body) {
-              tempEle?.appendChild(body);
-            } else {
+            const doc = htmlStrToDom(htmlStr);
+            const body = doc.body;
+            if (!body) {
               console.error("body null");
               throw "body null";
             }
-            const lineEle = tempEle.getElementsByClassName("line")[0];
+            const lineEle = body.getElementsByClassName("line")[0];
 
             let chanelList = [];
             if (lineEle) {

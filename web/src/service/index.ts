@@ -149,7 +149,8 @@ export function getChanelList(): Promise<AxiosResponse<{ status: string; content
     method: "post",
     url: "/nodeApi/reptileDHTML",
     data: {
-      url: localStorage.getItem("outOfContactUrl") || "http://zozozo.xyz/",
+      url: localStorage.getItem("outOfContactUrl") || "http://www.01bz.xyz/",
+      waitForSelector: ".line a",
     },
   });
 }

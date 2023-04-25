@@ -26,9 +26,10 @@
 import { Input, Button, Empty, Message, Loading, Pagination } from "element-ui";
 import Vue from "vue";
 import * as services from "@/service";
-import strToDom from "@/utils/strToDom";
 import { Novel as CacheNovel } from "@/utils/type";
 import moment from "moment";
+import htmlStrToDom from "@/utils/htmlStrToDom";
+
 Vue.use(Input);
 Vue.use(Button);
 Vue.use(Empty);
@@ -88,28 +89,13 @@ export default Vue.extend({
           if (res.data.status === "success") {
             const novelList: Novel[] = [];
             let content = res.data.content;
+            const body = htmlStrToDom(content);
 
-            // 清除空格，防止扰乱正则匹配
-            content = content.replace(/\n/g, "");
-            content = content.replace(/\r/g, "");
-            // 防止转成dom时加载资源
-            content = content.replace(/src=/g, "my-src=");
-
-            // 转成dom元素，方便分析
-            const tempEle = document.createElement("div");
-            let bodyStr = new RegExp("<body.*/body>").exec(content)?.[0];
-            bodyStr = bodyStr?.replace("body", "div");
-            const body = strToDom(bodyStr)[0];
-            if (body) {
-              tempEle?.appendChild(body);
-            }
             if (content.includes("server error")) {
-              Message.error((tempEle.querySelector(".neirong") as HTMLDivElement).innerText);
+              Message.error((body.querySelector(".neirong") as HTMLDivElement).innerText);
             }
             const eleList =
-              tempEle.querySelector(".mod.block.book-all-list")?.querySelector("ul")?.childNodes ||
-              [];
-
+              body.querySelector(".mod.block.book-all-list")?.querySelector("ul")?.childNodes || [];
             for (let i = 0; i < eleList.length; i++) {
               const row = eleList[i] as HTMLLIElement | Text;
               if (!(row instanceof HTMLLIElement)) {

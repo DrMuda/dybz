@@ -23,7 +23,7 @@
             !imgAndChar[oldNewKey[item.replace('img:', '')]]?.char
           "
           :key="item + index + 'editable-img'"
-          :imgSrc="imgAndChar[oldNewKey[item.replace('img:', '')]]?.img || '#'"
+          :imgSrc="imgSrc(item)"
           :id="item.replace('img:', '')"
           :updateCache="updateCache"
           :item="item"
@@ -37,6 +37,9 @@
           :key="item + index + 'replace'"
           >{{ imgAndChar[oldNewKey[item.replace("img:", "")]]?.char }}</span
         >
+        <span v-else-if="new RegExp(/^i:/).test(item) === true">
+          <i>{{ item.replace("i:", "") }}</i>
+        </span>
         <span v-else :key="item + index + 'origin'">{{ item }}</span>
       </template>
     </div>
@@ -45,7 +48,6 @@
 </template>
 
 <script lang="ts">
-import strToDom from "@/utils/strToDom";
 import ImgAndChar from "@/utils/ImgAndChar";
 import cacheImg from "@/utils/cacheImg";
 import EditableImg from "@/components/EditableImg.vue";
@@ -56,6 +58,7 @@ import { GetNovelHtmlRes, ImgAndCharValue, OldNewKey } from "@/utils/type";
 import { AxiosResponse, Canceler } from "axios";
 import { Novel as CacheNovel } from "@/utils/type";
 import Vue from "vue";
+import htmlStrToDom from "@/utils/htmlStrToDom";
 
 interface Novel {
   title: string;
@@ -254,7 +257,7 @@ export default Vue.extend({
             webData.then(
               async (data: string) => {
                 this.cancelTokenList = [];
-                const novel = this.initContent(data) || {};
+                const novel = this.parseContent(data) || {};
                 const oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
                 let canSetNewKey = false;
                 cacheImg((oldKey, newKey) => {
@@ -330,17 +333,18 @@ export default Vue.extend({
     },
 
     startReload() {
-      if (this.reloadSetTimeout) {
-        clearTimeout(this.reloadSetTimeout);
-        this.reloadSetTimeout = null;
-      }
-      this.nextPageNovel = null;
-      this.isPreLoad = true;
-      this.tryPreLoadNum = 1;
-      this.maxTryPreloadNum = 3;
-      this.reloadSetTimeout = setTimeout(() => {
-        this.load();
-      }, this.reloadTimeInterval());
+      return;
+      // if (this.reloadSetTimeout) {
+      //   clearTimeout(this.reloadSetTimeout);
+      //   this.reloadSetTimeout = null;
+      // }
+      // this.nextPageNovel = null;
+      // this.isPreLoad = true;
+      // this.tryPreLoadNum = 1;
+      // this.maxTryPreloadNum = 3;
+      // this.reloadSetTimeout = setTimeout(() => {
+      //   this.load();
+      // }, this.reloadTimeInterval());
     },
 
     toPrev: async function () {
@@ -395,12 +399,10 @@ export default Vue.extend({
           this.novel.currPage === this.novel.pages.length - 1
         ) {
           if (this.nextPageNovel) {
-            // console.log("1");
             this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
             this.toTop();
           } else {
             if (this.isPreLoad) {
-              // console.log("2");
               this.loading = true;
               await new Promise<void>((resolve) => {
                 this.$watch("loading", () => {
@@ -413,7 +415,6 @@ export default Vue.extend({
               this.loading = false;
               this.toTop();
             } else {
-              // console.log("4");
               this.isPreLoad = false;
               await this.load();
               this.toTop();
@@ -421,7 +422,6 @@ export default Vue.extend({
           }
         } else {
           if (this.isPreLoad) {
-            // console.log("5");
             // 如果现在有在加载中， 使当前请求中断
             await new Promise((resolve) => {
               if (this.reloadSetTimeout) {
@@ -466,12 +466,10 @@ export default Vue.extend({
         // 如果刚好点击的是下一页， 使用预加载的内容
         if (this.novel.currPage + 1 === pageNumber) {
           if (this.nextPageNovel) {
-            // console.log("1");
             this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
             this.toTop();
           } else {
             if (this.isPreLoad) {
-              // console.log("2");
               this.loading = true;
               await new Promise<void>((resolve) => {
                 this.$watch("loading", () => {
@@ -481,7 +479,6 @@ export default Vue.extend({
               this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
               this.toTop();
             } else {
-              // console.log("4");
               this.isPreLoad = false;
               await this.load();
               this.toTop();
@@ -489,7 +486,6 @@ export default Vue.extend({
           }
         } else {
           if (this.isPreLoad) {
-            // console.log("5");
             // 如果现在有在加载中， 使当前请求中断
             await new Promise((resolve) => {
               if (this.reloadSetTimeout) {
@@ -536,7 +532,6 @@ export default Vue.extend({
           .then(
             function (res: AxiosResponse<GetNovelHtmlRes, any>) {
               const content = res.data.content;
-              console.log(content);
               resolve(content);
             }.bind(this)
           )
@@ -560,7 +555,7 @@ export default Vue.extend({
       });
     },
 
-    initContent(content: string): Novel {
+    parseContent(content: string): Novel {
       const novel: Novel = {
         currPage: 0,
         mainContext: [],
@@ -570,29 +565,16 @@ export default Vue.extend({
         title: "",
       };
       this.imgAndChar = ImgAndChar.get();
-      // 清除空格，防止扰乱正则匹配
-      content = content.replace(/\n/g, "");
-      content = content.replace(/\r/g, "");
-      // 防止转成dom时加载资源
-      content = content.replace(/src=/g, "my-src=");
-
-      // 转成dom元素，方便分析
-      const tempEle = document.createElement("div");
-      let bodyStr = new RegExp("<body.*/body>").exec(content)?.[0];
-      bodyStr = bodyStr?.replace("body", "div");
-      const body = strToDom(bodyStr)[0];
-      if (body) {
-        tempEle?.appendChild(body);
-      }
+      const doc = htmlStrToDom(content);
+      const body = doc.body;
+      body.querySelector;
       if (content.includes("server error")) {
-        Message.error((tempEle.querySelector(".neirong") as HTMLDivElement).innerText);
+        Message.error((body.querySelector(".neirong") as HTMLDivElement).innerText);
       }
-
       // 提取title
-      novel.title = tempEle.getElementsByClassName("page-title")?.[0]?.innerHTML;
-
+      novel.title = body.getElementsByClassName("page-title")?.[0]?.innerHTML;
       // 提取章小节
-      const aList = tempEle.getElementsByClassName("chapterPages")?.[0]?.childNodes;
+      const aList = body.getElementsByClassName("chapterPages")?.[0]?.childNodes;
       if (aList?.length > 0) {
         for (let i = 0; i < aList.length; i += 1) {
           const link = aList[i] as HTMLAnchorElement;
@@ -609,10 +591,10 @@ export default Vue.extend({
       }
 
       // 提取上一章、下一章
-      const prevLink = tempEle
+      const prevLink = body
         .getElementsByClassName("mod page-control")?.[1]
         ?.getElementsByClassName("prev")?.[0] as HTMLAnchorElement;
-      const nextLink = tempEle
+      const nextLink = body
         .getElementsByClassName("mod page-control")?.[1]
         ?.getElementsByClassName("next")?.[0] as HTMLAnchorElement;
       novel.prev = this.replaceHref(prevLink?.getAttribute("href") || "");
@@ -625,8 +607,8 @@ export default Vue.extend({
         novel.next = null;
       }
       let mainContextEleList = null;
-      mainContextEleList = this.tileEle(tempEle.getElementsByClassName("neirong")[0]);
-      // 提取正文，正文是由文本、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
+      mainContextEleList = this.tileEle(doc.getElementsByClassName("neirong")[0], "DIV");
+      // 提取正文，正文是由文本、<i />、图片、<br />组成， 先提取全部元素作为一个数组， 然后遍历，根据内容重新组装，主要是替换图片
       if (mainContextEleList?.length > 0) {
         for (let i = 0; i < mainContextEleList.length; i += 1) {
           novel.mainContext || (novel.mainContext = []);
@@ -654,6 +636,8 @@ export default Vue.extend({
             }
           } else if (itemEle instanceof HTMLBRElement) {
             novel.mainContext.push("<br />");
+          } else if (itemEle.nodeName === "I") {
+            novel.mainContext.push(`i:${itemEle.textContent || ""}`);
           } else {
             novel.mainContext.push((itemEle as HTMLBaseElement).innerText || "");
           }
@@ -666,7 +650,7 @@ export default Vue.extend({
     },
 
     // 平铺内容， 深度遍历， 将叶子节点返回
-    tileEle(rootEle: ChildNode) {
+    tileEle(rootEle: ChildNode, parentNodeName: string) {
       const childNodes = rootEle.childNodes;
       if (childNodes && childNodes?.length > 0) {
         let nodes: ChildNode[] = [];
@@ -675,18 +659,22 @@ export default Vue.extend({
           const style = item?.style;
           // 剔除高度只有5px的用来混淆的文本
           if (style?.height !== "5px") {
-            nodes = [...nodes, ...this.tileEle(childNodes[i])];
+            nodes = [...nodes, ...this.tileEle(childNodes[i], rootEle.nodeName)];
           }
         }
         return nodes;
       } else {
+        if (parentNodeName === "I") {
+          const i = document.createElement("i");
+          i.innerText = rootEle.textContent || "";
+          return [i];
+        }
         return [rootEle];
       }
     },
 
     replaceHref(href: string): string {
       // "javascript:RunChapter('6','6321','83611','6');"
-      console.log(href);
       if (href.includes("javascript:")) {
         const temp: string | null | undefined = /('.*','.*','.*','.*')/.exec(href)?.[0];
         if (temp) {
@@ -718,6 +706,14 @@ export default Vue.extend({
           this.mainLayout = "row";
         }
       }
+    },
+
+    imgSrc(item: string) {
+      const src = item.replace("img:", "");
+      if (src.match("base64")) {
+        return src;
+      }
+      return this.imgAndChar[this.oldNewKey[src]]?.img || "#";
     },
   },
 });
@@ -774,5 +770,13 @@ export default Vue.extend({
 .curr {
   border-color: aqua;
   color: aqua;
+}
+@font-face {
+  font-family: yahei;
+  src: url("../../public/font.ttf");
+}
+i {
+  font-style: initial;
+  font-family: yahei !important;
 }
 </style>

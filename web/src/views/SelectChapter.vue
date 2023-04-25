@@ -71,11 +71,11 @@ import {
   TableColumn,
   Loading,
 } from "element-ui";
-import strToDom from "@/utils/strToDom";
 import moment from "moment";
 import * as services from "@/service/index";
 import { Novel } from "@/utils/type";
 import Vue from "vue";
+import htmlStrToDom from "@/utils/htmlStrToDom";
 
 Vue.use(Button);
 Vue.use(InputNumber);
@@ -226,7 +226,7 @@ export default Vue.extend({
         services
           .getChapter(this.novel.url, this.currPage, this.novel.chanel)
           .then(
-            async function (res: { data: any; }) {
+            async function (res: { data: any }) {
               const content = await res.data;
               resolve(content?.content as string);
             }.bind(this)
@@ -244,33 +244,19 @@ export default Vue.extend({
       });
     },
     initContent(content: string) {
-      // 清除空格，防止扰乱正则匹配
-      content = content.replace(/\r\n/g, "");
-      content = content.replace(/\n/g, "");
-      content = content.replace(/\/images\/jipin-default.jpg/g, "");
-      // 防止转成dom时加载资源
-      content = content.replace(/src=/g, "my-src=");
-
       let amountPage: string = new RegExp(/(第[0-9]+\/[0-9]+页)/, "g").exec(content)?.[0] || "";
       amountPage = amountPage.split("/")?.[1] || "";
       amountPage = amountPage.replace("页", "");
       this.amountPage = parseInt(amountPage || "0");
 
-      // 转成dom元素，方便分析
-      const tempEle = document.createElement("div");
-      let bodyStr = new RegExp('<body class="cover".*</body>').exec(content)?.[0];
-      bodyStr = bodyStr?.replace("body", "div");
-      const body = strToDom(bodyStr)[0];
-      if (body) {
-        tempEle?.appendChild(body);
-      }
+      const body = htmlStrToDom(content);
       if (content.includes("server error")) {
-        Message.error((tempEle.querySelector(".neirong") as HTMLDivElement).innerText);
+        Message.error((body.querySelector(".neirong") as HTMLDivElement).innerText);
       }
 
       // 提取章节列表
       this.chapterList = [];
-      const linkListEle = tempEle
+      const linkListEle = body
         .getElementsByClassName("mod block update chapter-list")[1]
         .getElementsByTagName("a");
       for (let i = 0; i < linkListEle.length; i += 1) {
@@ -303,7 +289,6 @@ export default Vue.extend({
         localStorage.setItem("novelList", JSON.stringify(novelList));
         localStorage.setItem("lastUpdate", moment().format("YYYY-MM-DD HH:mm:ss"));
       }
-      tempEle.remove();
     },
   },
 });
