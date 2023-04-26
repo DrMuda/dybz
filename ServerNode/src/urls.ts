@@ -160,7 +160,7 @@ async function getNovel(req: Request, res: Response) {
   const { url } = req.query as { url: string }
   Log.info(`reptileDHTML: ${JSON.stringify({ url })}`)
   const content = await getNovelDHTML(url)
-  const data: ResSendData = { status: "error", content }
+  const data: ResSendData = { status: "success", content }
   res.send(data)
 }
 

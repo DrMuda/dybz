@@ -67,6 +67,7 @@ interface Novel {
   prev: string | null;
   next: string | null;
   mainContext: string[];
+  url: string;
 }
 interface Data {
   novel: Novel;
@@ -101,6 +102,7 @@ export default Vue.extend({
         prev: "",
         next: "",
         mainContext: [],
+        url: "",
       },
       // 预加载, 下一页/章节的内容, 结构与novel一致
       nextPageNovel: null,
@@ -155,10 +157,15 @@ export default Vue.extend({
         pages: [],
         prev: "",
         title: "",
+        url: this.novelUrl,
       };
       this.nextPageNovel = cachePage.nextPageNovel || null;
     } else {
-      await this.load();
+      if (cachePage.novelUrl === this.novelUrl && cachePage.novel) {
+        this.novel = cachePage.novel;
+      } else {
+        await this.load();
+      }
       this.toTop();
       this.startReload();
     }
@@ -257,7 +264,7 @@ export default Vue.extend({
             webData.then(
               async (data: string) => {
                 this.cancelTokenList = [];
-                const novel = this.parseContent(data) || {};
+                const novel = this.parseContent(data, novelUrl) || {};
                 const oldNewKey = JSON.parse(localStorage.getItem("oldNewKey") || "{}");
                 let canSetNewKey = false;
                 cacheImg((oldKey, newKey) => {
@@ -333,18 +340,17 @@ export default Vue.extend({
     },
 
     startReload() {
-      return;
-      // if (this.reloadSetTimeout) {
-      //   clearTimeout(this.reloadSetTimeout);
-      //   this.reloadSetTimeout = null;
-      // }
-      // this.nextPageNovel = null;
-      // this.isPreLoad = true;
-      // this.tryPreLoadNum = 1;
-      // this.maxTryPreloadNum = 3;
-      // this.reloadSetTimeout = setTimeout(() => {
-      //   this.load();
-      // }, this.reloadTimeInterval());
+      if (this.reloadSetTimeout) {
+        clearTimeout(this.reloadSetTimeout);
+        this.reloadSetTimeout = null;
+      }
+      this.nextPageNovel = null;
+      this.isPreLoad = true;
+      this.tryPreLoadNum = 1;
+      this.maxTryPreloadNum = 3;
+      this.reloadSetTimeout = setTimeout(() => {
+        this.load();
+      }, this.reloadTimeInterval());
     },
 
     toPrev: async function () {
@@ -393,33 +399,8 @@ export default Vue.extend({
             url: this.novelUrl,
           },
         });
-        // 如果当前是最后一页， 那么下一章就是预加载的内容， 直接使用预加载的内容
-        if (
-          this.novel.currPage === undefined ||
-          this.novel.currPage === this.novel.pages.length - 1
-        ) {
-          if (this.nextPageNovel) {
-            this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
-            this.toTop();
-          } else {
-            if (this.isPreLoad) {
-              this.loading = true;
-              await new Promise<void>((resolve) => {
-                this.$watch("loading", () => {
-                  resolve();
-                });
-              });
-              this.novel = JSON.parse(JSON.stringify(this.nextPageNovel));
-              this.nextPageNovel = null;
-              this.isPreLoad = false;
-              this.loading = false;
-              this.toTop();
-            } else {
-              this.isPreLoad = false;
-              await this.load();
-              this.toTop();
-            }
-          }
+        if (this.novelUrl === this.nextPageNovel?.url) {
+          this.novel = this.nextPageNovel;
         } else {
           if (this.isPreLoad) {
             // 如果现在有在加载中， 使当前请求中断
@@ -555,7 +536,7 @@ export default Vue.extend({
       });
     },
 
-    parseContent(content: string): Novel {
+    parseContent(content: string, url: string): Novel {
       const novel: Novel = {
         currPage: 0,
         mainContext: [],
@@ -563,11 +544,11 @@ export default Vue.extend({
         pages: [],
         prev: "",
         title: "",
+        url: url,
       };
       this.imgAndChar = ImgAndChar.get();
       const doc = htmlStrToDom(content);
       const body = doc.body;
-      body.querySelector;
       if (content.includes("server error")) {
         Message.error((body.querySelector(".neirong") as HTMLDivElement).innerText);
       }
