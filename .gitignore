@@ -23,13 +23,9 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
-01bzServerNodeJS/data.json
+
 users.json
-imgAndChar.json
-oldNewKey.json
 nodeServerLog.txt
-data/imgAndChar - 副本.json
-data/oldNewKey - 副本.json
-data/users - 副本.json
-a.html
 build
+config.json
+script/.env

@@ -1,0 +1,25 @@
+{
+  "name": "script",
+  "version": "1.0.0",
+  "description": "",
+  "main": "uploadsToServer.js",
+  "scripts": {
+    "test": "tsc;node ./build/test.js",
+    "uploadWeb": "tsc;node ./build/uploadWeb.js",
+    "uploadServer": "tsc;node ./build/uploadServer.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^18.15.11",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.0.3",
+    "ssh2": "^1.13.0",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/ssh2": "^1.11.11"
+  }
+}
