@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  padding: 0;
+  margin: 0;
+  background-color: white;
+  width: vw;
+  height: 100%;
+}
+body {
+  padding: 0;
+  margin: 0;
+  background-color: white;
+  width: vw;
+  height: 100%;
+}
+#root{
+  width: 100%;
+  height: 100%;
+}
