@@ -13,12 +13,20 @@
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "antd-mobile": "^5.32.4",
+    "axios": "^1.5.0",
+    "classnames": "^2.3.2",
+    "dayjs": "^1.11.10",
+    "md5": "^2.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-icons": "^4.11.0",
+    "react-query": "^3.39.3",
     "react-router": "^6.16.0",
-    "react-router-dom": "^6.16.0"
+    "react-router-dom": "^6.16.0",
+    "react-use": "^17.4.0"
   },
   "devDependencies": {
+    "@types/md5": "^2.3.2",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
