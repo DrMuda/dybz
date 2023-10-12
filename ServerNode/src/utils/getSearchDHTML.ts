@@ -1,11 +1,13 @@
 import Log from "./Log"
-import initPuppeteer from "./initPuppeteer"
+import PuppeteerSingleton from './PuppeteerSingle'
 import { WherePages, waitPage } from "./waitPage"
 
+const puppeteer = PuppeteerSingleton.getInstance()
 type ThatWherePages = WherePages | "isSearchPage" | "isSearchResultPage"
 export default async (url: string, searchValue: string, pageNumber: number) => {
   try {
-    const { page, browser } = await initPuppeteer()
+    const page = await puppeteer.getPage()
+    if(!page) return
     await page.goto(url)
     const waitSearchPage = async (): Promise<ThatWherePages> => {
       await page.waitForSelector(".search-form")
@@ -29,8 +31,6 @@ export default async (url: string, searchValue: string, pageNumber: number) => {
     }
     await waitPage(page, { isSearchResultPage: waitSearchResultPage() })
     const content = await page.content()
-    await page.close()
-    await browser.close()
     console.log("search end")
     return content
   } catch (error) {

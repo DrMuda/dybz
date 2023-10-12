@@ -1,11 +1,13 @@
 import Log from "./Log"
-import initPuppeteer from "./initPuppeteer"
+import PuppeteerSingleton from './PuppeteerSingle'
 import { WherePages, waitPage } from "./waitPage"
 
+const puppeteer = PuppeteerSingleton.getInstance()
 type ThatWherePages = WherePages | "isTargetPage"
 export default async (url: string, waitForSelector?: string) => {
   try {
-    const { page, browser } = await initPuppeteer()
+    const page = await puppeteer.getPage()
+    if(!page) return
     await page.goto(url)
     const waitTargetPage = async (): Promise<ThatWherePages> => {
       if (waitForSelector) {
@@ -17,8 +19,6 @@ export default async (url: string, waitForSelector?: string) => {
     }
     await waitPage(page, { isTargetPage: waitTargetPage() })
     const content = await page.content()
-    await page.close()
-    await browser.close()
     return content
   } catch (error) {
     Log.error(error as string)

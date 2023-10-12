@@ -2,7 +2,7 @@ export const localStorageKey = {
   user: "user",
   defaultChannel: "defaultChannel",
   channelList: "channelList",
-  channelPageLink: "channelPageLink",
+  channelPageUrl: "channelPageUrl",
   ocr: "ocr",
   md5ToCharMap: "md5ToCharMap",
   imgIdToMd5Map: 'imgIdToMd5Map',

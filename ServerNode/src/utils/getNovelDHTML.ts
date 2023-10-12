@@ -1,11 +1,13 @@
 import Log from "./Log"
-import initPuppeteer from "./initPuppeteer"
+import PuppeteerSingleton from "./PuppeteerSingle"
 import { WherePages, waitPage } from "./waitPage"
 
+const puppeteer = PuppeteerSingleton.getInstance()
 type ThatWherePages = WherePages | "isTargetPage"
 export default async (url: string) => {
   try {
-    const { page, browser } = await initPuppeteer()
+    const page = await puppeteer.getPage()
+    if (!page) return
     let waitCut = false
     await page.on("request", async (request) => {
       if (
@@ -56,8 +58,6 @@ export default async (url: string) => {
       console.error(error)
     }
     let content = await page.content()
-    await page.close()
-    await browser.close()
     console.log("end")
     return content
   } catch (error) {

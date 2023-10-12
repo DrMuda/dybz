@@ -8,6 +8,8 @@ import getNovelDHTML from "./utils/getNovelDHTML"
 import { Request, Response } from "express"
 import { ImgAndChar as IImgAndChar, OldNewKey as IOldNewKey, ResSendData, User } from "./type"
 import axios from "axios"
+import getChannelList from "./apis/getChannelList"
+import searchBook from "./apis/searchBook"
 
 export type Api = Record<
   string,
@@ -196,6 +198,15 @@ const route: Api = {
   "/getNovel": {
     method: "get",
     message: getNovel
+  },
+
+  "/getChannelList": {
+    method: "get",
+    message: getChannelList
+  },
+  "/searchBook": {
+    message: searchBook,
+    method: "get"
   }
 }
 export default route

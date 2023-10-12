@@ -24,9 +24,10 @@ api.interceptors.response.use(
 
 export default api;
 export interface ApiResult<Data = never> {
-  code: number;
-  data: Data;
-  msg?: string;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  status: "success" | "error" | (string & {})
+  message?: string
+  data?: Data
 }
 export interface PaginationCofig{
   total: number;

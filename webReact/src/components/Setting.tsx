@@ -8,6 +8,8 @@ import { useLocalStorage } from "react-use";
 import { localStorageKey } from "../config";
 import BorderInput from "./BorderInput";
 import { LocalStorageContext, Ocr } from "../contexts/LocalStorageContext";
+import { getChannelList } from '../services/setting';
+import LoadingButton from './LoadingButton';
 
 const Container = styled.div(
   ({ open, position }: { open: boolean; position: "left" | "right" }) => ({
@@ -83,8 +85,8 @@ export default function Setting({
     ocr,
     setOcr,
   } = useContext(LocalStorageContext);
-  const [channelPageLink, setChannelPageLink] = useLocalStorage<string>(
-    localStorageKey.channelPageLink
+  const [channelPageUrl, setChannelPageUrl] = useLocalStorage<string>(
+    localStorageKey.channelPageUrl
   );
 
   return (
@@ -151,26 +153,28 @@ export default function Setting({
                       </Button>
                     );
                   })}
-                  <Button
-                    onClick={() => {
-                      if (!channelPageLink) {
+                  <LoadingButton
+                    onClick={async () => {
+                      if (!channelPageUrl) {
                         Toast.show("请设置路线页面url");
                         return;
                       }
-                      // TODO: 调接口请求路线
-                      setChannelList(["1", "2"]);
+                      const res = await getChannelList(channelPageUrl)
+                      if(res.status==="success" && res.data instanceof Array){
+                        setChannelList(res.data)
+                      }
                     }}
                     color="primary"
                     size="small"
                   >
                     更新
-                  </Button>
+                  </LoadingButton>
                 </ChannelGrid>
                 <BorderInput
                   className="mt-1"
                   placeholder="路线页面url"
-                  value={channelPageLink}
-                  onChange={setChannelPageLink}
+                  value={channelPageUrl}
+                  onChange={setChannelPageUrl}
                 />
               </div>
             </div>

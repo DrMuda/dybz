@@ -1,4 +1,4 @@
-import { User } from '../contexts/LocalStorageContext';
+import { User } from "../contexts/LocalStorageContext";
 import { sleep } from "../utils";
 import api, { ApiResult } from "./request";
 
@@ -21,16 +21,15 @@ export const getBookList = (params: {
   user: User;
 }): Promise<ApiResult<Book[]>> => {
   return new Promise((resolve) => {
-    sleep(2000).then(() => {
+    sleep(0).then(() => {
       resolve({
-        code: 0,
+        status: "success",
         data: [
           { id: 1, name: "测试1", url: "test" },
           { id: 2, name: "测试2", url: "test" },
           { id: 3, name: "测试3", url: "test" },
           { id: 4, name: "测试4", url: "test" },
         ],
-        msg: "",
       });
     });
   });
