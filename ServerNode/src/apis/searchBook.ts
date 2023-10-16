@@ -4,8 +4,8 @@ import { puppeteerError } from "../utils/utils"
 import Log from "../utils/Log"
 import jsdom from "jsdom"
 import { ResSendData } from "../types"
-import { SearchBookParams, SearchBookRes } from './types'
-import { waitPage } from '../utils/waitPage'
+import { SearchBookParams, SearchBookRes } from "./types"
+import { waitPage } from "../utils/waitPage"
 
 const { JSDOM } = jsdom
 const puppeteer = PuppeteerSingleton.getInstance()
@@ -17,11 +17,7 @@ export default async (req: Request, res: Response): Promise<void> => {
       return
     }
 
-    const {
-      keyword,
-      channel,
-      page: searchPage
-    } = req.query as unknown as SearchBookParams
+    const { keyword, channel, page: searchPage } = req.query as unknown as SearchBookParams
     if (!keyword) {
       res.send({ status: "error", message: "keyword must string" } as ResSendData)
       return
@@ -36,7 +32,19 @@ export default async (req: Request, res: Response): Promise<void> => {
     }
 
     await page.goto(`${channel}`)
-    await page.waitForSelector(".search-form")
+
+    let waitRes = await waitPage(page, {
+      isTarGetPage: new Promise((r) => {
+        page
+          .waitForSelector(".search-form")
+          .then(() => r("isTarGetPage"))
+          .catch(() => null)
+      })
+    })
+    if (waitRes !== "isTarGetPage") {
+      res.send({ status: "error", message: waitRes } as ResSendData)
+      return
+    }
     await page.evaluate(
       ({ keyword, searchPage }) => {
         ;(window as any).formPost?.("/s.php", {
@@ -47,9 +55,12 @@ export default async (req: Request, res: Response): Promise<void> => {
       },
       { keyword, searchPage }
     )
-    const waitRes = await waitPage(page, {
+    waitRes = await waitPage(page, {
       isTarGetPage: new Promise((r) => {
-        page.waitForSelector("ul").then(() => r("isTarGetPage"))
+        page
+          .waitForSelector("ul")
+          .then(() => r("isTarGetPage"))
+          .catch(() => null)
       })
     })
     if (waitRes !== "isTarGetPage") {

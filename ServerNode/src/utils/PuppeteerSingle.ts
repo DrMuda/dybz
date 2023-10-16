@@ -18,8 +18,8 @@ class PuppeteerSingleton {
         "--ignore-certifcate-errors-spki-list",
         "--disable-web-security"
       ],
-      headless: "new",
-      // headless: false,
+      // headless: "new",
+      headless: false,
       executablePath:
         process.env.NODE_ENV === "production"
           ? "../Chromium.app"

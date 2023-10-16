@@ -16,11 +16,11 @@ import Setting from "../components/Setting";
 import dayjs from "dayjs";
 import { dateFormat } from "../config";
 import { LocalStorageContext } from "../contexts/LocalStorageContext";
-import { useSearchParam } from "react-use";
 import HFullPullRefresh from "../components/HFullPullRefresh";
 import { useQuery } from "react-query";
-import { Book } from '../types';
-import { editBook } from '../services/userBook';
+import { Book } from "../types";
+import { editBook } from "../services/userBook";
+import { useHashSearchParams } from "../hooks/useHashSearchParam";
 
 const Bookshelf = styled.div(() => ({
   display: "grid",
@@ -32,7 +32,7 @@ const Bookshelf = styled.div(() => ({
 }));
 export default function SearchBook() {
   const { user, defaultChannel } = useContext(LocalStorageContext);
-  const defauleKeyword = useSearchParam("keyword") || "";
+  const [defauleKeyword] = useHashSearchParams("keyword") || "";
   const [keyword, setKeyword] = useState<string>(defauleKeyword);
   const [pagination, setPagination] = useState({ page: 1, totalPage: 1 });
 

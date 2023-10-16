@@ -72,7 +72,7 @@ export default function Home() {
     <HFullPullRefresh onRefresh={refetch}>
       {searchBar}
       <Bookshelf className="grid">
-        {bookList?.map(({ name, id, history, url }) => {
+        {bookList?.map(({ name, id }) => {
           return (
             <Card
               title={<div className="h-[80px]">{name}</div>}
@@ -82,7 +82,7 @@ export default function Home() {
                 if (!history) {
                   navigate(`/selectChatper?bookId=${id}`);
                 } else {
-                  navigate(`/readBook?url=${url}&bookId=${id}`);
+                  navigate(`/readBook?bookId=${id}`);
                 }
               }}
             >

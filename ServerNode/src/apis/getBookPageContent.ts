@@ -110,7 +110,8 @@ export default async (req: Request, res: Response): Promise<void> => {
           neiRongList.push(`<img>:${img}`)
           continue
         }
-        const imageElement = await page.$("img")
+        console.log("getImg", src)
+        const imageElement = await page.$(`img[src='${src}']`)
         if (imageElement) {
           const base64Image = await imageElement.evaluate((element) => {
             const canvas = document.createElement("canvas")

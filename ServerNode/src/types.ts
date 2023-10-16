@@ -1,8 +1,3 @@
-export interface Chapter {
-  title?: string
-  url?: string
-}
-
 export type UserId = string
 export type Users = Record<UserId, User>
 export type ImgIdToMd5Map = Record<string, string>
@@ -18,7 +13,7 @@ export interface Book {
   id?: number
   url?: string
   name?: string
-  history?: Chapter
+  historyUrl?: string
   /** 用于排序, YYYY-MM-DD HH:mm:ss */
   lastUpdate?: string
   delete: boolean

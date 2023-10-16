@@ -17,13 +17,13 @@ import { PaginationCofig } from "../services/request";
 import { LocalStorageContext } from "../contexts/LocalStorageContext";
 import { useQuery } from "react-query";
 import { editBook, getBookList } from "../services/userBook";
-import { useSearchParam } from "react-use";
 import { dateFormat } from "../config";
 import dayjs from "dayjs";
 import { parseUrl } from "../utils";
+import { useHashSearchParams } from "../hooks/useHashSearchParam";
 
 export default function SelectChatper() {
-  const bookId = useSearchParam("bookId");
+  const [bookId] = useHashSearchParams("bookId");
   const [pagination, setPagination] = useState<PaginationCofig>({
     page: 1,
     // 无用属性
@@ -140,17 +140,16 @@ export default function SelectChatper() {
                       book: {
                         ...currentBook,
                         url: [tempChannel, search, path].join(""),
-                        history: {
-                          title,
-                          url: clickedUrl,
-                        },
+                        historyUrl: clickedUrl,
                         lastUpdate: dayjs().format(dateFormat),
                       },
-                    });
-
-                    navigate(
-                      `/readBook?url=${clickedUrl}&bookId=${currentBook?.id}`
-                    );
+                    })
+                      .then(() => {
+                        navigate(`/readBook?bookId=${currentBook?.id}`);
+                      })
+                      .catch((error) => {
+                        Toast.show(error);
+                      });
                   }}
                   className="p-2"
                   style={{ borderBottom: "1px solid #dfdfdf" }}

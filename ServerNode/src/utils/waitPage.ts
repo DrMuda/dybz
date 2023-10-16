@@ -86,6 +86,7 @@ export async function waitPage(
   // 已等待过的页面
   let waitedPageList: ThatWherePages[] = []
   while (true) {
+    console.log("wait page")
     const tempWaitList: Partial<Record<ThatWherePages, Promise<ThatWherePages>>> = {
       isTimeout: timeout(),
       isChecking: loopWait(page, waitCheckSafe, "isChecking"),

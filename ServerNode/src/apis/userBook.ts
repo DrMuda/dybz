@@ -71,7 +71,7 @@ export const editBook = async (req: Request, res: Response): Promise<void> => {
     if (foundBook) {
       foundBook.name = book.name
       foundBook.url = book.url
-      foundBook.history = book.history
+      foundBook.historyUrl = book.historyUrl
       foundBook.lastUpdate = moment().format(dateFormat)
       users.setUser(user.id, userRes)
       Log.info(`user @${user.id} update book: ${book.id}`)

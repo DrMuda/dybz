@@ -27,7 +27,10 @@ export default async (req: Request, res: Response): Promise<void> => {
     await page.goto(urlWithPage)
     const waitRes = await waitPage(page, {
       isTarGetPage: new Promise((r) => {
-        page.waitForSelector(".chapter-list").then(() => r("isTarGetPage"))
+        page
+          .waitForSelector(".chapter-list")
+          .then(() => r("isTarGetPage"))
+          .catch(() => null)
       })
     })
     if (waitRes !== "isTarGetPage") {
