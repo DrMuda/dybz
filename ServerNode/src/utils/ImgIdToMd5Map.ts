@@ -1,15 +1,16 @@
 import isFileExistedAndCreate from "./isFileExistedAndCreate"
 import fs from "fs"
 import Log from "./Log"
-import { ImgAndChar as IImgAndChar, ImgAndCharItem } from "../type"
+import { ImgIdToMd5Map as IImgIdToMd5Map } from "../types"
 
-const fileName = "../data/imgAndChar.json"
-class ImgAndChar {
-  imgAndChar: IImgAndChar = {}
-  hasNewData: boolean = false
+const fileName = "../data/imgIdToMd5Map.json"
+class ImgIdToMd5Map {
+  private static instance: ImgIdToMd5Map
+  imgIdToMd5Map: IImgIdToMd5Map = {}
   keys: string[] = []
+  hasNewData = false
 
-  constructor() {
+  private constructor() {
     this._init()
     setInterval(() => {
       if (this.hasNewData) {
@@ -18,7 +19,14 @@ class ImgAndChar {
     }, 5000)
   }
 
-  async _init() {
+  public static getInstance() {
+    if(!ImgIdToMd5Map.instance){
+      ImgIdToMd5Map.instance = new ImgIdToMd5Map()
+    }
+    return ImgIdToMd5Map.instance
+  }
+
+  private async _init() {
     const isExist = await isFileExistedAndCreate(fileName, "{}")
     if (isExist) {
       fs.open(fileName, "r", (e) => {
@@ -29,8 +37,8 @@ class ImgAndChar {
             if (e) {
               Log.error(`文件读取有误：${fileName}`)
             } else {
-              this.imgAndChar = JSON.parse(data.toString())
-              this.keys = Object.keys(this.imgAndChar)
+              this.imgIdToMd5Map = JSON.parse(data.toString("utf-8"))
+              this.keys = Object.keys(this.imgIdToMd5Map)
             }
           })
         }
@@ -41,7 +49,7 @@ class ImgAndChar {
   }
 
   // 将数据更新到文件或从文件更新到内存
-  async _updateFile(reverse = false) {
+  private async _updateFile(reverse = false) {
     return new Promise((resolve, reject) => {
       isFileExistedAndCreate(fileName, "{}").then((isExist) => {
         if (isExist) {
@@ -50,7 +58,7 @@ class ImgAndChar {
               if (e) {
                 Log.error(`文件读取有误：${fileName}`)
               } else {
-                fs.writeFile(fileName, JSON.stringify(this.imgAndChar, null, 4), (e) => {
+                fs.writeFile(fileName, JSON.stringify(this.imgIdToMd5Map, null, 4), (e) => {
                   if (e) {
                     Log.error(`文件写入失败：${fileName}`)
                     Log.error(e)
@@ -74,7 +82,7 @@ class ImgAndChar {
                     Log.error(`文件读取有误：${fileName}`)
                     reject(false)
                   } else {
-                    this.imgAndChar = JSON.parse(data.toString())
+                    this.imgIdToMd5Map = JSON.parse(data.toString("utf-8"))
                     Log.info(`已更新内存数据：${fileName}`)
                     resolve(true)
                   }
@@ -91,14 +99,11 @@ class ImgAndChar {
   }
 
   get() {
-    return this.imgAndChar
+    return this.imgIdToMd5Map
   }
 
-  getByKey(key: string) {
-    if (this.imgAndChar[key]) {
-      return this.imgAndChar[key]
-    }
-    return "not exist"
+  getByImgId(imgId: string) {
+    return this.imgIdToMd5Map[imgId]
   }
 
   getTotalPage(size: number) {
@@ -107,26 +112,26 @@ class ImgAndChar {
 
   getByPage(page: number, size: number) {
     const keys = this.keys.slice((page - 1) * size, page * size)
-    const imgAndChar: IImgAndChar = {}
+    const imgIdToMd5Map: IImgIdToMd5Map = {}
     keys.forEach((key) => {
-      imgAndChar[key] = this.imgAndChar[key]
+      imgIdToMd5Map[key] = this.imgIdToMd5Map[key]
     })
-    return imgAndChar
+    return imgIdToMd5Map
   }
 
-  async set(imgAndChar: IImgAndChar) {
-    this.imgAndChar = imgAndChar
+  async set(imgIdToMd5Map:IImgIdToMd5Map) {
+    this.imgIdToMd5Map = imgIdToMd5Map
     this.hasNewData = true
-    this.keys = Object.keys(this.imgAndChar)
+    this.keys = Object.keys(this.imgIdToMd5Map)
     return true
   }
 
-  async setItem(key: string, item: ImgAndCharItem) {
-    this.imgAndChar[key] = item
+  async setByImgId(imgId: string, md5Id: string) {
+    this.imgIdToMd5Map[imgId] = md5Id
     this.hasNewData = true
-    this.keys = Object.keys(this.imgAndChar)
+    this.keys = Object.keys(this.imgIdToMd5Map)
     return true
   }
 }
 
-export default new ImgAndChar()
+export default ImgIdToMd5Map

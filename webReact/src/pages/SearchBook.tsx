@@ -2,25 +2,25 @@
 import {
   SpinLoading,
   Mask,
-  PullToRefresh,
   Card,
   SearchBar,
   Toast,
   Stepper,
 } from "antd-mobile";
 import styled from "@emotion/styled";
-import useQuery from "../hooks/useQuery";
 import { useNavigate } from "react-router-dom";
-import { addBook, searchBookList } from "../services/searchBook";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { searchBookList } from "../services/searchBook";
+import { useContext, useEffect, useState } from "react";
 import CenterErrorBlock from "../components/CenterErrorBlock";
 import Setting from "../components/Setting";
-import { Book } from "../services/home";
 import dayjs from "dayjs";
 import { dateFormat } from "../config";
 import { LocalStorageContext } from "../contexts/LocalStorageContext";
-import { useDebounce, useMeasure, useSearchParam } from "react-use";
-import { debounce } from "lodash-es"
+import { useSearchParam } from "react-use";
+import HFullPullRefresh from "../components/HFullPullRefresh";
+import { useQuery } from "react-query";
+import { Book } from '../types';
+import { editBook } from '../services/userBook';
 
 const Bookshelf = styled.div(() => ({
   display: "grid",
@@ -35,77 +35,81 @@ export default function SearchBook() {
   const defauleKeyword = useSearchParam("keyword") || "";
   const [keyword, setKeyword] = useState<string>(defauleKeyword);
   const [pagination, setPagination] = useState({ page: 1, totalPage: 1 });
-  const queryFn = useCallback(debounce(async () => {
-    if (!keyword || !defaultChannel) return;
-    const res = await searchBookList({
-      keyword,
-      channel: defaultChannel,
-      page: pagination.page,
-    });
-    return res;
-  }), []);
-  const { data, refetch, isLoading, isReFetching, error } = useQuery({
-    queryKey: [keyword, pagination.page],
-    queryFn: async ()=>{
-      const res = await queryFn()
-      return res
+
+  const { data, isLoading, refetch, error } = useQuery(
+    ["searchBook", keyword, pagination.page],
+    async () => {
+      if (!keyword || !defaultChannel) return;
+      const res = await searchBookList({
+        keyword,
+        channel: defaultChannel,
+        page: pagination.page,
+      });
+      return res;
     },
-  });
+    { refetchOnWindowFocus: false }
+  );
+
   const { bookList, totalPage } = data?.data || {};
   const navigate = useNavigate();
 
   useEffect(() => {
     setPagination({ ...pagination, totalPage: totalPage || 1 });
   }, [totalPage]);
-  useEffect(() => {
-    refetch();
-  }, [keyword, pagination.page]);
 
-  if (!isLoading && !isReFetching && (bookList?.length || 0) <= 0) {
+  const searchBar = (
+    <div className="fixed top-0 left-0 w-screen p-2 bg-white z-10">
+      <SearchBar
+        placeholder="搜书"
+        defaultValue={keyword}
+        onSearch={(value) => {
+          value && setKeyword(value.trim());
+        }}
+      />
+    </div>
+  );
+
+  if (!isLoading && (bookList?.length || 0) <= 0) {
     return (
-      <div className="h-full flex justify-center items-center">
-        <CenterErrorBlock status={error ? "busy" : "empty"} />
-      </div>
+      <HFullPullRefresh onRefresh={refetch}>
+        {searchBar}
+        <div className="h-full flex justify-center items-center">
+          <CenterErrorBlock status={error ? "busy" : "empty"} />
+        </div>
+        <Setting />
+      </HFullPullRefresh>
     );
   }
   return (
-    <PullToRefresh onRefresh={refetch}>
-      <div className="fixed top-0 left-0 w-screen p-2 bg-white z-10">
-        <SearchBar
-          placeholder="搜书"
-          value={keyword}
-          onSearch={(value) => {
-            value && setKeyword(value.trim());
-          }}
-        />
-      </div>
+    <HFullPullRefresh onRefresh={refetch}>
+      {searchBar}
       <Bookshelf className="grid">
         {bookList?.map(({ name, url }) => {
           return (
             <Card
-              title={<div className="h-[120px]">{"name"}</div>}
+              title={<div className="h-[120px]">{name}</div>}
               style={{ boxShadow: "0 0 10px rgba(0,0,0,0.2)" }}
               key={url}
               onClick={() => {
-                if (!user || !defaultChannel) {
+                const { id, password } = user || {};
+                if (!id || !password || !defaultChannel) {
                   Toast.show("请先设置用户与路线");
                   return;
                 }
                 const newBook: Book = {
-                  chanel: defaultChannel,
                   id: new Date().getTime(),
                   name,
                   url,
-                  lastTime: dayjs().format(dateFormat),
+                  lastUpdate: dayjs().format(dateFormat),
                 };
-                addBook({ ...newBook, user });
+                editBook({ user: { id, password }, book: newBook });
                 navigate(`/selectChatper?bookId=${newBook.id}`);
               }}
             />
           );
         })}
       </Bookshelf>
-      {(isLoading || isReFetching) && (
+      {isLoading && (
         <Mask
           color="white"
           visible={true}
@@ -128,6 +132,6 @@ export default function SearchBook() {
         </div>
       )}
       <Setting />
-    </PullToRefresh>
+    </HFullPullRefresh>
   );
 }

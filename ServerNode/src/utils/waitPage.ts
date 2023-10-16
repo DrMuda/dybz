@@ -9,13 +9,14 @@ export type WherePages =
   | "isCloudflare"
   | "isLoading"
   | "isEmptySearch"
+  | "isPageNoFound"
 
 export const timeout = (): Promise<WherePages> => {
   // 兜底， 防止一直等待
   return new Promise((r) => {
     setTimeout(() => {
       r("isTimeout")
-    }, 40000)
+    }, 29000)
   })
 }
 export const loopWait = async (
@@ -51,7 +52,9 @@ export const waitSearchError = (content: string): boolean => {
 export const waitCloudflare = (content: string): boolean => {
   return !!content.toLowerCase().match("cloudflare")
 }
-
+export const waitPageNoFound = (content: string): boolean => {
+  return !!content.toLowerCase().match("404 Not Found")
+}
 export const pagesAction = async (wherePages: WherePages, page: Page) => {
   switch (wherePages) {
     case "isChecking": {
@@ -61,6 +64,9 @@ export const pagesAction = async (wherePages: WherePages, page: Page) => {
     case "isVerify": {
       await page.type("input", "1234")
       await page.click("a")
+      await sleep(500)
+      await page.click("a")
+
       // await Promise.allSettled([page.waitForNavigation(), ])
       break
     }
@@ -87,6 +93,7 @@ export async function waitPage(
       isSearchError: loopWait(page, waitSearchError, "isSearchError"),
       isCloudflare: loopWait(page, waitCloudflare, "isCloudflare"),
       isEmptySearch: loopWait(page, waitEmptySearch, "isEmptySearch"),
+      isPageNoFound: loopWait(page, waitPageNoFound, "isPageNoFound"),
       ...waitList
     }
     delete tempWaitList["isLoading"]

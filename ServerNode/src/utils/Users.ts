@@ -2,15 +2,16 @@ import isFileExistedAndCreate from "./isFileExistedAndCreate"
 import fs from "fs"
 import moment from "moment"
 import Log from "./Log"
-import { User, Users as IUsers, UserId } from "../type"
+import { User, Users as IUsers, UserId } from "../types"
 
 const fileName = "../data/users.json"
 const timeFomat = "YYYY-MM-DD HH:mm:ss"
 
 class Users {
-  users: IUsers = {}
-  hasNewData = false
-  constructor() {
+  private static instance: Users
+  private users: IUsers = {}
+  private hasNewData = false
+  private constructor() {
     this._init()
     setInterval(() => {
       if (this.hasNewData) {
@@ -20,7 +21,14 @@ class Users {
     }, 5000)
   }
 
-  async _init() {
+  public static getInstance() {
+    if (!Users.instance) {
+      Users.instance = new Users()
+    }
+    return Users.instance
+  }
+
+  private async _init() {
     const isExist = await isFileExistedAndCreate(fileName, "{}")
     if (isExist) {
       fs.open(fileName, "r", (e) => {
@@ -97,13 +105,9 @@ class Users {
   }
 
   getUser(id: UserId, password: User["password"]) {
-    if (this.users[id]) {
-      if (this.users[id].password === password) {
-        return this.users[id]
-      }
-      return "user error"
-    }
-    return "not exist"
+    if (!this.users[id]) return "not exist"
+    if (this.users[id].password !== password) return "user error"
+    return this.users[id]
   }
 
   async set(users: IUsers) {
@@ -112,7 +116,8 @@ class Users {
     return await this._updateFile()
   }
 
-  async setUser(id: UserId, password: User["password"], user: User) {
+  async setUser(id: UserId, user: User) {
+    const { password } = user
     if (this.users[id]) {
       if (this.users[id].password === password) {
         this.users[id] = { ...user, password, lastUpdate: moment().format(timeFomat) }
@@ -129,4 +134,4 @@ class Users {
   }
 }
 
-export default new Users()
+export default Users

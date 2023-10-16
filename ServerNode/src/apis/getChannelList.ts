@@ -1,9 +1,11 @@
 import { Request, Response } from "express"
 import PuppeteerSingleton from "../utils/PuppeteerSingle"
 import { puppeteerError } from "../utils/utils"
-import { ResSendData } from "../type"
+import { ResSendData } from "../types"
 import jsdom from "jsdom"
-import Log from '../utils/Log'
+import Log from "../utils/Log"
+import { GetChannelListRes } from "./types"
+import { waitPage } from "../utils/waitPage"
 
 const { JSDOM } = jsdom
 const puppeteer = PuppeteerSingleton.getInstance()
@@ -25,20 +27,28 @@ export default async (req: Request, res: Response): Promise<void> => {
     }
 
     await page.goto(channelPageUrl)
-    await page.waitForSelector(".navigation-content")
+    const waitRes = await waitPage(page, {
+      isTarGetPage: new Promise((r) => {
+        page.waitForSelector(".navigation-content").then(() => r("isTarGetPage"))
+      })
+    })
+    if (waitRes !== "isTarGetPage") {
+      res.send({ status: "error", message: waitRes } as ResSendData)
+      return
+    }
+
     const content = await page.content()
     const { document: doc } = new JSDOM(content).window
     const aEleList = doc.querySelectorAll(".navigation-content a")
-    const url: string[] = []
+    const urlList: string[] = []
     aEleList.forEach((ele) => {
       const href = ele.getAttribute("href")
-      href && url.push(href)
+      href && urlList.push(href)
     })
     res.send({
       status: "success",
-      data: url
-    } as ResSendData)
-    page.close()
+      data: Array.from(new Set(urlList))
+    } as GetChannelListRes)
   } catch (error) {
     Log.error(`${error}`)
     res.send({

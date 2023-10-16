@@ -1,12 +1,13 @@
 import React, { ReactNode } from "react";
 import { useLocalStorage } from "react-use";
 import { localStorageKey } from "../config";
-import imgAndChar from "../../../data/imgAndChar.json";
-import oldNewKey from "../../../data/oldNewKey.json";
+import md5ToCharMapInFile from "../../../data/md5ToCharMap.json";
+import imgIdToMd5MapInFile from "../../../data/imgIdToMd5Map.json";
+import { ImgIdToMd5Map } from '../types';
 
 const key = localStorageKey;
 export interface User {
-  name?: string;
+  id?: string;
   password?: string;
 }
 export interface Ocr {
@@ -24,8 +25,8 @@ interface ContextValue {
   setUser: (user: User) => void;
   ocr?: Ocr;
   setOcr: (ocr: Ocr) => void;
-  imgIdToMd5Map?: Record<string, string>;
-  setImgIdToMd5Map: (value: Record<string, string>) => void;
+  imgIdToMd5Map?: ImgIdToMd5Map;
+  setImgIdToMd5Map: (value: ImgIdToMd5Map) => void;
   md5ToCharMap?: Md5ToCharMap;
   updateChar: (key: string, newChar: string, newImg?: string) => void;
   updateImgId: (imgId: string, imgMd5: string) => void;
@@ -57,11 +58,11 @@ export default function LocalStorageProvider({
   const [ocr, setOcr] = useLocalStorage<Ocr>(key.ocr);
   const [imgIdToMd5Map = {}, setImgIdToMd5Map] = useLocalStorage<
     Record<string, string>
-  >(key.imgIdToMd5Map, oldNewKey);
+  >(key.imgIdToMd5Map, imgIdToMd5MapInFile);
 
   const [md5ToCharMap = {}, setCharMap] = useLocalStorage<Md5ToCharMap>(
     key.md5ToCharMap,
-    imgAndChar
+    md5ToCharMapInFile
   );
   const updateChar: ContextValue["updateChar"] = (key, newChar, newImg) => {
     md5ToCharMap[key] = {

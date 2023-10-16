@@ -1,15 +1,16 @@
 import isFileExistedAndCreate from "./isFileExistedAndCreate"
 import fs from "fs"
 import Log from "./Log"
-import { OldNewKey as IOldNewKey } from "../type"
+import { Md5ToCharMap as IMd5ToCharMap, ImgAndCharItem } from "../types"
 
-const fileName = "../data/oldNewKey.json"
-class OldNewKey {
-  oldNewKey: IOldNewKey = {}
+const fileName = "../data/md5ToCharMap.json"
+class Md5ToCharMap {
+  private static instance: Md5ToCharMap
+  md5ToCharMap: IMd5ToCharMap = {}
+  hasNewData: boolean = false
   keys: string[] = []
-  hasNewData = false
 
-  constructor() {
+  private constructor() {
     this._init()
     setInterval(() => {
       if (this.hasNewData) {
@@ -18,7 +19,14 @@ class OldNewKey {
     }, 5000)
   }
 
-  async _init() {
+  public static getInstance() {
+    if (!Md5ToCharMap.instance) {
+      Md5ToCharMap.instance = new Md5ToCharMap()
+    }
+    return Md5ToCharMap.instance
+  }
+
+  private async _init() {
     const isExist = await isFileExistedAndCreate(fileName, "{}")
     if (isExist) {
       fs.open(fileName, "r", (e) => {
@@ -29,8 +37,8 @@ class OldNewKey {
             if (e) {
               Log.error(`文件读取有误：${fileName}`)
             } else {
-              this.oldNewKey = JSON.parse(data.toString("utf-8"))
-              this.keys = Object.keys(this.oldNewKey)
+              this.md5ToCharMap = JSON.parse(data.toString())
+              this.keys = Object.keys(this.md5ToCharMap)
             }
           })
         }
@@ -41,7 +49,7 @@ class OldNewKey {
   }
 
   // 将数据更新到文件或从文件更新到内存
-  async _updateFile(reverse = false) {
+  private async _updateFile(reverse = false) {
     return new Promise((resolve, reject) => {
       isFileExistedAndCreate(fileName, "{}").then((isExist) => {
         if (isExist) {
@@ -50,7 +58,7 @@ class OldNewKey {
               if (e) {
                 Log.error(`文件读取有误：${fileName}`)
               } else {
-                fs.writeFile(fileName, JSON.stringify(this.oldNewKey, null, 4), (e) => {
+                fs.writeFile(fileName, JSON.stringify(this.md5ToCharMap, null, 4), (e) => {
                   if (e) {
                     Log.error(`文件写入失败：${fileName}`)
                     Log.error(e)
@@ -74,7 +82,7 @@ class OldNewKey {
                     Log.error(`文件读取有误：${fileName}`)
                     reject(false)
                   } else {
-                    this.oldNewKey = JSON.parse(data.toString("utf-8"))
+                    this.md5ToCharMap = JSON.parse(data.toString())
                     Log.info(`已更新内存数据：${fileName}`)
                     resolve(true)
                   }
@@ -91,39 +99,42 @@ class OldNewKey {
   }
 
   get() {
-    return this.oldNewKey
+    return this.md5ToCharMap
   }
 
-  getByOldKey(oldKey:string) {
-    return this.oldNewKey[oldKey]
+  getByKey(key: string) {
+    if (this.md5ToCharMap[key]) {
+      return this.md5ToCharMap[key]
+    }
+    return null
   }
 
-  getTotalPage(size:number) {
+  getTotalPage(size: number) {
     return Math.ceil(this.keys.length / size)
   }
 
-  getByPage(page:number, size:number) {
+  getByPage(page: number, size: number) {
     const keys = this.keys.slice((page - 1) * size, page * size)
-    const oldNewKey:IOldNewKey = {}
+    const md5ToCharMap: IMd5ToCharMap = {}
     keys.forEach((key) => {
-      oldNewKey[key] = this.oldNewKey[key]
+      md5ToCharMap[key] = this.md5ToCharMap[key]
     })
-    return oldNewKey
+    return md5ToCharMap
   }
 
-  async set(oldNewKey:IOldNewKey) {
-    this.oldNewKey = oldNewKey
+  async set(md5ToCharMap: IMd5ToCharMap) {
+    this.md5ToCharMap = md5ToCharMap
     this.hasNewData = true
-    this.keys = Object.keys(this.oldNewKey)
+    this.keys = Object.keys(this.md5ToCharMap)
     return true
   }
 
-  async setByOldKey(oldKey:string, newKey:string) {
-    this.oldNewKey[oldKey] = newKey
+  async setItem(key: string, item: ImgAndCharItem) {
+    this.md5ToCharMap[key] = item
     this.hasNewData = true
-    this.keys = Object.keys(this.oldNewKey)
+    this.keys = Object.keys(this.md5ToCharMap)
     return true
   }
 }
 
-export default new OldNewKey()
+export default Md5ToCharMap

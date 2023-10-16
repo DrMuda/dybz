@@ -3,7 +3,9 @@ import PuppeteerSingleton from "../utils/PuppeteerSingle"
 import { puppeteerError } from "../utils/utils"
 import Log from "../utils/Log"
 import jsdom from "jsdom"
-import { ResSendData } from "../type"
+import { ResSendData } from "../types"
+import { SearchBookParams, SearchBookRes } from './types'
+import { waitPage } from '../utils/waitPage'
 
 const { JSDOM } = jsdom
 const puppeteer = PuppeteerSingleton.getInstance()
@@ -19,11 +21,7 @@ export default async (req: Request, res: Response): Promise<void> => {
       keyword,
       channel,
       page: searchPage
-    } = req.query as {
-      keyword?: string
-      channel?: string
-      page?: number
-    }
+    } = req.query as unknown as SearchBookParams
     if (!keyword) {
       res.send({ status: "error", message: "keyword must string" } as ResSendData)
       return
@@ -49,7 +47,15 @@ export default async (req: Request, res: Response): Promise<void> => {
       },
       { keyword, searchPage }
     )
-    await page.waitForSelector("ul")
+    const waitRes = await waitPage(page, {
+      isTarGetPage: new Promise((r) => {
+        page.waitForSelector("ul").then(() => r("isTarGetPage"))
+      })
+    })
+    if (waitRes !== "isTarGetPage") {
+      res.send({ status: "error", message: waitRes } as ResSendData)
+      return
+    }
 
     const content = await page.content()
     const pageMsg = content.match(/第[0-9]+\/[0-9]+页/)
@@ -77,7 +83,8 @@ export default async (req: Request, res: Response): Promise<void> => {
         totalPage,
         bookList
       }
-    } as ResSendData)
+    } as SearchBookRes)
+    // page.close()
   } catch (error) {
     Log.error(`${error}`)
     res.send({

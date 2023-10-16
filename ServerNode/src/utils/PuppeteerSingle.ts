@@ -17,8 +17,8 @@ class PuppeteerSingleton {
         "--ignore-certifcate-errors-spki-list",
         "--disable-web-security"
       ],
-      headless: "new",
-      // headless: false,
+      // headless: "new",
+      headless: false,
       executablePath:
         process.env.NODE_ENV === "production"
           ? "/home/software/chromium/linux-982053/chrome-linux/chrome"
@@ -30,6 +30,10 @@ class PuppeteerSingleton {
     await page.on("request", (interceptedRequest) => {
       // 此图片不能阻止， 否则超时
       if (interceptedRequest.url().endsWith("jipin-default.jpg")) {
+        interceptedRequest.continue()
+        return
+      }
+      if (interceptedRequest.url().includes("/toimg/data")) {
         interceptedRequest.continue()
         return
       }

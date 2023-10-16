@@ -3,7 +3,7 @@ import PuppeteerSingleton from "../utils/PuppeteerSingle"
 import { puppeteerError } from "../utils/utils"
 import Log from "../utils/Log"
 import jsdom from "jsdom"
-import { ResSendData } from '../type'
+import { ResSendData } from '../types'
 
 const { JSDOM } = jsdom
 const puppeteer = PuppeteerSingleton.getInstance()

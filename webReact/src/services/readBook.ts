@@ -1,12 +1,8 @@
-import api, { ApiResult } from './request';
+import api from "./request";
+import { GetBookPageContentParams, GetBookPageContentRes } from "./serverApiTypes";
 
-export interface BookPageContent{
-  chatperUrl: string
-  preChatperUrl: string,
-  nextChatperUrl: string,
-  pageUrlList: string[],
-  content: string[]
-}
-export function getBookPageContent(bookUrl: string):Promise<ApiResult<BookPageContent>>{
-  return api.get("", {params:{bookUrl}})
+export function getBookPageContent(
+  params: GetBookPageContentParams
+): Promise<GetBookPageContentRes> {
+  return api.get("/api/getBookPageContent", { params });
 }

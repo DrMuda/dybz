@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { Button, Radio, Space, Toast } from "antd-mobile";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { AiFillSetting, AiOutlineClose } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import md5 from "md5";
@@ -8,8 +8,9 @@ import { useLocalStorage } from "react-use";
 import { localStorageKey } from "../config";
 import BorderInput from "./BorderInput";
 import { LocalStorageContext, Ocr } from "../contexts/LocalStorageContext";
-import { getChannelList } from '../services/setting';
-import LoadingButton from './LoadingButton';
+import { getChannelList } from "../services/setting";
+import LoadingButton from "./LoadingButton";
+import { AppContext } from "../contexts/AppContext";
 
 const Container = styled.div(
   ({ open, position }: { open: boolean; position: "left" | "right" }) => ({
@@ -73,7 +74,7 @@ export default function Setting({
 }: {
   position?: "left" | "right";
 }) {
-  const [open, setOpen] = useState(false);
+  const { settingOpen, setSettingOpen } = useContext(AppContext);
   const navigate = useNavigate();
   const {
     user,
@@ -91,12 +92,18 @@ export default function Setting({
 
   return (
     <div
-      className="w-full h-full"
-      style={{ pointerEvents: open ? "auto" : "none" }}
+      className="w-full h-full fixed z-50"
+      style={{ pointerEvents: settingOpen ? "auto" : "none" }}
     >
-      <Container open={open} position={position}>
-        <AiFillSetting className="set-icon" onClick={() => setOpen(true)} />
-        <AiOutlineClose className="close-icon" onClick={() => setOpen(false)} />
+      <Container open={settingOpen || false} position={position}>
+        <AiFillSetting
+          className="set-icon"
+          onClick={() => setSettingOpen(true)}
+        />
+        <AiOutlineClose
+          className="close-icon"
+          onClick={() => setSettingOpen(false)}
+        />
         <div className="main-content">
           <div className="text-lg font-bold mb-2">设置</div>
           <div className="flex flex-col gap-1">
@@ -117,9 +124,9 @@ export default function Setting({
             <div className="flex gap-1">
               <Label>用户名: </Label>
               <BorderInput
-                value={user?.name}
+                value={user?.id}
                 onChange={(value) => {
-                  setUser({ ...user, name: value });
+                  setUser({ ...user, id: value });
                 }}
               />
             </div>
@@ -159,9 +166,12 @@ export default function Setting({
                         Toast.show("请设置路线页面url");
                         return;
                       }
-                      const res = await getChannelList(channelPageUrl)
-                      if(res.status==="success" && res.data instanceof Array){
-                        setChannelList(res.data)
+                      const res = await getChannelList(channelPageUrl);
+                      if (
+                        res.status === "success" &&
+                        res.data instanceof Array
+                      ) {
+                        setChannelList(res.data);
                       }
                     }}
                     color="primary"
