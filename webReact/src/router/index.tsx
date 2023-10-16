@@ -1,11 +1,11 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createHashRouter } from "react-router-dom";
 import Home from "../pages/Home";
 import SearchBook from "../pages/SearchBook";
 import SelectChatper from "../pages/SelectChatper";
 import CharManage from "../pages/CharManage";
-import ReadBook from '../pages/ReadBook';
+import ReadBook from "../pages/ReadBook";
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   { path: "/", element: <Home /> },
   { path: "/home", element: <Home /> },
   { path: "/searchBook", element: <SearchBook /> },

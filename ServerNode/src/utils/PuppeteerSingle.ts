@@ -6,6 +6,7 @@ class PuppeteerSingleton {
   private page: Page | null = null
 
   private async init() {
+    console.log("init puppeteer")
     const browser = await puppeteer.launch({
       ignoreHTTPSErrors: true,
       args: [
@@ -17,11 +18,11 @@ class PuppeteerSingleton {
         "--ignore-certifcate-errors-spki-list",
         "--disable-web-security"
       ],
-      // headless: "new",
-      headless: false,
+      headless: "new",
+      // headless: false,
       executablePath:
         process.env.NODE_ENV === "production"
-          ? "/home/software/chromium/linux-982053/chrome-linux/chrome"
+          ? "../Chromium.app"
           : undefined
     })
     const page = await browser.newPage()

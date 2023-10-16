@@ -1,10 +1,9 @@
-import Users from "./utils/Users"
 import Log from "./utils/Log"
 import getDHTML from "./utils/getDHTML"
 import getSearchDHTML from "./utils/getSearchDHTML"
 import getNovelDHTML from "./utils/getNovelDHTML"
 import { Request, Response } from "express"
-import {ResSendData } from "./types"
+import { ResSendData } from "./types"
 import axios from "axios"
 import getChannelList from "./apis/getChannelList"
 import searchBook from "./apis/searchBook"
@@ -66,48 +65,48 @@ async function getNovel(req: Request, res: Response) {
 }
 
 const route: Api = {
-  "/reptileDHTML": {
+  "/api/reptileDHTML": {
     method: "post",
     message: reptileDHTML
   },
-  "/search": {
+  "/api/search": {
     method: "post",
     message: search
   },
-  "/getImg": {
+  "/api/getImg": {
     method: "get",
     message: getImg
   },
-  "/getNovel": {
+  "/api/getNovel": {
     method: "get",
     message: getNovel
   },
 
-  "/getChannelList": {
+  "/api/getChannelList": {
     method: "get",
     message: getChannelList
   },
-  "/searchBook": {
+  "/api/searchBook": {
     message: searchBook,
     method: "get"
   },
-  "/getBookList": {
+  "/api/getBookList": {
     message: getBookList,
     method: "get"
   },
-  "/editBook": {
+  "/api/editBook": {
     message: editBook,
     method: "post"
   },
-  "/delBook": {
+  "/api/delBook": {
     message: delBook,
     method: "post"
   },
-  "/getChatperList": {
+  "/api/getChatperList": {
     message: getChatperList,
     method: "get"
   },
-  "/getBookPageContent": {
+  "/api/getBookPageContent": {
     message: getBookPageContent,
     method: "get"
   }

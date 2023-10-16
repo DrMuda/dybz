@@ -3,7 +3,7 @@ import Setting from "../components/Setting";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import classnames from "classnames";
 import styled from "@emotion/styled";
-import { useLocalStorage, useSearchParam, useToggle } from "react-use";
+import { useLocalStorage, useSearchParam } from "react-use";
 import { useNavigate } from "react-router";
 import { getBookPageContent } from "../services/readBook";
 import { localStorageKey } from "../config";
@@ -80,24 +80,24 @@ export default function ReadBook() {
       );
       if (!(res?.status === "success") || !res.data) return;
       setCacheBook(res.data);
-      const domParser = new DOMParser()
-      const doc = domParser.parseFromString(res.message||"", "text/html")
-      const neiRong = doc.querySelector(".neirong")
-      const neirongChildrenList:Element[] = []
-      const flatDomTree = (dom: Element, level:number) => {
-        console.log(dom.tagName, dom?.getAttribute?.("class"), level)
-        if (dom?.getAttribute?.("style")?.includes("display: none")) return
+      const domParser = new DOMParser();
+      const doc = domParser.parseFromString(res.message || "", "text/html");
+      const neiRong = doc.querySelector(".neirong");
+      const neirongChildrenList: Element[] = [];
+      const flatDomTree = (dom: Element, level: number) => {
+        console.log(dom.tagName, dom?.getAttribute?.("class"), level);
+        if (dom?.getAttribute?.("style")?.includes("display: none")) return;
         if (dom.tagName === "DIV") {
           dom.childNodes.forEach((node) => {
-            flatDomTree(node as Element, level+1)
-          })
+            flatDomTree(node as Element, level + 1);
+          });
         } else {
-          neirongChildrenList.push(dom)
+          neirongChildrenList.push(dom);
         }
-      }
-      neiRong && flatDomTree(neiRong, 1)
-      console.log(neiRong)
-      console.log(neirongChildrenList)
+      };
+      neiRong && flatDomTree(neiRong, 1);
+      console.log(neiRong);
+      console.log(neirongChildrenList);
 
       return res.data;
     },
@@ -181,7 +181,14 @@ export default function ReadBook() {
               const md5Id = imgIdToMd5Map?.[imgId] || "";
               const { char } = md5ToCharMap?.[md5Id] || {};
               if (char) return <span>{char}</span>;
-              return <img key={index} src={src} className="h-4 w-4" referrerPolicy="no-referrer" />;
+              return (
+                <img
+                  key={index}
+                  src={src}
+                  className="h-4 w-4"
+                  referrerPolicy="no-referrer"
+                />
+              );
             }
             if (text === "<br>") return <br key={index} />;
             return <span key={index}>{text}</span>;

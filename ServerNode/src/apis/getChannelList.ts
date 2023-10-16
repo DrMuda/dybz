@@ -10,6 +10,7 @@ import { waitPage } from "../utils/waitPage"
 const { JSDOM } = jsdom
 const puppeteer = PuppeteerSingleton.getInstance()
 export default async (req: Request, res: Response): Promise<void> => {
+  console.log("getChannelList")
   try {
     const page = await puppeteer.getPage()
     if (!page) {

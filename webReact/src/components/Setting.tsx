@@ -166,8 +166,13 @@ export default function Setting({
                         Toast.show("请设置路线页面url");
                         return;
                       }
-                      const res = await getChannelList(channelPageUrl);
+                      const res = await getChannelList(channelPageUrl).catch(
+                        (error) => {
+                          Toast.show(error);
+                        }
+                      );
                       if (
+                        res &&
                         res.status === "success" &&
                         res.data instanceof Array
                       ) {

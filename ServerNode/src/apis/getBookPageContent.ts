@@ -8,6 +8,7 @@ import { GetBookPageContentParams, GetBookPageContentRes } from "./types"
 import { waitPage } from "../utils/waitPage"
 import ImgIdToMd5Map from "../utils/ImgIdToMd5Map"
 import Md5ToCharMap from "../utils/Md5ToCharMap"
+import md5 from "md5"
 
 const { JSDOM } = jsdom
 const puppeteer = PuppeteerSingleton.getInstance()
@@ -48,19 +49,21 @@ export default async (req: Request, res: Response): Promise<void> => {
     await sleep(500)
     let content = await page.content()
 
-    if(content.includes(".append(e)")){
-      await page.waitForRequest(
-        (request) => {
-          return (
-            request.url() === url &&
-            request.method() === "POST" &&
-            request.resourceType() !== "preflight"
-          )
-        },
-        {
-          timeout: 10000
-        }
-      ).catch(()=>null)
+    if (content.includes(".append(e)")) {
+      await page
+        .waitForRequest(
+          (request) => {
+            return (
+              request.url() === url &&
+              request.method() === "POST" &&
+              request.resourceType() !== "preflight"
+            )
+          },
+          {
+            timeout: 10000
+          }
+        )
+        .catch(() => null)
     }
     await sleep(500)
 
@@ -71,11 +74,11 @@ export default async (req: Request, res: Response): Promise<void> => {
     let neiRong = document.querySelector(".chapterinfo") || document.querySelector(".neirong")
 
     const neirongChildrenList: Element[] = []
-    const flatDomTree = (dom: Element, level:number) => {
+    const flatDomTree = (dom: Element, level: number) => {
       if (dom?.getAttribute?.("style")?.includes("display: none")) return
       if (dom.tagName === "DIV") {
         dom.childNodes.forEach((node) => {
-          flatDomTree(node as Element, level+1)
+          flatDomTree(node as Element, level + 1)
         })
       } else {
         neirongChildrenList.push(dom)
@@ -105,6 +108,25 @@ export default async (req: Request, res: Response): Promise<void> => {
         }
         if (img) {
           neiRongList.push(`<img>:${img}`)
+          continue
+        }
+        const imageElement = await page.$("img")
+        if (imageElement) {
+          const base64Image = await imageElement.evaluate((element) => {
+            const canvas = document.createElement("canvas")
+            const context = canvas.getContext("2d")
+            canvas.width = element.width
+            canvas.height = element.height
+            context?.drawImage(element, 0, 0, element.width, element.height)
+            return canvas.toDataURL("image/png") // 获取图像的Base64编码
+          })
+          const md5Key = md5(base64Image)
+          imgIdToMd5Map.setByImgId(src, md5Key)
+          md5ToCharMap.setItem(md5Key, {
+            char: "",
+            img: base64Image
+          })
+          neiRongList.push(`<img>:${base64Image}`)
           continue
         }
 
@@ -149,7 +171,7 @@ export default async (req: Request, res: Response): Promise<void> => {
         pageList,
         preUrl,
         nextUrl
-      },
+      }
     } as GetBookPageContentRes)
     return
   } catch (error) {

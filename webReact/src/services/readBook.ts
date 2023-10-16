@@ -1,5 +1,8 @@
 import api from "./request";
-import { GetBookPageContentParams, GetBookPageContentRes } from "./serverApiTypes";
+import {
+  GetBookPageContentParams,
+  GetBookPageContentRes,
+} from "./serverApiTypes";
 
 export function getBookPageContent(
   params: GetBookPageContentParams

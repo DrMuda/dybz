@@ -1,6 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { ResSendData } from "../types";
 import { Toast } from "antd-mobile";
+import { serverDomain } from "../config";
 
 const api = axios.create({
   timeout: 60000,
@@ -12,6 +13,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  config.url = import.meta.env.DEV ? config.url : serverDomain + config.url;
   config.headers.set("timestamp", new Date().getTime());
   return config;
 });
