@@ -3,7 +3,6 @@ import puppeteer, { Browser, Page, KnownDevices } from "puppeteer"
 class PuppeteerSingleton {
   private static instance: PuppeteerSingleton
   private browser: Browser | null = null
-  private page: Page | null = null
 
   private async init() {
     console.log("init puppeteer")
@@ -18,14 +17,31 @@ class PuppeteerSingleton {
         "--ignore-certifcate-errors-spki-list",
         "--disable-web-security"
       ],
-      // headless: "new",
-      headless: false,
+      headless: "new",
+      // headless: false,
       executablePath:
         process.env.NODE_ENV === "production"
           ? "../Chromium.app"
           : undefined
     })
-    const page = await browser.newPage()
+    this.browser = browser
+  }
+
+  public static getInstance(): PuppeteerSingleton {
+    if (!PuppeteerSingleton.instance) {
+      PuppeteerSingleton.instance = new PuppeteerSingleton()
+    }
+    return PuppeteerSingleton.instance
+  }
+  public async getBrowser(): Promise<Browser | null> {
+    if (!this.browser) await this.init()
+    return this.browser
+  }
+  public async newPage(): Promise<Page | null> {
+    if (!this.browser) await this.init()
+    
+    const page = await this.browser?.newPage()
+    if(!page) throw "new page error"
     page.emulate(KnownDevices["Galaxy Note 3"])
     await page.setRequestInterception(true)
     await page.on("request", (interceptedRequest) => {
@@ -49,23 +65,7 @@ class PuppeteerSingleton {
       }
       interceptedRequest.continue()
     })
-    this.browser = browser
-    this.page = page
-  }
-
-  public static getInstance(): PuppeteerSingleton {
-    if (!PuppeteerSingleton.instance) {
-      PuppeteerSingleton.instance = new PuppeteerSingleton()
-    }
-    return PuppeteerSingleton.instance
-  }
-  public async getBrowser(): Promise<Browser | null> {
-    if (!this.browser) await this.init()
-    return this.browser
-  }
-  public async getPage(): Promise<Page | null> {
-    if (!this.page) await this.init()
-    return this.page
+    return page
   }
 }
 

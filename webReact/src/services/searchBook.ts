@@ -1,15 +1,7 @@
-import api, { ApiResult } from "./request";
+import api from "./request";
+import { SearchBookParams, SearchBookRes } from './serverApiTypes';
 
-interface SearchBook {
-  totalPage: number;
-  bookList: { url: string; name: string }[];
-}
 /** 通过关键字搜书，非书架上的书籍 */
-export const searchBookList = (params: {
-  keyword: string;
-  channel: string;
-  page: number;
-}): Promise<ApiResult<SearchBook>> => {
+export const searchBookList = (params:SearchBookParams): Promise<SearchBookRes> => {
   return api({ url: "/api/searchBook", method: "get", params });
 };
-

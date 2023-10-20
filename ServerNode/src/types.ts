@@ -5,7 +5,7 @@ export type ImgAndCharItem = { img?: string; char?: string }
 export type Md5ToCharMap = Record<string, ImgAndCharItem>
 export interface ResSendData extends Record<string, any> {
   status: "success" | "error" | (string & {})
-  message?: string
+  message?: string | null
   data?: any
 }
 

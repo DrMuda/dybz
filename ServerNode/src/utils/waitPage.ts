@@ -58,7 +58,7 @@ export const waitPageNoFound = (content: string): boolean => {
 export const pagesAction = async (wherePages: WherePages, page: Page) => {
   switch (wherePages) {
     case "isChecking": {
-      await page.waitForSelector("input")
+      await page.waitForSelector("input").catch(() => null)
       break
     }
     case "isVerify": {
@@ -66,8 +66,6 @@ export const pagesAction = async (wherePages: WherePages, page: Page) => {
       await page.click("a")
       await sleep(500)
       await page.click("a")
-
-      // await Promise.allSettled([page.waitForNavigation(), ])
       break
     }
     case "isTimeout": {

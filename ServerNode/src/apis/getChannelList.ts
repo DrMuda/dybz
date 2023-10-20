@@ -1,40 +1,31 @@
-import { Request, Response } from "express"
-import PuppeteerSingleton from "../utils/PuppeteerSingle"
-import { puppeteerError } from "../utils/utils"
-import { ResSendData } from "../types"
 import jsdom from "jsdom"
-import Log from "../utils/Log"
 import { GetChannelListRes } from "./types"
 import { waitPage } from "../utils/waitPage"
+import createPuppeteerApi from "../utils/createPuppeteerApi"
 
 const { JSDOM } = jsdom
-const puppeteer = PuppeteerSingleton.getInstance()
-export default async (req: Request, res: Response): Promise<void> => {
-  console.log("getChannelList")
-  try {
-    const page = await puppeteer.getPage()
-    if (!page) {
-      res.send(puppeteerError)
-      return
-    }
-
-    const { channelPageUrl } = req.query as { channelPageUrl?: string }
+export default createPuppeteerApi<{ channelPageUrl?: string }, {}, GetChannelListRes>(
+  async (req, res, page) => {
+    const { channelPageUrl } = req.query
     if (typeof channelPageUrl !== "string") {
       res.send({
         status: "error",
         message: "channelPageUrl must string"
-      } as ResSendData)
+      })
       return
     }
 
     await page.goto(channelPageUrl)
     const waitRes = await waitPage(page, {
       isTarGetPage: new Promise((r) => {
-        page.waitForSelector(".navigation-content").then(() => r("isTarGetPage"))
+        page
+          ?.waitForSelector(".navigation-content")
+          .then(() => r("isTarGetPage"))
+          .catch(() => null)
       })
     })
     if (waitRes !== "isTarGetPage") {
-      res.send({ status: "error", message: waitRes } as ResSendData)
+      res.send({ status: "error", message: waitRes })
       return
     }
 
@@ -49,12 +40,6 @@ export default async (req: Request, res: Response): Promise<void> => {
     res.send({
       status: "success",
       data: Array.from(new Set(urlList))
-    } as GetChannelListRes)
-  } catch (error) {
-    Log.error(`${error}`)
-    res.send({
-      status: "error",
-      message: `${error}`
     })
   }
-}
+)

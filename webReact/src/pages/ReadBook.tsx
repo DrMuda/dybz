@@ -1,6 +1,13 @@
 import { Button, Input, Mask, Modal, SpinLoading, Toast } from "antd-mobile";
 import Setting from "../components/Setting";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import classnames from "classnames";
 import styled from "@emotion/styled";
 import { useLocalStorage } from "react-use";
@@ -31,6 +38,7 @@ export default function ReadBook() {
   const [edittingCharImg, setEdittingCharImg] = useState<string>();
   const { updateChar, updateImgId, imgIdToMd5Map, md5ToCharMap, user } =
     useContext(LocalStorageContext);
+  const toTopDomRef = useRef<HTMLDivElement>(null);
 
   const { data: bookListRes } = useQuery({
     queryKey: ["getBookList"],
@@ -138,6 +146,7 @@ export default function ReadBook() {
         user: { id: user.id, password: user.password },
       });
     }
+    toTopDomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [data]);
 
   const handleDoubleClick = useCallback(() => {
@@ -189,12 +198,15 @@ export default function ReadBook() {
 
         <div
           className={classnames({
-            "flex-1 h-full scale-100": true,
+            "flex-1 h-full scale-100 p-2": true,
             "overflow-auto": !isLoading,
             "overflow-hidden": isLoading,
           })}
           onClick={checkDoubleClick}
         >
+          <div ref={toTopDomRef} className="h-0 overflow-hidden">
+            顶部
+          </div>
           {contentList?.map((text, index) => {
             if (text?.match(/^<img>:/)) {
               const src = text.replace(/^<img>:/, "");
@@ -208,7 +220,9 @@ export default function ReadBook() {
                   src={src}
                   className="h-4 w-4"
                   referrerPolicy="no-referrer"
-                  onClick={()=>{setEdittingCharImg(src)}}
+                  onClick={() => {
+                    setEdittingCharImg(src);
+                  }}
                 />
               );
             }

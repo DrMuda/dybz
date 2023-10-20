@@ -1,17 +1,18 @@
-import { Request, Response } from "express"
 import Log from "../utils/Log"
-import { Book, ResSendData } from "../types"
 import Users from "../utils/Users"
 import moment from "moment"
 import { dateFormat, userError, userNoExistError } from "../utils/utils"
 import { GetBookListRes, DelBookParams, EditBookParams, GetBookListParams } from "./types"
+import createApi from "../utils/createApi"
+import { ResSendData } from "../types"
 
 const users = Users.getInstance()
 
-export const getBookList = async (req: Request, res: Response): Promise<void> => {
-  const { userId, userPassword } = req.query as unknown as GetBookListParams
+export const getBookList = createApi<GetBookListParams, {}, GetBookListRes>(async (req, res) => {
+  Log.info(`${req.url}, ${req.query}, ${req.body}`)
+  const { userId, userPassword } = req.query
   if (!userId || !userPassword) {
-    res.send({ status: "error", message: "userId and userPassword is required" } as ResSendData)
+    res.send({ status: "error", message: "userId and userPassword is required" })
     return
   }
 
@@ -27,83 +28,75 @@ export const getBookList = async (req: Request, res: Response): Promise<void> =>
   res.send({
     data: userRes.bookList.filter((book) => !book.delete),
     status: "success"
-  } as GetBookListRes)
-}
+  })
+})
 
-export const editBook = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { user, book } = req.body as unknown as EditBookParams
-    if (!user || !book) {
-      res.send({ status: "error", message: "user and book is required" } as ResSendData)
-      return
-    }
-    if (!user.id || !user.password) {
-      res.send({
-        status: "error",
-        message: "user.id and user.password must string"
-      } as ResSendData)
-      return
-    }
-    if (!book.id || !book.url || !book.name) {
-      res.send({
-        status: "error",
-        message: "book.id must number, book.url and book.name must string"
-      } as ResSendData)
-      return
-    }
-
-    const userRes = users.getUser(user.id, user.password)
-    if (userRes === "user error") {
-      res.send({ status: "error", message: userRes } as ResSendData)
-      return
-    }
-    if (userRes === "not exist") {
-      users.setUser(user.id, {
-        bookList: [{ ...book, lastUpdate: moment().format(dateFormat), delete: false }],
-        lastUpdate: moment().format(dateFormat),
-        password: user.password
-      })
-      Log.info(`create user:  ${user.id}; add book: ${book.id}`)
-      res.send({ status: "success", message: "create user and add book" } as ResSendData)
-      return
-    }
-    const foundBook = userRes.bookList.find((_book) => book.id === _book.id)
-    if (foundBook) {
-      foundBook.name = book.name
-      foundBook.url = book.url
-      foundBook.historyUrl = book.historyUrl
-      foundBook.lastUpdate = moment().format(dateFormat)
-      users.setUser(user.id, userRes)
-      Log.info(`user @${user.id} update book: ${book.id}`)
-      res.send({ status: "success", message: "update book" } as ResSendData)
-      return
-    }
-    userRes.bookList.push({ ...book, lastUpdate: moment().format(dateFormat) })
-    users.setUser(user.id, userRes)
-    Log.info(`user @${user.id} add book: ${book.id}`)
-    res.send({ status: "success", message: "add book" } as ResSendData)
-    return
-  } catch (error) {
-    Log.error(`${error}`)
-    res.send({
-      status: "error",
-      message: `${error}`
-    })
-  }
-}
-
-export const delBook = async (req: Request, res: Response): Promise<void> => {
-  const { user, bookId } = req.body as unknown as DelBookParams
-
-  if (!user || !bookId) {
-    res.send({ status: "error", message: "user and bookId is required" } as ResSendData)
+export const editBook = createApi<{}, EditBookParams, ResSendData>(async (req, res) => {
+  const { user, book } = req.body
+  if (!user || !book) {
+    res.send({ status: "error", message: "user and book is required" })
     return
   }
   if (!user.id || !user.password) {
     res.send({
       status: "error",
       message: "user.id and user.password must string"
-    } as ResSendData)
+    })
+    return
+  }
+  if (!book.id || !book.url || !book.name) {
+    res.send({
+      status: "error",
+      message: "book.id must number, book.url and book.name must string"
+    })
+    return
+  }
+
+  const userRes = users.getUser(user.id, user.password)
+  if (userRes === "user error") {
+    res.send({ status: "error", message: userRes })
+    return
+  }
+  if (userRes === "not exist") {
+    users.setUser(user.id, {
+      bookList: [{ ...book, lastUpdate: moment().format(dateFormat), delete: false }],
+      lastUpdate: moment().format(dateFormat),
+      password: user.password
+    })
+    Log.info(`create user:  ${user.id}; add book: ${book.id}`)
+    res.send({ status: "success", message: "create user and add book" })
+    return
+  }
+  const foundBook = userRes.bookList.find((_book) => book.id === _book.id)
+  if (foundBook) {
+    foundBook.name = book.name
+    foundBook.url = book.url
+    foundBook.historyUrl = book.historyUrl
+    foundBook.lastUpdate = moment().format(dateFormat)
+    users.setUser(user.id, userRes)
+    Log.info(`user @${user.id} update book: ${book.id}`)
+    res.send({ status: "success", message: "update book" })
+    return
+  }
+  userRes.bookList.push({ ...book, lastUpdate: moment().format(dateFormat) })
+  users.setUser(user.id, userRes)
+  Log.info(`user @${user.id} add book: ${book.id}`)
+  res.send({ status: "success", message: "add book" })
+  return
+})
+
+export const delBook = createApi<{}, DelBookParams, ResSendData>(async (req, res) => {
+  const { user, bookId } = req.body
+
+  if (!user || !bookId) {
+    res.send({ status: "error", message: "user and bookId is required" })
+    return
+  }
+  if (!user.id || !user.password) {
+    res.send({
+      status: "error",
+      message: "user.id and user.password must string"
+    })
     return
   }
 
@@ -127,6 +120,6 @@ export const delBook = async (req: Request, res: Response): Promise<void> => {
     lastUpdate: moment().format(dateFormat)
   })
   Log.info(`@${user.id} del book: ${foundBook?.id}`)
-  res.send({ status: "success", message: `del book` } as ResSendData)
+  res.send({ status: "success", message: `del book` })
   return
-}
+})

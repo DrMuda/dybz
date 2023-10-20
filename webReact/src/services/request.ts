@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { ResSendData } from "../types";
 import { Toast } from "antd-mobile";
-import { serverDomain } from "../config";
+// import { serverDomain } from "../config";
 
 const api = axios.create({
   timeout: 60000,
@@ -13,7 +13,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  config.url = import.meta.env.DEV ? config.url : serverDomain + config.url;
+  // config.url = import.meta.env.DEV ? config.url : serverDomain + config.url;
   config.headers.set("timestamp", new Date().getTime());
   return config;
 });
@@ -35,12 +35,6 @@ api.interceptors.response.use(
 );
 
 export default api;
-export interface ApiResult<Data = never> {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  status: "success" | "error" | (string & {});
-  message?: string;
-  data?: Data;
-}
 export interface PaginationCofig {
   total: number;
   page: number;

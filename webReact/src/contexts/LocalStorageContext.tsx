@@ -1,9 +1,7 @@
 import React, { ReactNode } from "react";
 import { useLocalStorage } from "react-use";
 import { localStorageKey } from "../config";
-import md5ToCharMapInFile from "../../../data/md5ToCharMap.json";
-import imgIdToMd5MapInFile from "../../../data/imgIdToMd5Map.json";
-import { ImgIdToMd5Map } from '../types';
+import { ImgIdToMd5Map } from "../types";
 
 const key = localStorageKey;
 export interface User {
@@ -58,11 +56,11 @@ export default function LocalStorageProvider({
   const [ocr, setOcr] = useLocalStorage<Ocr>(key.ocr);
   const [imgIdToMd5Map = {}, setImgIdToMd5Map] = useLocalStorage<
     Record<string, string>
-  >(key.imgIdToMd5Map, imgIdToMd5MapInFile);
+  >(key.imgIdToMd5Map, {});
 
   const [md5ToCharMap = {}, setCharMap] = useLocalStorage<Md5ToCharMap>(
     key.md5ToCharMap,
-    md5ToCharMapInFile
+    {}
   );
   const updateChar: ContextValue["updateChar"] = (key, newChar, newImg) => {
     md5ToCharMap[key] = {

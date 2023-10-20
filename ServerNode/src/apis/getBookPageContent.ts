@@ -1,29 +1,70 @@
-import { Request, Response } from "express"
-import PuppeteerSingleton from "../utils/PuppeteerSingle"
-import { parseUrl, puppeteerError, sleep } from "../utils/utils"
-import Log from "../utils/Log"
+import { parseUrl, sleep } from "../utils/utils"
 import jsdom from "jsdom"
-import { ResSendData } from "../types"
 import { GetBookPageContentParams, GetBookPageContentRes } from "./types"
 import { waitPage } from "../utils/waitPage"
 import ImgIdToMd5Map from "../utils/ImgIdToMd5Map"
 import Md5ToCharMap from "../utils/Md5ToCharMap"
 import md5 from "md5"
+import { Page } from "puppeteer"
+import fontMap from "../utils/fontMap"
+import createPuppeteerApi from "../utils/createPuppeteerApi"
 
 const { JSDOM } = jsdom
-const puppeteer = PuppeteerSingleton.getInstance()
 const imgIdToMd5Map = ImgIdToMd5Map.getInstance()
 const md5ToCharMap = Md5ToCharMap.getInstance()
-export default async (req: Request, res: Response): Promise<void> => {
-  try {
-    const page = await puppeteer.getPage()
-    if (!page) {
-      res.send(puppeteerError)
-      return
+
+const getNeirongFromTagImg = async (item: Element, page: Page, domian?: string) => {
+  const src = (item as HTMLImageElement).src
+  const md5Key = imgIdToMd5Map.getByImgId(src || "") || ""
+  const { char, img } = md5ToCharMap.getByKey(md5Key) || {}
+  if (char) {
+    return char
+  }
+  if (img) {
+    return `<img>:${img}`
+  }
+  const imageElement = await page.$(`img[src='${src}']`)
+  if (imageElement) {
+    const base64Image = await imageElement.evaluate((element) => {
+      const canvas = document.createElement("canvas")
+      const context = canvas.getContext("2d")
+      canvas.width = element.width
+      canvas.height = element.height
+      context?.drawImage(element, 0, 0, element.width, element.height)
+      return canvas.toDataURL("image/png") // 获取图像的Base64编码
+    })
+    const md5Key = md5(base64Image)
+    imgIdToMd5Map.setByImgId(src, md5Key)
+    md5ToCharMap.setItem(md5Key, {
+      char: "",
+      img: base64Image
+    })
+    return `<img>:${base64Image}`
+  }
+  return `<img>:${domian}${src}`
+}
+
+const getNeirongFromTagI = async (item: Element) => {
+  const charCode = item.innerHTML.charCodeAt(0)
+  let char = ""
+  Object.entries(fontMap).find(([charCodeStr, _char]) => {
+    // 解析16进制数
+    const _charCode = parseInt(charCodeStr.replace("U+", ""), 16)
+
+    if (_charCode === charCode) {
+      char = _char
+      return true
     }
-    const { url } = req.query as unknown as GetBookPageContentParams
+    return false
+  })
+  return char || "<i>"
+}
+
+export default createPuppeteerApi<GetBookPageContentParams, {}, GetBookPageContentRes>(
+  async (req, res, page) => {
+    const { url } = req.query
     if (!url) {
-      res.send({ status: "error", message: "url must string" } as ResSendData)
+      res.send({ status: "error", message: "url must string" })
       return
     }
 
@@ -31,19 +72,19 @@ export default async (req: Request, res: Response): Promise<void> => {
     const waitRes = await waitPage(page, {
       isChapterInfo: new Promise((r) => {
         page
-          .waitForSelector(".chapterinfo")
+          ?.waitForSelector(".chapterinfo")
           .then(() => r("isTargetPage"))
           .catch(() => null)
       }),
       isNeiRong: new Promise((r) => {
         page
-          .waitForSelector(".neirong")
+          ?.waitForSelector(".neirong")
           .then(() => r("isTargetPage"))
           .catch(() => null)
       })
     }).catch(() => null)
     if (waitRes !== "isTargetPage") {
-      res.send({ status: "error", message: waitRes } as ResSendData)
+      res.send({ status: "error", message: waitRes })
       return
     }
     await sleep(500)
@@ -74,6 +115,7 @@ export default async (req: Request, res: Response): Promise<void> => {
     let neiRong = document.querySelector(".chapterinfo") || document.querySelector(".neirong")
 
     const neirongChildrenList: Element[] = []
+    // 平铺内容dom
     const flatDomTree = (dom: Element, level: number) => {
       if (dom?.getAttribute?.("style")?.includes("display: none")) return
       if (dom.tagName === "DIV") {
@@ -86,6 +128,19 @@ export default async (req: Request, res: Response): Promise<void> => {
     }
     neiRong && flatDomTree(neiRong, 1)
     const neiRongList: string[] = []
+    const pushNeiRongList = (newItem: string) => {
+      const { length } = neiRongList
+      const theLast = neiRongList[length - 1]
+      const isSpecialItem = (item: string) => {
+        if (item === "<i>" || item === "<br>" || item?.match(/^<img>:/)) return true
+        return false
+      }
+      if (length === 0 || isSpecialItem(theLast) || isSpecialItem(newItem)) {
+        neiRongList.push(newItem)
+      } else {
+        neiRongList[length - 1] = theLast + newItem
+      }
+    }
     for (let i = 0; i < neirongChildrenList.length; i++) {
       const item = neirongChildrenList[i] as
         | HTMLImageElement
@@ -94,60 +149,26 @@ export default async (req: Request, res: Response): Promise<void> => {
         | HTMLDivElement
 
       if ((item as unknown as Text).data) {
-        neiRongList.push((item as unknown as Text).data)
+        pushNeiRongList((item as unknown as Text).data)
         continue
       }
 
       if (item.tagName === "IMG") {
-        const src = (item as HTMLImageElement).src
-        const md5Key = imgIdToMd5Map.getByImgId(src || "") || ""
-        const { char, img } = md5ToCharMap.getByKey(md5Key) || {}
-        if (char) {
-          neiRongList.push(char)
-          continue
-        }
-        if (img) {
-          neiRongList.push(`<img>:${img}`)
-          continue
-        }
-        console.log("getImg", src)
-        const imageElement = await page.$(`img[src='${src}']`)
-        if (imageElement) {
-          const base64Image = await imageElement.evaluate((element) => {
-            const canvas = document.createElement("canvas")
-            const context = canvas.getContext("2d")
-            canvas.width = element.width
-            canvas.height = element.height
-            context?.drawImage(element, 0, 0, element.width, element.height)
-            return canvas.toDataURL("image/png") // 获取图像的Base64编码
-          })
-          const md5Key = md5(base64Image)
-          imgIdToMd5Map.setByImgId(src, md5Key)
-          md5ToCharMap.setItem(md5Key, {
-            char: "",
-            img: base64Image
-          })
-          neiRongList.push(`<img>:${base64Image}`)
-          continue
-        }
-
-        neiRongList.push(`<img>:${domian}${src}`)
+        pushNeiRongList(await getNeirongFromTagImg(item, page, domian))
         continue
       }
 
       if (item.tagName === "I") {
-        neiRongList.push("<i>")
+        pushNeiRongList(await getNeirongFromTagI(item))
         continue
       }
 
       if (item.tagName === "BR") {
-        neiRongList.push("<br>")
+        pushNeiRongList("<br>")
         continue
       }
-
-      neiRongList.push(`${item}`)
+      pushNeiRongList(`${item}`)
     }
-    neirongChildrenList.forEach(async (_item) => {})
 
     // 提取分页
     const pageList = Array.from(document.querySelectorAll(".chapterPages a") || []).map(
@@ -173,13 +194,6 @@ export default async (req: Request, res: Response): Promise<void> => {
         preUrl,
         nextUrl
       }
-    } as GetBookPageContentRes)
-    return
-  } catch (error) {
-    Log.error(`${error}`)
-    res.send({
-      status: "error",
-      message: `${error}`
     })
   }
-}
+)

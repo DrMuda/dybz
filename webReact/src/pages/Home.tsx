@@ -61,7 +61,7 @@ export default function Home() {
         {searchBar}
         <div className="h-full">
           <div className="h-full flex justify-center items-center">
-            <CenterErrorBlock status={error ? "busy" : "empty"} />
+            <CenterErrorBlock status={error ? "busy" : "empty"} title="没有书籍" description="去搜索添加吧" />
           </div>
           <Setting />
         </div>

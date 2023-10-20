@@ -172,12 +172,14 @@ export default function Setting({
                         }
                       );
                       if (
-                        res &&
-                        res.status === "success" &&
+                        res?.status === "success" &&
                         res.data instanceof Array
                       ) {
                         setChannelList(res.data);
+                        Toast.show(`更新成功`);
+                        return;
                       }
+                      Toast.show(`更新失败， ${res?.message}`);
                     }}
                     color="primary"
                     size="small"

@@ -1,25 +1,14 @@
-import { Request, Response } from "express"
-import PuppeteerSingleton from "../utils/PuppeteerSingle"
-import { puppeteerError, sleep } from "../utils/utils"
-import Log from "../utils/Log"
 import jsdom from "jsdom"
-import { ResSendData } from "../types"
 import { Chatper, GetChatperListParams, GetChatperListRes } from "./types"
-import { ElementHandle } from "puppeteer"
 import { waitPage } from "../utils/waitPage"
+import createPuppeteerApi from "../utils/createPuppeteerApi"
 
 const { JSDOM } = jsdom
-const puppeteer = PuppeteerSingleton.getInstance()
-export default async (req: Request, res: Response): Promise<void> => {
-  try {
-    const page = await puppeteer.getPage()
-    if (!page) {
-      res.send(puppeteerError)
-      return
-    }
-    const { page: chatperListPage, url } = req.query as unknown as GetChatperListParams
+export default createPuppeteerApi<GetChatperListParams, {}, GetChatperListRes>(
+  async (req, res, page) => {
+    const { page: chatperListPage, url } = req.query
     if (!chatperListPage || !url) {
-      res.send({ status: "error", message: "page must number, url must string" } as ResSendData)
+      res.send({ status: "error", message: "page must number, url must string" })
       return
     }
 
@@ -28,13 +17,13 @@ export default async (req: Request, res: Response): Promise<void> => {
     const waitRes = await waitPage(page, {
       isTarGetPage: new Promise((r) => {
         page
-          .waitForSelector(".chapter-list")
+          ?.waitForSelector(".chapter-list")
           .then(() => r("isTarGetPage"))
           .catch(() => null)
       })
     })
     if (waitRes !== "isTarGetPage") {
-      res.send({ status: "error", message: waitRes } as ResSendData)
+      res.send({ status: "error", message: waitRes })
       return
     }
 
@@ -55,12 +44,6 @@ export default async (req: Request, res: Response): Promise<void> => {
       let pageStr = pageMsg[0].split("/")[1]
       totalPage = parseInt(pageStr)
     }
-    res.send({ status: "success", data: { chatperList, totalPage } } as GetChatperListRes)
-  } catch (error) {
-    Log.error(`${error}`)
-    res.send({
-      status: "error",
-      message: `${error}`
-    })
+    res.send({ status: "success", data: { chatperList, totalPage } })
   }
-}
+)
