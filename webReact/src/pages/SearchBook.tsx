@@ -36,7 +36,7 @@ export default function SearchBook() {
   const [keyword, setKeyword] = useState<string>(defauleKeyword);
   const [pagination, setPagination] = useState({ page: 1, totalPage: 1 });
 
-  const { data, isLoading, refetch, error } = useQuery(
+  const { data, isLoading, refetch, isFetching, error } = useQuery(
     ["searchBook", keyword, pagination.page],
     async () => {
       if (!keyword || !defaultChannel) return;
@@ -109,7 +109,7 @@ export default function SearchBook() {
           );
         })}
       </Bookshelf>
-      {isLoading && (
+      {(isLoading || isFetching) && (
         <Mask
           color="white"
           visible={true}

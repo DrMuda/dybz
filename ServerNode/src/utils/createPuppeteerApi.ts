@@ -20,9 +20,13 @@ function createPuppeteerApi<MyQuery, MyBody, SendData extends ResSendData>(
 ) {
   return async (req: Request, res: Response) => {
     let page: Page | null = null
-    Log.info(`${req.url}, ${req.query}, ${req.body}`)
+    Log.info(`${req.url}, ${JSON.stringify(req.query)}, ${JSON.stringify(req.body)}`)
     res.addListener("error", (error) => {
-      Log.error(`${req.url}, ${req.query}, ${req.body}, ${error}`)
+      Log.error(
+        `${req.url}, ${JSON.stringify(req.query)}, ${JSON.stringify(req.body)}, ${JSON.stringify(
+          error
+        )}`
+      )
     })
     res.addListener("finish", () => {
       page && page.close()
@@ -36,12 +40,15 @@ function createPuppeteerApi<MyQuery, MyBody, SendData extends ResSendData>(
       // @ts-ignore
       await fn(req, res, page)
     } catch (error) {
-      Log.error(`${error}`)
-      res.send({
-        status: "error",
-        message: `${error}`
-      })
-      page && page.close()
+      Log.error(`${JSON.stringify(error)}`)
+      res
+        .send({
+          status: "error",
+          message: `${JSON.stringify(error)}`
+        })
+        .addListener("finish", () => {
+          page && page.close()
+        })
     }
   }
 }

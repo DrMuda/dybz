@@ -7,6 +7,7 @@ const PullRefreshContain = styled.div(() => ({
     height: "100%",
     ".adm-pull-to-refresh-content": {
       height: "100%",
+      overflowX: "hidden",
     },
   },
 }));

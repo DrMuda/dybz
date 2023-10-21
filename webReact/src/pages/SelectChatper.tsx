@@ -53,6 +53,7 @@ export default function SelectChatper() {
     data: chatperListRes,
     isLoading,
     refetch,
+    isFetching,
     error,
   } = useQuery({
     queryKey: [tempChannel, pagination.page],
@@ -174,7 +175,7 @@ export default function SelectChatper() {
           </div>
         )}
       </div>
-      {isLoading && (
+      {(isLoading || isFetching) && (
         <Mask
           color="white"
           visible={true}

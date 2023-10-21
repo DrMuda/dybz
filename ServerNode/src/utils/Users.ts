@@ -1,8 +1,8 @@
 import isFileExistedAndCreate from "./isFileExistedAndCreate"
 import fs from "fs"
-import moment from "moment"
 import Log from "./Log"
 import { User, Users as IUsers, UserId } from "../types"
+import dayjs from 'dayjs'
 
 const fileName = "../data/users.json"
 const timeFomat = "YYYY-MM-DD HH:mm:ss"
@@ -120,14 +120,14 @@ class Users {
     const { password } = user
     if (this.users[id]) {
       if (this.users[id].password === password) {
-        this.users[id] = { ...user, password, lastUpdate: moment().format(timeFomat) }
+        this.users[id] = { ...user, password, lastUpdate: dayjs().format(timeFomat) }
         this.hasNewData = true
         return true
         // return await this._updateFile();
       }
       return "user error"
     } else {
-      this.users[id] = { ...user, password, lastUpdate: moment().format(timeFomat) }
+      this.users[id] = { ...user, password, lastUpdate: dayjs().format(timeFomat) }
       return true
       // return await this._updateFile();
     }

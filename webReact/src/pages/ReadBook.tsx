@@ -67,7 +67,6 @@ export default function ReadBook() {
           ? nextUrl
           : pageUrlList[currentPageIndex + 1];
 
-      console.log(currentPageIndex, pageUrlList, currentPageUrl);
       if (!url) return;
       const res = await getBookPageContent({ url }).catch(() => null);
       if (!(res?.status === "success") || !res.data)
@@ -83,15 +82,14 @@ export default function ReadBook() {
     data,
     refetch: _refetch,
     isLoading,
+    isFetching,
   } = useQuery({
     queryFn: async () => {
       if (!currentPageUrl) return;
       if (cacheBook?.chapterUrl === currentPageUrl) {
-        console.log("use caceh");
         return cacheBook;
       }
       if (nextPageData?.chapterUrl === currentPageUrl) {
-        console.log("use preload");
         return nextPageData;
       }
 
@@ -176,7 +174,7 @@ export default function ReadBook() {
           "flex-row-reverse": navPosition === "right",
         })}
       >
-        <div className="h-full w-24 flex-shrink-0 flex-grow-0 p-2 shadow-lg flex items-center flex-col gap-2 scale-100 overflow-auto pb-16">
+        <div className="h-full w-24 flex-shrink-0 flex-grow-0 p-2 shadow-lg flex items-center flex-col gap-2 scale-100 overflow-auto overflow-x-hidden pb-16">
           <NavBtn onClick={() => refetch()}>刷新</NavBtn>
           {preUrl && (
             <NavBtn onClick={() => setCurrentPageUrl(preUrl)}>上一章</NavBtn>
@@ -231,12 +229,13 @@ export default function ReadBook() {
           })}
         </div>
 
-        {isLoading && (
+        {(isLoading || isFetching) && (
           <Mask
             color="white"
             visible={true}
             className={classnames({
-              "!flex justify-center items-center": true,
+              // 96px 侧边栏宽度
+              "!flex justify-center items-center !w-[calc(100%-96px)]": true,
               "!left-24": navPosition === "left",
               "!left-[-96px]": navPosition === "right",
             })}

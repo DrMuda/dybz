@@ -8,6 +8,7 @@ import md5 from "md5"
 import { Page } from "puppeteer"
 import fontMap from "../utils/fontMap"
 import createPuppeteerApi from "../utils/createPuppeteerApi"
+import Log from '../utils/Log'
 
 const { JSDOM } = jsdom
 const imgIdToMd5Map = ImgIdToMd5Map.getInstance()
@@ -84,7 +85,7 @@ export default createPuppeteerApi<GetBookPageContentParams, {}, GetBookPageConte
       })
     }).catch(() => null)
     if (waitRes !== "isTargetPage") {
-      res.send({ status: "error", message: waitRes })
+      res.send({ status: "error", message: waitRes || null })
       return
     }
     await sleep(500)

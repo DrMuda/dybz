@@ -17,12 +17,8 @@ class PuppeteerSingleton {
         "--ignore-certifcate-errors-spki-list",
         "--disable-web-security"
       ],
-      headless: "new",
-      // headless: false,
-      executablePath:
-        process.env.NODE_ENV === "production"
-          ? "../Chromium.app"
-          : undefined
+      // headless: "new",
+      headless: process.env.NODE_ENV === "production" ? "new" : false
     })
     this.browser = browser
   }
@@ -39,9 +35,9 @@ class PuppeteerSingleton {
   }
   public async newPage(): Promise<Page | null> {
     if (!this.browser) await this.init()
-    
+
     const page = await this.browser?.newPage()
-    if(!page) throw "new page error"
+    if (!page) throw "new page error"
     page.emulate(KnownDevices["Galaxy Note 3"])
     await page.setRequestInterception(true)
     await page.on("request", (interceptedRequest) => {

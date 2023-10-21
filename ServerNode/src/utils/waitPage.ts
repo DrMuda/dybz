@@ -1,5 +1,6 @@
 import { Page } from "puppeteer"
 import { sleep } from "./utils"
+import Log from './Log'
 
 export type WherePages =
   | "isChecking"
@@ -58,12 +59,11 @@ export const waitPageNoFound = (content: string): boolean => {
 export const pagesAction = async (wherePages: WherePages, page: Page) => {
   switch (wherePages) {
     case "isChecking": {
-      await page.waitForSelector("input").catch(() => null)
+      await page.waitForSelector("input").catch((error) => Log.error(error))
       break
     }
     case "isVerify": {
       await page.type("input", "1234")
-      await page.click("a")
       await sleep(500)
       await page.click("a")
       break

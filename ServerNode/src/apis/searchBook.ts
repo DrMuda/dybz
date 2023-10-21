@@ -2,6 +2,7 @@ import jsdom from "jsdom"
 import { SearchBookParams, SearchBookRes } from "./types"
 import { waitPage } from "../utils/waitPage"
 import createPuppeteerApi from "../utils/createPuppeteerApi"
+import Log from '../utils/Log'
 
 const { JSDOM } = jsdom
 export default createPuppeteerApi<SearchBookParams, {}, SearchBookRes>(async (req, res, page) => {
@@ -19,7 +20,7 @@ export default createPuppeteerApi<SearchBookParams, {}, SearchBookRes>(async (re
     return
   }
 
-  await page.goto(`${channel}`)
+  await page.goto(channel)
 
   let waitRes = await waitPage(page, {
     isTarGetPage: new Promise((r) => {

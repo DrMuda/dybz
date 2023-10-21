@@ -1,12 +1,8 @@
 import { Request, Response } from "express"
-import { Page } from "puppeteer"
 import PuppeteerSingleton from "./PuppeteerSingle"
-import { puppeteerError } from "./utils"
 import Log from "./Log"
 import { ResSendData } from "../types"
-import { error } from "console"
 
-const puppeteer = PuppeteerSingleton.getInstance()
 // @ts-ignore
 interface MyRequest<MyQuery, MyBody> extends Request {
   query: MyQuery
@@ -20,18 +16,22 @@ function createApi<MyQuery, MyBody, SendData extends ResSendData>(
   fn: (req: MyRequest<MyQuery, MyBody>, res: MyResponse<SendData>) => Promise<any>
 ) {
   return async (req: Request, res: Response) => {
-    Log.info(`${req.url}, ${req.query}, ${req.body}`)
+    Log.info(`${req.url}, ${JSON.stringify(req.query)}, ${JSON.stringify(req.body)}`)
     res.addListener("error", (error) => {
-      Log.error(`${req.url}, ${req.query}, ${req.body}, ${error}`)
+      Log.error(
+        `${req.url}, ${JSON.stringify(req.query)}, ${JSON.stringify(req.body)}, ${JSON.stringify(
+          error
+        )}`
+      )
     })
     try {
       // @ts-ignore
       await fn(req, res)
     } catch (error) {
-      Log.error(`${error}`)
+      Log.error(`${JSON.stringify(error)}`)
       res.send({
         status: "error",
-        message: `${error}`
+        message: `${JSON.stringify(error)}`
       })
     }
   }

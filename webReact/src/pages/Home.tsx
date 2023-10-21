@@ -61,7 +61,11 @@ export default function Home() {
         {searchBar}
         <div className="h-full">
           <div className="h-full flex justify-center items-center">
-            <CenterErrorBlock status={error ? "busy" : "empty"} title="没有书籍" description="去搜索添加吧" />
+            <CenterErrorBlock
+              status={error ? "busy" : "empty"}
+              title="没有书籍"
+              description="去搜索添加吧"
+            />
           </div>
           <Setting />
         </div>
@@ -72,54 +76,60 @@ export default function Home() {
     <HFullPullRefresh onRefresh={refetch}>
       {searchBar}
       <Bookshelf className="grid">
-        {bookList?.map(({ name, id }) => {
-          return (
-            <Card
-              title={<div className="h-[80px]">{name}</div>}
-              style={{ boxShadow: "0 0 10px rgba(0,0,0,0.2)" }}
-              key={id}
-              onClick={() => {
-                if (!history) {
-                  navigate(`/selectChatper?bookId=${id}`);
-                } else {
-                  navigate(`/readBook?bookId=${id}`);
-                }
-              }}
-            >
-              <div className="flex justify-between">
-                <Button
-                  size="mini"
-                  onClick={(e) => {
-                    e.stopPropagation();
+        {bookList
+          ?.sort(
+            ({ lastUpdate }, { lastUpdate: _lastUpdate }) =>
+              new Date(_lastUpdate || "").getTime() -
+              new Date(lastUpdate || "").getTime()
+          )
+          .map(({ name, id }) => {
+            return (
+              <Card
+                title={<div className="h-[80px]">{name}</div>}
+                style={{ boxShadow: "0 0 10px rgba(0,0,0,0.2)" }}
+                key={id}
+                onClick={() => {
+                  if (!history) {
                     navigate(`/selectChatper?bookId=${id}`);
-                  }}
-                  color="primary"
-                >
-                  章节
-                </Button>
-                <Button
-                  size="mini"
-                  color="danger"
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    if (!user?.id || !user.password) return;
-                    const res = await delBook({
-                      bookId: id,
-                      user: { id: user.id, password: user.password },
-                    }).catch(() => null);
-                    if (res?.status === "success") {
-                      refetch();
-                    } else {
-                      Toast.show("删除失败");
-                    }
-                  }}
-                >
-                  删除
-                </Button>
-              </div>
-            </Card>
-          );
-        })}
+                  } else {
+                    navigate(`/readBook?bookId=${id}`);
+                  }
+                }}
+              >
+                <div className="flex justify-between">
+                  <Button
+                    size="mini"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/selectChatper?bookId=${id}`);
+                    }}
+                    color="primary"
+                  >
+                    章节
+                  </Button>
+                  <Button
+                    size="mini"
+                    color="danger"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!user?.id || !user.password) return;
+                      const res = await delBook({
+                        bookId: id,
+                        user: { id: user.id, password: user.password },
+                      }).catch(() => null);
+                      if (res?.status === "success") {
+                        refetch();
+                      } else {
+                        Toast.show("删除失败");
+                      }
+                    }}
+                  >
+                    删除
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
         {isLoading && (
           <Mask
             color="white"

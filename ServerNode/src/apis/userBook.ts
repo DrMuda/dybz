@@ -1,15 +1,14 @@
 import Log from "../utils/Log"
 import Users from "../utils/Users"
-import moment from "moment"
 import { dateFormat, userError, userNoExistError } from "../utils/utils"
 import { GetBookListRes, DelBookParams, EditBookParams, GetBookListParams } from "./types"
 import createApi from "../utils/createApi"
 import { ResSendData } from "../types"
+import dayjs from 'dayjs'
 
 const users = Users.getInstance()
 
 export const getBookList = createApi<GetBookListParams, {}, GetBookListRes>(async (req, res) => {
-  Log.info(`${req.url}, ${req.query}, ${req.body}`)
   const { userId, userPassword } = req.query
   if (!userId || !userPassword) {
     res.send({ status: "error", message: "userId and userPassword is required" })
@@ -59,8 +58,8 @@ export const editBook = createApi<{}, EditBookParams, ResSendData>(async (req, r
   }
   if (userRes === "not exist") {
     users.setUser(user.id, {
-      bookList: [{ ...book, lastUpdate: moment().format(dateFormat), delete: false }],
-      lastUpdate: moment().format(dateFormat),
+      bookList: [{ ...book, lastUpdate: dayjs().format(dateFormat), delete: false }],
+      lastUpdate: dayjs().format(dateFormat),
       password: user.password
     })
     Log.info(`create user:  ${user.id}; add book: ${book.id}`)
@@ -72,13 +71,13 @@ export const editBook = createApi<{}, EditBookParams, ResSendData>(async (req, r
     foundBook.name = book.name
     foundBook.url = book.url
     foundBook.historyUrl = book.historyUrl
-    foundBook.lastUpdate = moment().format(dateFormat)
+    foundBook.lastUpdate = dayjs().format(dateFormat)
     users.setUser(user.id, userRes)
     Log.info(`user @${user.id} update book: ${book.id}`)
     res.send({ status: "success", message: "update book" })
     return
   }
-  userRes.bookList.push({ ...book, lastUpdate: moment().format(dateFormat) })
+  userRes.bookList.push({ ...book, lastUpdate: dayjs().format(dateFormat) })
   users.setUser(user.id, userRes)
   Log.info(`user @${user.id} add book: ${book.id}`)
   res.send({ status: "success", message: "add book" })
@@ -113,11 +112,11 @@ export const delBook = createApi<{}, DelBookParams, ResSendData>(async (req, res
   const foundBook = userRes.bookList.find((book) => book.id === bookId)
   if (foundBook) {
     foundBook.delete = true
-    foundBook.lastUpdate = moment().format(dateFormat)
+    foundBook.lastUpdate = dayjs().format(dateFormat)
   }
   users.setUser(user.id, {
     ...userRes,
-    lastUpdate: moment().format(dateFormat)
+    lastUpdate: dayjs().format(dateFormat)
   })
   Log.info(`@${user.id} del book: ${foundBook?.id}`)
   res.send({ status: "success", message: `del book` })

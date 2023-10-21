@@ -2,6 +2,7 @@ import jsdom from "jsdom"
 import { Chatper, GetChatperListParams, GetChatperListRes } from "./types"
 import { waitPage } from "../utils/waitPage"
 import createPuppeteerApi from "../utils/createPuppeteerApi"
+import Log from '../utils/Log'
 
 const { JSDOM } = jsdom
 export default createPuppeteerApi<GetChatperListParams, {}, GetChatperListRes>(

@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Button, Radio, Space, Toast } from "antd-mobile";
+import { Button, Radio, Space, Switch, Toast } from "antd-mobile";
 import { useContext } from "react";
 import { AiFillSetting, AiOutlineClose } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,10 @@ import { LocalStorageContext, Ocr } from "../contexts/LocalStorageContext";
 import { getChannelList } from "../services/setting";
 import LoadingButton from "./LoadingButton";
 import { AppContext } from "../contexts/AppContext";
+import VConsole from "vconsole";
 
+const vconsole = new VConsole();
+vconsole.hideSwitch();
 const Container = styled.div(
   ({ open, position }: { open: boolean; position: "left" | "right" }) => ({
     backgroundColor: open ? "white" : "#1890ff",
@@ -119,6 +122,20 @@ export default function Setting({
               >
                 管理字符
               </Button>
+              <Switch
+                onChange={(value) => {
+                  if (value) {
+                    // vconsole.show();
+                    vconsole.showSwitch();
+                  } else {
+                    // vconsole.hide();
+                    vconsole.hideSwitch();
+                  }
+                }}
+                checkedText="控制台开启"
+                uncheckedText="控制台关闭"
+                defaultChecked={false}
+              />
             </div>
 
             <div className="flex gap-1">
