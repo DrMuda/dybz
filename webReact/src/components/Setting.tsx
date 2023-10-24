@@ -95,7 +95,7 @@ export default function Setting({
 
   return (
     <div
-      className="w-full h-full fixed z-50"
+      className="w-full h-full fixed z-[1001]"
       style={{ pointerEvents: settingOpen ? "auto" : "none" }}
     >
       <Container open={settingOpen || false} position={position}>

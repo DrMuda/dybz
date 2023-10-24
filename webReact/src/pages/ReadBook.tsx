@@ -23,8 +23,10 @@ import { editBook, getBookList } from "../services/userBook";
 
 const NavBtn = styled(Button)(() => ({
   width: "100%",
+  fontSize: "10px",
 }));
 export default function ReadBook() {
+  const navBarWidth = 72;
   const [navPosition, setNavPosition] = useState<"left" | "right">("left");
   const [pageUrlList, setPageUrlList] = useState<string[]>([]);
   const [bookId] = useHashSearchParams("bookId");
@@ -85,11 +87,16 @@ export default function ReadBook() {
     isFetching,
   } = useQuery({
     queryFn: async () => {
-      if (!currentPageUrl) return;
+      if (!currentPageUrl) {
+        console.log("currentPageUrl null");
+        return;
+      }
       if (cacheBook?.chapterUrl === currentPageUrl) {
+        console.log("use cache");
         return cacheBook;
       }
       if (nextPageData?.chapterUrl === currentPageUrl) {
+        console.log("use preload");
         return nextPageData;
       }
 
@@ -107,6 +114,7 @@ export default function ReadBook() {
         Toast.show("获取数据失败");
         return;
       }
+
       return res.data;
     },
     queryKey: [currentPageUrl],
@@ -174,7 +182,9 @@ export default function ReadBook() {
           "flex-row-reverse": navPosition === "right",
         })}
       >
-        <div className="h-full w-24 flex-shrink-0 flex-grow-0 p-2 shadow-lg flex items-center flex-col gap-2 scale-100 overflow-auto overflow-x-hidden pb-16">
+        <div
+          className={`h-full w-[${navBarWidth}px] flex-shrink-0 flex-grow-0 p-2 shadow-lg flex items-center flex-col gap-2 scale-100 overflow-auto overflow-x-hidden pb-16`}
+        >
           <NavBtn onClick={() => refetch()}>刷新</NavBtn>
           {preUrl && (
             <NavBtn onClick={() => setCurrentPageUrl(preUrl)}>上一章</NavBtn>
@@ -187,6 +197,7 @@ export default function ReadBook() {
               <NavBtn
                 onClick={() => setCurrentPageUrl(pageUrl)}
                 color={pageUrl === currentPageUrl ? "primary" : "default"}
+                key={pageUrl}
               >
                 {index + 1}
               </NavBtn>
@@ -234,11 +245,15 @@ export default function ReadBook() {
             color="white"
             visible={true}
             className={classnames({
-              // 96px 侧边栏宽度
-              "!flex justify-center items-center !w-[calc(100%-96px)]": true,
-              "!left-24": navPosition === "left",
-              "!left-[-96px]": navPosition === "right",
+              "!flex justify-center items-center": true,
             })}
+            style={{
+              width: `calc(100% - ${navBarWidth}px) !important`,
+              left:
+                navPosition === "left"
+                  ? `${navBarWidth}px`
+                  : `-${navBarWidth}px`,
+            }}
             onMaskClick={checkDoubleClick}
           >
             <SpinLoading style={{ "--size": "48px" }} />

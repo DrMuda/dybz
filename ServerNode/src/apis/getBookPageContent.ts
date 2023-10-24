@@ -73,13 +73,13 @@ export default createPuppeteerApi<GetBookPageContentParams, {}, GetBookPageConte
     const waitRes = await waitPage(page, {
       isChapterInfo: new Promise((r) => {
         page
-          ?.waitForSelector(".chapterinfo")
+          ?.waitForSelector(".chapterinfo br")
           .then(() => r("isTargetPage"))
           .catch(() => null)
       }),
       isNeiRong: new Promise((r) => {
         page
-          ?.waitForSelector(".neirong")
+          ?.waitForSelector(".neirong br")
           .then(() => r("isTargetPage"))
           .catch(() => null)
       })
@@ -88,7 +88,8 @@ export default createPuppeteerApi<GetBookPageContentParams, {}, GetBookPageConte
       res.send({ status: "error", message: waitRes || null })
       return
     }
-    await sleep(500)
+    await page.waitForSelector(".chapterPages a")
+    await page.waitForSelector(".page-control a")
     let content = await page.content()
 
     if (content.includes(".append(e)")) {
@@ -107,7 +108,7 @@ export default createPuppeteerApi<GetBookPageContentParams, {}, GetBookPageConte
         )
         .catch(() => null)
     }
-    await sleep(500)
+    await sleep(1000)
 
     content = await page.content()
     const { document } = new JSDOM(content).window
@@ -194,7 +195,8 @@ export default createPuppeteerApi<GetBookPageContentParams, {}, GetBookPageConte
         pageList,
         preUrl,
         nextUrl
-      }
+      },
+      message: content
     })
   }
 )

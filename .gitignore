@@ -30,3 +30,4 @@ nodeServerLog.txt
 build
 config.json
 script/.env
+webReact/test.html
