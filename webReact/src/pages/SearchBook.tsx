@@ -47,7 +47,7 @@ export default function SearchBook() {
       });
       return res;
     },
-    { refetchOnWindowFocus: false }
+    { refetchOnWindowFocus: false, retry: false }
   );
 
   const { bookList, totalPage } = data?.data || {};

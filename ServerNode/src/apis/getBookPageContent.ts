@@ -196,7 +196,7 @@ export default createPuppeteerApi<GetBookPageContentParams, {}, GetBookPageConte
         preUrl,
         nextUrl
       },
-      message: content
+      // message: content
     })
   }
 )

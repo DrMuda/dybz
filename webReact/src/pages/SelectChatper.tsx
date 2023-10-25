@@ -43,6 +43,7 @@ export default function SelectChatper() {
       return res;
     },
     refetchOnWindowFocus: false,
+    retry: false
   });
   const currentBook = useMemo(() => {
     return bookRes?.data?.find(({ id }) => id === parseInt(bookId || ""));

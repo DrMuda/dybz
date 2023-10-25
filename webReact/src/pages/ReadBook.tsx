@@ -31,6 +31,7 @@ export default function ReadBook() {
   const [pageUrlList, setPageUrlList] = useState<string[]>([]);
   const [bookId] = useHashSearchParams("bookId");
   const [currentPageUrl, setCurrentPageUrl] = useState<string>();
+  const [reloadingPageUrl, setReloadingPageUrl] = useState<string>();
   const [preUrl, setPreUrl] = useState<string>();
   const [nextUrl, setNextUrl] = useState<string>();
   const [cacheBook, setCacheBook, removeCacheBook] = useLocalStorage<
@@ -59,17 +60,15 @@ export default function ReadBook() {
     refetchOnWindowFocus: false,
   });
   // 预请求下一页数据
-  const { data: nextPageData, refetch: fetchNextPage } = useQuery({
+  const { data: nextPageData, refetch: fetchNextPage, isFetching: isReloading } = useQuery({
     queryFn: async () => {
       const currentPageIndex = pageUrlList.findIndex(
         (url) => url === currentPageUrl
       );
-      const url =
-        currentPageUrl === pageUrlList[pageUrlList.length - 1]
-          ? nextUrl
-          : pageUrlList[currentPageIndex + 1];
+      const url = pageUrlList[currentPageIndex + 1] || nextUrl;
 
       if (!url) return;
+      setReloadingPageUrl(url)
       const res = await getBookPageContent({ url }).catch(() => null);
       if (!(res?.status === "success") || !res.data)
         throw "preLoad fail, retry";
@@ -78,6 +77,7 @@ export default function ReadBook() {
     queryKey: [],
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+    retry: 10,
   });
   // 请求当前页数据
   const {
@@ -141,10 +141,11 @@ export default function ReadBook() {
     setNextUrl(data.nextUrl);
     setPreUrl(data.preUrl);
     setContentList(data.contentList);
-    data && setCacheBook(data);
+    setCacheBook(data);
     setTimeout(() => {
       fetchNextPage();
-    }, 1);
+      // 不知为何， 设置0、1ms都会让 fetchNextPage 没能及时获取到正确的 PageUrlList
+    }, 10);
 
     if (user?.id && user.password && currentBook) {
       editBook({
@@ -190,14 +191,16 @@ export default function ReadBook() {
             <NavBtn onClick={() => setCurrentPageUrl(preUrl)}>上一章</NavBtn>
           )}
           {nextUrl && (
-            <NavBtn onClick={() => setCurrentPageUrl(nextUrl)}>下一章</NavBtn>
+            <NavBtn onClick={() => setCurrentPageUrl(nextUrl)} loading={reloadingPageUrl === nextUrl && isReloading}>下一章</NavBtn>
           )}
           {pageUrlList.map((pageUrl, index) => {
+            console.log({reloadingPageUrl, isReloading})
             return (
               <NavBtn
                 onClick={() => setCurrentPageUrl(pageUrl)}
                 color={pageUrl === currentPageUrl ? "primary" : "default"}
                 key={pageUrl}
+                loading={reloadingPageUrl === pageUrl && isReloading}
               >
                 {index + 1}
               </NavBtn>
