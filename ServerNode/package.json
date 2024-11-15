@@ -10,7 +10,7 @@
         "express": "^4.17.3",
         "jsdom": "^22.1.0",
         "md5": "^2.3.0",
-        "puppeteer": "^21.3.8",
+        "puppeteer": "^23.8.0",
         "ts-node": "^10.9.1",
         "ts-node-dev": "^2.0.0",
         "typescript": "^5.0.4"

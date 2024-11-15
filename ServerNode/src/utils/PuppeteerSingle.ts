@@ -7,7 +7,6 @@ class PuppeteerSingleton {
   private async init() {
     console.log("init puppeteer")
     const browser = await puppeteer.launch({
-      ignoreHTTPSErrors: true,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -18,7 +17,7 @@ class PuppeteerSingleton {
         "--disable-web-security"
       ],
       // headless: "new",
-      headless: process.env.NODE_ENV === "production" ? "new" : false
+      headless: process.env.NODE_ENV === "production" ? true : false
     })
     this.browser = browser
   }
@@ -38,8 +37,16 @@ class PuppeteerSingleton {
 
     const page = await this.browser?.newPage()
     if (!page) throw "new page error"
-    page.emulate(KnownDevices["Galaxy Note 3"])
+    page.emulate(KnownDevices["Galaxy S8"])
     await page.setRequestInterception(true)
+    await page.setUserAgent(
+      "Mozilla/5.0 (Linux; Android 7.0; SM-G950F Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/5.2 Chrome/51.0.2704.106 Mobile Safari/537.36"
+    )
+    await page.evaluateOnNewDocument(() => {
+      Object.defineProperty(navigator, "webdriver", {
+        get: () => false
+      })
+    })
     await page.on("request", (interceptedRequest) => {
       // 此图片不能阻止， 否则超时
       if (interceptedRequest.url().endsWith("jipin-default.jpg")) {
